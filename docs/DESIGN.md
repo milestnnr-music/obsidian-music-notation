@@ -3,7 +3,7 @@
 **Plugin id:** `abc-blocks`  
 **Repository:** [https://github.com/milestnnr-music/obsidian-music-notation](https://github.com/milestnnr-music/obsidian-music-notation)  
 **Dev vault:** `Desktop/Ideas/Obsidian Dev Vault`  
-**Current status:** Phase 1.1–1.4 complete. **Phase 1.5 is next** (empty / whitespace block detection).
+**Current status:** Phase 1 complete. **Phase 2 is next** (abcjs read path).
 
 > **For Cursor agents:** Read this document first before implementing features. See also [AGENTS.md](../AGENTS.md), [README.md](../README.md), and [LIMITATIONS.md](../LIMITATIONS.md).
 
@@ -196,7 +196,7 @@ Phases run **serially** (0 → 1 → 2 → … → 7+). Within a phase, steps ma
 
 ---
 
-### Phase 1 — Block lifecycle ⬅ IN PROGRESS
+### Phase 1 — Block lifecycle ✅ DONE
 
 **Goal:** Obsidian recognizes ` ```abc ` blocks; correct behavior per view mode.
 
@@ -207,12 +207,16 @@ Phases run **serially** (0 → 1 → 2 → … → 7+). Within a phase, steps ma
 | 1.2  | Reading view render path ✅                                | Parallel   | 1.1           |
 | 1.3  | Live Preview interactive container ✅                      | Parallel   | 1.1           |
 | 1.4  | Preserve Source mode (raw ABC) ✅                          | Parallel   | 1.1           |
-| 1.5  | Detect empty / whitespace blocks                        | **Serial** | 1.2, 1.3, 1.4 |
+| 1.5  | Detect empty / whitespace blocks ✅                        | **Serial** | 1.2, 1.3, 1.4 |
 
 
 **Recommended order:** 1.1 → (1.2 ∥ 1.3 ∥ 1.4) → 1.5
 
 **Phase exit:** ` ```abc ` blocks render distinct UI in Live Preview vs Reading; Source shows raw text; empty blocks detected.
+
+**Agent notes (Phase 1.2–1.4, do not change plan):** View routing lives in `src/plugin/` — `code-block.ts` delegates to `view-mode.ts`, `render-reading.ts`, and `render-live-preview.ts`. See [Agent development notes](#agent-development-notes) for Obsidian view-detection pitfalls verified in dev.
+
+**Agent notes (Phase 1.5):** Empty detection is centralized in `src/plugin/block-source.ts` (`isEmptyAbcBlockSource`). Whitespace-only fence bodies count as empty. Both render paths set `data-abc-content="empty"` and class `abc-blocks-empty`. Staff shell UI for empty blocks is **Phase 2.3**, not 1.5.
 
 ---
 
@@ -392,6 +396,46 @@ Phase 1 is done. Start Phase 2.1: integrate abcjs render path.
 - **GitHub:** [https://github.com/milestnnr-music/obsidian-music-notation](https://github.com/milestnnr-music/obsidian-music-notation)
 - **Local path:** `/Users/milestanner/Desktop/Ideas/Obsidian Extention Idea/obsidian-abc-blocks`
 - **Plugin folder in vault:** `.obsidian/plugins/abc-blocks/` (symlink to repo root)
+
+---
+
+## Agent development notes
+
+Notes from implementation sessions for future agents. **These do not change the phase plan above** — they document how Obsidian behaves and where code landed.
+
+### Reading vs Live Preview detection (Phase 1.2 / 1.3)
+
+`registerMarkdownCodeBlockProcessor` runs in **Reading view** and **Live Preview**, but **not** in Source mode (fence stays raw CodeMirror text — Phase 1.4 requires no extra overlay).
+
+**Do not** detect Live Preview with `el.closest('.markdown-source-view')`. That was tried first and failed: Live Preview embeds rendered blocks under CodeMirror, not reliably under `.markdown-source-view`, so both views fell through to the Reading renderer.
+
+**Use** `src/plugin/view-mode.ts` (`detectAbcBlockViewMode(app, el)`):
+
+1. `el.closest('.markdown-reading-view')` → **Reading**
+2. Else find the `MarkdownView` leaf that contains `el` (`iterateAllLeaves` + `containerEl.contains`); if `currentMode === previewMode` → **Reading**
+3. Else → **Live Preview**
+
+**Also avoid** `MarkdownView.getMode() === 'preview'` alone — it is true for both Reading and Live Preview.
+
+### View routing and CSS hooks (Phase 1)
+
+| View | Module | Root classes | Phase 2+ work |
+| ---- | ------ | ------------ | ------------- |
+| Reading | `render-reading.ts` | `abc-blocks-reading`, `abc-blocks-static` | Replace ABC `<pre>` placeholder with abcjs SVG (step 2.4) |
+| Live Preview | `render-live-preview.ts` | `abc-blocks-live-preview`, `abc-blocks-interactive`, `abc-blocks-editor-mount` | Wire abcjs + editor into mount point (Phases 2–5) |
+| Source | *(processor not invoked)* | — | Edits visible when toggling to LP; sync in Phase 4 |
+
+Live Preview shell registers a `MarkdownRenderChild` that mounts `mountEditorWidget()` from `editor/editor-widget.ts` (stub until Phase 5).
+
+### Manual check after view-routing changes
+
+In dev vault, use a note with a sample ` ```abc ` block. **Reload app without saving** after code changes.
+
+- **Live Preview:** click outside the fence → dashed accent border, “Live Preview” badge, editor widget stub
+- **Reading view:** book icon → solid border, “Reading view” badge, monospace ABC placeholder (no editor stub)
+- **Source mode:** raw fence only; no `abc-blocks-*` DOM
+
+Phase 5.9 (“strip editor chrome in Reading view”) should keep using the separate Reading render path — do not mount toolbar/editor UI from `render-reading.ts`.
 
 ---
 

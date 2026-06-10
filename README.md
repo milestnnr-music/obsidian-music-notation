@@ -2,7 +2,7 @@
 
 Editable ABC notation blocks for [Obsidian](https://obsidian.md). Write short musical examples directly in your notes using ` ```abc ` fences, with a lightweight visual editor in Live Preview and ABC stored in the markdown file.
 
-**Status:** Phase 1.1–1.4 complete. **Phase 1.5 is next** — detect empty / whitespace ABC blocks.
+**Status:** Phase 1 complete. **Phase 2 is next** — integrate abcjs and render valid ABC.
 
 📐 **Full product design & phased plan:** [`docs/DESIGN.md`](docs/DESIGN.md)  
 🤖 **Cursor agents:** read [`AGENTS.md`](AGENTS.md) before implementing.
@@ -117,8 +117,8 @@ CDEF|
 | Phase | Focus                                   | Status      |
 | ----- | --------------------------------------- | ----------- |
 | 0     | Project shell                           | ✅ Complete |
-| 1     | Block lifecycle in Obsidian             | ⬅ In progress (1.5 next) |
-| 2     | Read path — render ABC                  | Planned     |
+| 1     | Block lifecycle in Obsidian             | ✅ Complete |
+| 2     | Read path — render ABC                  | ⬅ Next      |
 | 3     | Music model + serializer                | Planned     |
 | 4     | Debounced sync to markdown              | Planned     |
 | 5     | Visual editor                           | Planned     |

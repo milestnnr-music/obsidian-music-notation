@@ -1,24 +1,25 @@
 # Limitations and roadmap
 
-**Current status:** Phase 1.1–1.4 complete. Phase 1.5 (empty block detection) is next.  
+**Current status:** Phase 1 complete. Phase 2 (abcjs read path) is next.  
 **Design reference:** [`docs/DESIGN.md`](docs/DESIGN.md)
 
-## What works today (Phase 1.1–1.4)
+## What works today (Phase 1)
 
 - Plugin loads and enables in a dev vault without errors
 - ` ```abc ` blocks register via `registerMarkdownCodeBlockProcessor`
 - **Reading view:** static shell (`abc-blocks-reading`, `abc-blocks-static`) with ABC source placeholder
 - **Live Preview:** interactive shell (`abc-blocks-live-preview`, `abc-blocks-interactive`) with editor widget stub
 - **Source mode:** raw fence text unchanged — processors do not run (Obsidian default; no overlay registered)
+- **Empty blocks:** whitespace-only fence bodies detected via `block-source.ts`; `data-abc-content="empty"` and `abc-blocks-empty` on both view shells
 - Build pipeline (`npm run dev`, `npm run build`, `npm run lint`)
+- View mode routing via `src/plugin/view-mode.ts` (see `docs/DESIGN.md` → Agent development notes if LP and Reading look identical)
 
 ## What does not work yet
 
 - No ABC rendering (abcjs not integrated — Phase 2)
-- No empty-block detection (Phase 1.5)
+- No empty-block staff shell (Phase 2.3)
 - No visual editor, toolbar, or staff interaction
 - No debounced sync to markdown
-- No empty-block staff shell
 - No invalid-ABC fallback UI in practice (stub only)
 - No measure warning
 

@@ -52,6 +52,31 @@
 	font-style: italic;
 }
 
+/* Phase 1.5 — empty / whitespace-only blocks */
+.abc-blocks-empty {
+	--abc-blocks-empty-border: var(--text-faint);
+}
+
+.abc-blocks-reading.abc-blocks-empty {
+	border-style: dotted;
+}
+
+.abc-blocks-live-preview.abc-blocks-empty {
+	border-style: dotted;
+	opacity: 0.95;
+}
+
+.abc-blocks-empty-message {
+	font-size: 0.85rem;
+	color: var(--text-faint);
+	font-style: italic;
+}
+
+.abc-blocks-editor-widget-stub[data-abc-empty='true'] {
+	font-style: italic;
+	color: var(--text-faint);
+}
+
 /* Phase 1.3 — Live Preview (interactive shell) */
 .abc-blocks-live-preview {
 	padding: 0.75rem;

@@ -4,7 +4,7 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 
 **Repository:** https://github.com/milestnnr-music/obsidian-music-notation  
 **Plugin id:** `abc-blocks`  
-**Current status:** Phase 1.1–1.4 complete. **Phase 1.5 is next** (empty / whitespace block detection).
+**Current status:** Phase 1 complete. **Phase 2 is next** (abcjs read path).
 
 ---
 
@@ -13,15 +13,15 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 | Phase | Status | Next step |
 |-------|--------|-----------|
 | 0 — Project shell | ✅ Done | — |
-| **1 — Block lifecycle** | ⬅ **In progress** | **1.5** Detect empty / whitespace blocks |
-| 2 — Read path (abcjs) | Pending | After Phase 1 |
+| **1 — Block lifecycle** | ✅ **Done** | — |
+| **2 — Read path (abcjs)** | ⬅ **Next** | **2.1** Integrate abcjs render path |
 | 3 — Score model + serializer | Pending | After Phase 2 |
 | 4 — Debounced sync | Pending | After Phase 3 |
 | 5 — Visual editor | Pending | After Phase 4 |
 | 6 — Polish + docs | Pending | After Phase 5 |
 | 7+ — v2 (chords, 2 staves, settings, playback) | Pending | After Phase 6 |
 
-**Phase 1 order:** 1.1 (serial) → 1.2 ∥ 1.3 ∥ 1.4 (parallel) ✅ → 1.5 (serial). See `docs/DESIGN.md` for full step tables.
+**Phase 1 order:** 1.1 (serial) → 1.2 ∥ 1.3 ∥ 1.4 (parallel) → 1.5 (serial) ✅. See `docs/DESIGN.md` for full step tables.
 
 ---
 
@@ -32,6 +32,7 @@ src/
   main.ts                      Plugin entry — load settings, register code block processor
   plugin/
     code-block.ts              Phase 1: ```abc processor registration & view routing
+    block-source.ts            Phase 1.5: empty / whitespace-only fence detection
     view-mode.ts               Phase 1: Reading vs Live Preview DOM detection
     render-reading.ts          Phase 1.2: static Reading view shell
     render-live-preview.ts     Phase 1.3: interactive Live Preview shell
@@ -81,6 +82,7 @@ ABC text  ←→  ScoreModel  →  Renderer (abcjs)
 - Show **graceful fallback** for invalid ABC (monospace + friendly message, no red banner).
 - Treat the **markdown file as source of truth**.
 - Match existing TypeScript style (`strict`, tabs in source files).
+- When routing by Obsidian view mode, use `detectAbcBlockViewMode()` in `plugin/view-mode.ts` — see **View mode detection** below.
 
 ### Don't
 
@@ -91,6 +93,32 @@ ABC text  ←→  ScoreModel  →  Renderer (abcjs)
 - Put feature logic in `main.ts` or create monolithic god-files.
 - Reference removed sample-plugin demos, `.github/workflows`, or a top-level `settings.ts` (settings live in `src/settings/types.ts`).
 - Commit `node_modules/` or `main.js` (build artifacts).
+
+---
+
+## View mode detection (Phase 1 — read before touching render paths)
+
+Obsidian calls the `abc` code block processor in **Reading view** and **Live Preview** only. Source mode shows raw fences; do not register CodeMirror overlays for Phase 1.4.
+
+**Wrong (causes both views to look like Reading):**
+
+```ts
+// Live Preview embeds are NOT reliably under this selector.
+if (el.closest('.markdown-source-view')) return 'live-preview';
+return 'reading';
+```
+
+**Correct:** `src/plugin/view-mode.ts` — Reading if `.markdown-reading-view` or containing `MarkdownView.currentMode === previewMode`; otherwise Live Preview. Requires `App` (passed from `code-block.ts` via `plugin.app`).
+
+**Do not use** `getMode() === 'preview'` by itself — both Reading and Live Preview report preview mode.
+
+Full rationale and CSS class map: [`docs/DESIGN.md` → Agent development notes](docs/DESIGN.md#agent-development-notes).
+
+### Quick manual test (view routing)
+
+1. Dev vault + `npm run dev` + reload Obsidian after changes.
+2. Note with a ` ```abc ` block; in Live Preview, click **outside** the fence.
+3. Confirm distinct UI: LP = dashed border + editor stub; Reading = solid border + static ABC placeholder; Source = no plugin DOM.
 
 ---
 
