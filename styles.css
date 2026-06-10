@@ -97,6 +97,7 @@
 }
 
 .abc-blocks-editor-mount {
+	width: 100%;
 	min-height: 2.5rem;
 	padding: 0.5rem;
 	border-radius: 4px;
@@ -108,4 +109,16 @@
 	font-size: 0.85rem;
 	color: var(--text-muted);
 	font-family: var(--font-monospace);
+}
+
+/* Phase 2.1 — abcjs notation output */
+.abc-blocks-notation {
+	width: 100%;
+	overflow-x: auto;
+}
+
+.abc-blocks-notation svg {
+	display: block;
+	max-width: 100%;
+	height: auto;
 }

@@ -4,7 +4,7 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 
 **Repository:** https://github.com/milestnnr-music/obsidian-music-notation  
 **Plugin id:** `abc-blocks`  
-**Current status:** Phase 1 complete. **Phase 2 is next** (abcjs read path).
+**Current status:** Phase 2.1 complete (v0.1.1). Steps 2.2–2.4 not started.
 
 ---
 
@@ -14,7 +14,7 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 |-------|--------|-----------|
 | 0 — Project shell | ✅ Done | — |
 | **1 — Block lifecycle** | ✅ **Done** | — |
-| **2 — Read path (abcjs)** | ⬅ **Next** | **2.1** Integrate abcjs render path |
+| **2 — Read path (abcjs)** | In progress | **2.1** ✅ done; **2.2** / **2.3** / **2.4** pending |
 | 3 — Score model + serializer | Pending | After Phase 2 |
 | 4 — Debounced sync | Pending | After Phase 3 |
 | 5 — Visual editor | Pending | After Phase 4 |
@@ -173,7 +173,7 @@ npm run lint    # ESLint
 ## Manifest (`manifest.json`)
 
 - `id`: `abc-blocks` — stable; never change after release
-- `version`: SemVer (`0.1.0` during early phases)
+- `version`: SemVer (currently `0.1.1`)
 - `minAppVersion`: keep accurate when using newer APIs
 - `isDesktopOnly`: `false` (editing is desktop-first; mobile loads safely)
 

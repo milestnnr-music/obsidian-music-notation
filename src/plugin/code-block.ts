@@ -1,10 +1,13 @@
 import { MarkdownPostProcessorContext, Plugin } from 'obsidian';
+import { resolveAbcBlockSourceAsync } from './block-source';
 import { renderLivePreview } from './render-live-preview';
 import { renderReadingView } from './render-reading';
 import { detectAbcBlockViewMode } from './view-mode';
 
 /** Fenced-code language tag for music blocks (` ```abc `). */
 export const ABC_BLOCK_LANGUAGE = 'abc';
+
+const PROCESSOR_GENERATION = 'data-abc-processor-generation';
 
 /**
  * Register the ```abc markdown code block processor.
@@ -16,24 +19,43 @@ export const ABC_BLOCK_LANGUAGE = 'abc';
 export function registerAbcCodeBlockProcessor(plugin: Plugin): void {
 	plugin.registerMarkdownCodeBlockProcessor(
 		ABC_BLOCK_LANGUAGE,
-		(source, el, ctx) => handleAbcCodeBlock(plugin, source, el, ctx),
+		(source, el, ctx) => {
+			void handleAbcCodeBlock(plugin, source, el, ctx);
+		},
 	);
 }
 
-function handleAbcCodeBlock(
+async function handleAbcCodeBlock(
 	plugin: Plugin,
 	source: string,
 	el: HTMLElement,
 	ctx: MarkdownPostProcessorContext,
-): void {
+): Promise<void> {
+	const generation = String(Number(el.getAttribute(PROCESSOR_GENERATION) ?? '0') + 1);
+	el.setAttribute(PROCESSOR_GENERATION, generation);
+
+	const sectionInfo = ctx.getSectionInfo(el);
+	const blockLineHint = sectionInfo?.lineStart ?? null;
+	const abcSource = await resolveAbcBlockSourceAsync(
+		plugin.app,
+		ctx,
+		source,
+		sectionInfo,
+		blockLineHint,
+	);
+
+	if (el.getAttribute(PROCESSOR_GENERATION) !== generation) {
+		return;
+	}
+
 	el.empty();
 
 	const root = el.createDiv({ cls: 'abc-blocks-root' });
 	const viewMode = detectAbcBlockViewMode(plugin.app, el);
 
 	if (viewMode === 'live-preview') {
-		renderLivePreview(root, source, ctx);
+		renderLivePreview(root, abcSource, source, ctx, plugin.app, blockLineHint);
 	} else {
-		renderReadingView(root, source);
+		renderReadingView(root, abcSource);
 	}
 }

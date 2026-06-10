@@ -1,26 +1,27 @@
 # Limitations and roadmap
 
-**Current status:** Phase 1 complete. Phase 2 (abcjs read path) is next.  
+**Current status:** Phase 2.1 complete (v0.1.1). Live Preview renders valid ABC via abcjs. Steps 2.2–2.4 not started.  
 **Design reference:** [`docs/DESIGN.md`](docs/DESIGN.md)
 
-## What works today (Phase 1)
+## What works today
 
 - Plugin loads and enables in a dev vault without errors
 - ` ```abc ` blocks register via `registerMarkdownCodeBlockProcessor`
-- **Reading view:** static shell (`abc-blocks-reading`, `abc-blocks-static`) with ABC source placeholder
-- **Live Preview:** interactive shell (`abc-blocks-live-preview`, `abc-blocks-interactive`) with editor widget stub
+- **Live Preview:** valid ABC renders as SVG notation via abcjs (Phase 2.1)
+- **Reading view:** static shell with ABC source placeholder (abcjs render is Phase 2.4)
 - **Source mode:** raw fence text unchanged — processors do not run (Obsidian default; no overlay registered)
 - **Empty blocks:** whitespace-only fence bodies detected via `block-source.ts`; `data-abc-content="empty"` and `abc-blocks-empty` on both view shells
-- Build pipeline (`npm run dev`, `npm run build`, `npm run lint`)
+- **ABC normalization:** interior blank lines inside a fence are stripped before render (extra line breaks can break abcjs; the file on disk is not rewritten)
+- Build pipeline (`npm run dev`, `npm run build`, `npm run lint`, `npm run test:abc-normalize`)
 - View mode routing via `src/plugin/view-mode.ts` (see `docs/DESIGN.md` → Agent development notes if LP and Reading look identical)
 
 ## What does not work yet
 
-- No ABC rendering (abcjs not integrated — Phase 2)
+- No Reading view abcjs render (Phase 2.4)
 - No empty-block staff shell (Phase 2.3)
+- No graceful fallback UI for invalid ABC (Phase 2.2; stub only)
 - No visual editor, toolbar, or staff interaction
 - No debounced sync to markdown
-- No invalid-ABC fallback UI in practice (stub only)
 - No measure warning
 
 ## v1 scope (planned)

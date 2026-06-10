@@ -2,7 +2,7 @@
 
 Editable ABC notation blocks for [Obsidian](https://obsidian.md). Write short musical examples directly in your notes using ` ```abc ` fences, with a lightweight visual editor in Live Preview and ABC stored in the markdown file.
 
-**Status:** Phase 1 complete. **Phase 2 is next** — integrate abcjs and render valid ABC.
+**Status:** Phase 2.1 complete (v0.1.1) — valid ABC renders as SVG in **Live Preview**. Steps 2.2–2.4 are not started.
 
 📐 **Full product design & phased plan:** [`docs/DESIGN.md`](docs/DESIGN.md)  
 🤖 **Cursor agents:** read [`AGENTS.md`](AGENTS.md) before implementing.
@@ -16,6 +16,10 @@ Editable ABC notation blocks for [Obsidian](https://obsidian.md). Write short mu
 - Static render in **Reading view**; raw ABC in **Source mode**
 
 See [LIMITATIONS.md](./LIMITATIONS.md) for current scope and roadmap.
+
+### ABC formatting
+
+Extra blank lines or line breaks **inside** a ` ```abc ` fence can break ABC notation (abcjs may render headers only, with no staff). The plugin **automatically removes interior blank lines** before rendering. Your markdown file is unchanged; normalization happens at render time.
 
 ## Development setup
 
@@ -82,6 +86,7 @@ Optional: install the [Hot-Reload](https://github.com/pjeby/hot-reload) plugin t
 ```bash
 npm run build
 npm run lint
+npm run test:abc-normalize
 ```
 
 ## Project layout
@@ -118,7 +123,7 @@ CDEF|
 | ----- | --------------------------------------- | ----------- |
 | 0     | Project shell                           | ✅ Complete |
 | 1     | Block lifecycle in Obsidian             | ✅ Complete |
-| 2     | Read path — render ABC                  | ⬅ Next      |
+| 2     | Read path — render ABC                  | In progress (2.1 ✅) |
 | 3     | Music model + serializer                | Planned     |
 | 4     | Debounced sync to markdown              | Planned     |
 | 5     | Visual editor                           | Planned     |

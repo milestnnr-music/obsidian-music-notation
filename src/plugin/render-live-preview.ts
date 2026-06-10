@@ -1,18 +1,78 @@
-import { MarkdownPostProcessorContext, MarkdownRenderChild } from 'obsidian';
-import { getAbcBlockContentState } from './block-source';
+import { App, MarkdownPostProcessorContext, MarkdownRenderChild } from 'obsidian';
+import {
+	abcHasMusicLines,
+	getAbcBlockContentState,
+	isEmptyAbcBlockSource,
+	resolveAbcBlockSourceAsync,
+} from './block-source';
 import { mountEditorWidget } from '../editor/editor-widget';
 
 class AbcLivePreviewShell extends MarkdownRenderChild {
+	private lastSource = '';
+	private refreshTimer: number | null = null;
+
 	constructor(
 		containerEl: HTMLElement,
-		private readonly source: string,
-		private readonly isEmpty: boolean,
+		private readonly app: App,
+		private readonly ctx: MarkdownPostProcessorContext,
+		private readonly resolvedSource: string,
+		private readonly processorSource: string,
+		private readonly blockLineHint: number | null,
 	) {
 		super(containerEl);
 	}
 
 	onload(): void {
-		mountEditorWidget(this.containerEl, this.source, this.isEmpty);
+		this.mount(this.resolvedSource);
+		this.registerEvent(
+			this.app.workspace.on('editor-change', (_editor, view) => {
+				if (view.file?.path !== this.ctx.sourcePath) return;
+				if (this.refreshTimer !== null) {
+					window.clearTimeout(this.refreshTimer);
+				}
+				this.refreshTimer = window.setTimeout(() => {
+					void this.refreshFromEditor();
+				}, 400);
+			}),
+		);
+	}
+
+	onunload(): void {
+		if (this.refreshTimer !== null) {
+			window.clearTimeout(this.refreshTimer);
+		}
+	}
+
+	private async refreshFromEditor(): Promise<void> {
+		const resolved = await resolveAbcBlockSourceAsync(
+			this.app,
+			this.ctx,
+			this.processorSource,
+			null,
+			this.blockLineHint,
+		);
+		this.mount(resolved);
+	}
+
+	private mount(source: string): void {
+		if (
+			abcHasMusicLines(this.lastSource) &&
+			!abcHasMusicLines(source) &&
+			this.containerEl.dataset.abcRendered === 'true'
+		) {
+			return;
+		}
+
+		if (source === this.lastSource && this.containerEl.dataset.abcRendered === 'true') {
+			return;
+		}
+
+		this.lastSource = source;
+		mountEditorWidget(
+			this.containerEl,
+			source,
+			isEmptyAbcBlockSource(source),
+		);
 	}
 }
 
@@ -22,15 +82,21 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
  */
 export function renderLivePreview(
 	root: HTMLElement,
-	source: string,
+	resolvedSource: string,
+	processorSource: string,
 	ctx: MarkdownPostProcessorContext,
+	app: App,
+	blockLineHint: number | null,
 ): void {
-	const contentState = getAbcBlockContentState(source);
+	const contentState = getAbcBlockContentState(resolvedSource);
 	const isEmpty = contentState === 'empty';
 
 	const container = root.createDiv({
 		cls: ['abc-blocks-live-preview', 'abc-blocks-interactive'],
-		attr: { 'data-abc-content': contentState },
+		attr: {
+			'data-abc-content': contentState,
+			'data-abc-resolved-music': String(abcHasMusicLines(resolvedSource)),
+		},
 	});
 
 	if (isEmpty) {
@@ -50,5 +116,14 @@ export function renderLivePreview(
 	});
 
 	const mountPoint = container.createDiv({ cls: 'abc-blocks-editor-mount' });
-	ctx.addChild(new AbcLivePreviewShell(mountPoint, source, isEmpty));
+	ctx.addChild(
+		new AbcLivePreviewShell(
+			mountPoint,
+			app,
+			ctx,
+			resolvedSource,
+			processorSource,
+			blockLineHint,
+		),
+	);
 }
