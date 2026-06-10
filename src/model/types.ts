@@ -3,6 +3,9 @@ export type Clef = 'treble';
 
 export type Accidental = 'sharp' | 'flat' | 'natural';
 
+/** Diatonic steps used in v1 (treble, single pitch). */
+export type PitchStep = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
+
 export type NoteDuration =
 	| 'whole'
 	| 'half'
@@ -10,7 +13,7 @@ export type NoteDuration =
 	| 'eighth';
 
 export interface Pitch {
-	readonly step: string;
+	readonly step: PitchStep;
 	readonly octave: number;
 	readonly accidental?: Accidental;
 }
@@ -42,4 +45,17 @@ export interface Score {
 	readonly keySignature: string;
 	readonly defaultNoteDuration: NoteDuration;
 	readonly staves: readonly Staff[];
+}
+
+/** v1 parse warnings for deferred notation (Phase 3.6). */
+export type AbcParseWarningKind = 'chord' | 'multi-staff' | 'unsupported';
+
+export interface AbcParseWarning {
+	readonly kind: AbcParseWarningKind;
+	readonly message: string;
+}
+
+export interface AbcParseResult {
+	readonly score: Score | null;
+	readonly warnings: readonly AbcParseWarning[];
 }
