@@ -35,6 +35,11 @@
 	margin-bottom: 0.5rem;
 }
 
+.abc-blocks-reading-mount {
+	width: 100%;
+	min-height: 2.5rem;
+}
+
 .abc-blocks-reading-source {
 	margin: 0;
 	padding: 0.5rem 0.65rem;
@@ -121,4 +126,27 @@
 	display: block;
 	max-width: 100%;
 	height: auto;
+}
+
+/* Phase 2.2 — invalid ABC fallback */
+.abc-blocks-fallback {
+	padding: 0.25rem 0;
+}
+
+.abc-blocks-fallback-message {
+	margin: 0 0 0.5rem;
+	font-size: 0.85rem;
+	color: var(--text-muted);
+}
+
+.abc-blocks-fallback-source {
+	margin: 0;
+	padding: 0.5rem 0.65rem;
+	border-radius: 4px;
+	background: var(--background-primary);
+	overflow-x: auto;
+	font-family: var(--font-monospace);
+	font-size: 0.85rem;
+	line-height: 1.4;
+	white-space: pre-wrap;
 }

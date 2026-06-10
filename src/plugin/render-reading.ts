@@ -1,8 +1,8 @@
 import { getAbcBlockContentState } from './block-source';
+import { mountAbcOrFallback } from '../ui/fallback';
 
 /**
- * Phase 1.2: Reading view — static rendered shell (abcjs SVG in Phase 2).
- * No toolbar, no click-to-edit.
+ * Phase 1.2 / 2.4: Reading view — static abcjs SVG (no toolbar, no click-to-edit).
  */
 export function renderReadingView(root: HTMLElement, source: string): void {
 	const contentState = getAbcBlockContentState(source);
@@ -22,13 +22,6 @@ export function renderReadingView(root: HTMLElement, source: string): void {
 		text: 'Reading view',
 	});
 
-	container.createDiv({
-		cls: 'abc-blocks-static-label',
-		text: isEmpty
-			? 'Empty block (staff shell in Phase 2)'
-			: 'Static notation (placeholder until Phase 2)',
-	});
-
 	if (isEmpty) {
 		container.createDiv({
 			cls: 'abc-blocks-empty-message',
@@ -37,6 +30,6 @@ export function renderReadingView(root: HTMLElement, source: string): void {
 		return;
 	}
 
-	const pre = container.createEl('pre', { cls: 'abc-blocks-reading-source' });
-	pre.createEl('code', { text: source.trim() });
+	const mount = container.createDiv({ cls: 'abc-blocks-reading-mount' });
+	mountAbcOrFallback(mount, source);
 }
