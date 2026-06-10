@@ -1,18 +1,21 @@
 # Limitations and roadmap
 
-**Current status:** Phase 0 complete. Phase 1 (block lifecycle) is next.  
+**Current status:** Phase 1.1–1.4 complete. Phase 1.5 (empty block detection) is next.  
 **Design reference:** [`docs/DESIGN.md`](docs/DESIGN.md)
 
-## What works today (Phase 0)
+## What works today (Phase 1.1–1.4)
 
 - Plugin loads and enables in a dev vault without errors
-- Project structure, stub modules, and build pipeline (`npm run dev`, `npm run build`, `npm run lint`)
-- Settings types defined in `src/settings/types.ts` (not wired to UI)
-- **No ` ```abc ` behavior yet** — code block processor is a stub (`src/plugin/code-block.ts`)
+- ` ```abc ` blocks register via `registerMarkdownCodeBlockProcessor`
+- **Reading view:** static shell (`abc-blocks-reading`, `abc-blocks-static`) with ABC source placeholder
+- **Live Preview:** interactive shell (`abc-blocks-live-preview`, `abc-blocks-interactive`) with editor widget stub
+- **Source mode:** raw fence text unchanged — processors do not run (Obsidian default; no overlay registered)
+- Build pipeline (`npm run dev`, `npm run build`, `npm run lint`)
 
 ## What does not work yet
 
-- No ABC rendering (abcjs not integrated)
+- No ABC rendering (abcjs not integrated — Phase 2)
+- No empty-block detection (Phase 1.5)
 - No visual editor, toolbar, or staff interaction
 - No debounced sync to markdown
 - No empty-block staff shell

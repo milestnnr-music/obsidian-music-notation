@@ -4,7 +4,7 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 
 **Repository:** https://github.com/milestnnr-music/obsidian-music-notation  
 **Plugin id:** `abc-blocks`  
-**Current status:** Phase 1.1 complete. **Phase 1.2–1.4 are next** (parallel, after 1.1).
+**Current status:** Phase 1.1–1.4 complete. **Phase 1.5 is next** (empty / whitespace block detection).
 
 ---
 
@@ -13,7 +13,7 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 | Phase | Status | Next step |
 |-------|--------|-----------|
 | 0 — Project shell | ✅ Done | — |
-| **1 — Block lifecycle** | ⬅ **In progress** | **1.2–1.4** Reading view, Live Preview container, Source mode (parallel) |
+| **1 — Block lifecycle** | ⬅ **In progress** | **1.5** Detect empty / whitespace blocks |
 | 2 — Read path (abcjs) | Pending | After Phase 1 |
 | 3 — Score model + serializer | Pending | After Phase 2 |
 | 4 — Debounced sync | Pending | After Phase 3 |
@@ -21,7 +21,7 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 | 6 — Polish + docs | Pending | After Phase 5 |
 | 7+ — v2 (chords, 2 staves, settings, playback) | Pending | After Phase 6 |
 
-**Phase 1 order:** 1.1 (serial) → 1.2 ∥ 1.3 ∥ 1.4 (parallel) → 1.5 (serial). See `docs/DESIGN.md` for full step tables.
+**Phase 1 order:** 1.1 (serial) → 1.2 ∥ 1.3 ∥ 1.4 (parallel) ✅ → 1.5 (serial). See `docs/DESIGN.md` for full step tables.
 
 ---
 
@@ -32,6 +32,9 @@ src/
   main.ts                      Plugin entry — load settings, register code block processor
   plugin/
     code-block.ts              Phase 1: ```abc processor registration & view routing
+    view-mode.ts               Phase 1: Reading vs Live Preview DOM detection
+    render-reading.ts          Phase 1.2: static Reading view shell
+    render-live-preview.ts     Phase 1.3: interactive Live Preview shell
   model/
     types.ts                   Score, Staff, Measure, NoteEvent, RestEvent, Pitch types
     score.ts                   Phase 3: createEmptyScore(), immutable updates

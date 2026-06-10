@@ -3,7 +3,7 @@
 **Plugin id:** `abc-blocks`  
 **Repository:** [https://github.com/milestnnr-music/obsidian-music-notation](https://github.com/milestnnr-music/obsidian-music-notation)  
 **Dev vault:** `Desktop/Ideas/Obsidian Dev Vault`  
-**Current status:** Phase 1.1 complete. **Phase 1.2–1.4 are next** (parallel, block lifecycle).
+**Current status:** Phase 1.1–1.4 complete. **Phase 1.5 is next** (empty / whitespace block detection).
 
 > **For Cursor agents:** Read this document first before implementing features. See also [AGENTS.md](../AGENTS.md), [README.md](../README.md), and [LIMITATIONS.md](../LIMITATIONS.md).
 
@@ -204,9 +204,9 @@ Phases run **serially** (0 → 1 → 2 → … → 7+). Within a phase, steps ma
 | Step | Task                                                    | Kind       | Blocked by    |
 | ---- | ------------------------------------------------------- | ---------- | ------------- |
 | 1.1  | Register `registerMarkdownCodeBlockProcessor('abc', …)` ✅ | **Serial** | —             |
-| 1.2  | Reading view render path                                | Parallel   | 1.1           |
-| 1.3  | Live Preview interactive container                      | Parallel   | 1.1           |
-| 1.4  | Preserve Source mode (raw ABC)                          | Parallel   | 1.1           |
+| 1.2  | Reading view render path ✅                                | Parallel   | 1.1           |
+| 1.3  | Live Preview interactive container ✅                      | Parallel   | 1.1           |
+| 1.4  | Preserve Source mode (raw ABC) ✅                          | Parallel   | 1.1           |
 | 1.5  | Detect empty / whitespace blocks                        | **Serial** | 1.2, 1.3, 1.4 |
 
 
