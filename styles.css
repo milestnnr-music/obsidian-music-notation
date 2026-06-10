@@ -1,1 +1,5 @@
-/* ABC Blocks — plugin styles (Phase 2+) */
+/* ABC Blocks — plugin styles */
+
+.abc-blocks-root {
+	min-height: 2rem;
+}

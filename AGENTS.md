@@ -4,7 +4,7 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 
 **Repository:** https://github.com/milestnnr-music/obsidian-music-notation  
 **Plugin id:** `abc-blocks`  
-**Current status:** Phase 0 complete. **Phase 1 is next** (block lifecycle).
+**Current status:** Phase 1.1 complete. **Phase 1.2–1.4 are next** (parallel, after 1.1).
 
 ---
 
@@ -13,7 +13,7 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 | Phase | Status | Next step |
 |-------|--------|-----------|
 | 0 — Project shell | ✅ Done | — |
-| **1 — Block lifecycle** | ⬅ **Next** | **1.1** Register `registerMarkdownCodeBlockProcessor('abc', …)` in `src/plugin/code-block.ts` |
+| **1 — Block lifecycle** | ⬅ **In progress** | **1.2–1.4** Reading view, Live Preview container, Source mode (parallel) |
 | 2 — Read path (abcjs) | Pending | After Phase 1 |
 | 3 — Score model + serializer | Pending | After Phase 2 |
 | 4 — Debounced sync | Pending | After Phase 3 |
