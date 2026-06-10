@@ -1,9 +1,9 @@
 # ABC Blocks — Product Design & Implementation Plan
 
 **Plugin id:** `abc-blocks`  
-**Repository:** https://github.com/milestnnr-music/obsidian-music-notation  
+**Repository:** [https://github.com/milestnnr-music/obsidian-music-notation](https://github.com/milestnnr-music/obsidian-music-notation)  
 **Dev vault:** `Desktop/Ideas/Obsidian Dev Vault`  
-**Current status:** Phase 0 complete. **Phase 1 is next** (block lifecycle).
+**Current status:** Phase 1.1 complete. **Phase 1.2–1.4 are next** (parallel, block lifecycle).
 
 > **For Cursor agents:** Read this document first before implementing features. See also [AGENTS.md](../AGENTS.md), [README.md](../README.md), and [LIMITATIONS.md](../LIMITATIONS.md).
 
@@ -23,26 +23,28 @@ ABC Blocks adds **pedagogical music notation examples** to Obsidian notes — **
 
 These were decided in design sessions and should not be re-litigated without explicit user approval.
 
-| Area | Decision |
-|------|----------|
-| Editing model | **Hybrid (C):** visual staff in Live Preview + ABC text stored in markdown |
-| Block syntax | ` ```abc ` fenced code blocks |
-| Live Preview | Interactive editing only |
-| Reading view | Static rendered notation (no toolbar, no click-to-edit) |
-| Source mode | Raw ABC text (Obsidian default code-block behavior) |
-| Sync | Debounced live sync ~**300ms**; **file is source of truth** |
-| Empty block | Staff + toolbar with implicit defaults (4/4, C major, treble); ABC generated on **first edit**; file can stay empty until then |
-| Invalid ABC | Graceful fallback — monospace ABC + friendly message; **no red error banner** |
-| v1 editor | **Lightweight composer (B):** toolbar durations + accidentals, click to place, select/delete. **Not** MuseScore-lite |
-| Default note duration | Quarter |
-| v1 musical elements | Treble only; key/time sig; whole/half/quarter/eighth; rests; accidentals; **single pitch per note** (no chords) |
-| Measure limit | Soft 4-measure **warning** (not hard cap); pasted ABC can exceed |
-| Playback | **No playback in v1** |
-| Settings | **No settings panel in v1** (`settings/types.ts` hook points reserved for Phase 7) |
-| Insert command | **No insert command in v1** |
-| Staff layout (v2) | Flexible 1–2 staves, clefs configurable; UI + ABC equally editable; max 2 staves |
-| Chords (v2+) | Multiple pitches per note |
-| Distribution | Personal use now; community-ready docs; long-term community plugin release |
+
+| Area                  | Decision                                                                                                                       |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Editing model         | **Hybrid (C):** visual staff in Live Preview + ABC text stored in markdown                                                     |
+| Block syntax          | ` ```abc ` fenced code blocks                                                                                                   |
+| Live Preview          | Interactive editing only                                                                                                       |
+| Reading view          | Static rendered notation (no toolbar, no click-to-edit)                                                                        |
+| Source mode           | Raw ABC text (Obsidian default code-block behavior)                                                                            |
+| Sync                  | Debounced live sync ~**300ms**; **file is source of truth**                                                                    |
+| Empty block           | Staff + toolbar with implicit defaults (4/4, C major, treble); ABC generated on **first edit**; file can stay empty until then |
+| Invalid ABC           | Graceful fallback — monospace ABC + friendly message; **no red error banner**                                                  |
+| v1 editor             | **Lightweight composer (B):** toolbar durations + accidentals, click to place, select/delete. **Not** MuseScore-lite           |
+| Default note duration | Quarter                                                                                                                        |
+| v1 musical elements   | Treble only; key/time sig; whole/half/quarter/eighth; rests; accidentals; **single pitch per note** (no chords)                |
+| Measure limit         | Soft 4-measure **warning** (not hard cap); pasted ABC can exceed                                                               |
+| Playback              | **No playback in v1**                                                                                                          |
+| Settings              | **No settings panel in v1** (`settings/types.ts` hook points reserved for Phase 7)                                             |
+| Insert command        | **No insert command in v1**                                                                                                    |
+| Staff layout (v2)     | Flexible 1–2 staves, clefs configurable; UI + ABC equally editable; max 2 staves                                               |
+| Chords (v2+)          | Multiple pitches per note                                                                                                      |
+| Distribution          | Personal use now; community-ready docs; long-term community plugin release                                                     |
+
 
 ---
 
@@ -56,15 +58,17 @@ ABC text  ←→  ScoreModel  →  Renderer (abcjs SVG)
 
 **Modules** (under `src/`):
 
-| Module | Responsibility |
-|--------|----------------|
-| `plugin/` | Obsidian integration — code block processor registration |
-| `model/` | `Score` types and immutable updates |
-| `serializer/` | ABC ↔ `Score` parse/write; implicit defaults |
-| `renderer/` | `Score` or ABC → SVG via abcjs |
-| `editor/` | Live Preview widget, toolbar, staff interaction, debounced sync |
-| `ui/` | Fallback UI, measure warning |
-| `settings/` | Vault settings types (UI in Phase 7+) |
+
+| Module        | Responsibility                                                  |
+| ------------- | --------------------------------------------------------------- |
+| `plugin/`     | Obsidian integration — code block processor registration        |
+| `model/`      | `Score` types and immutable updates                             |
+| `serializer/` | ABC ↔ `Score` parse/write; implicit defaults                    |
+| `renderer/`   | `Score` or ABC → SVG via abcjs                                  |
+| `editor/`     | Live Preview widget, toolbar, staff interaction, debounced sync |
+| `ui/`         | Fallback UI, measure warning                                    |
+| `settings/`   | Vault settings types (UI in Phase 7+)                           |
+
 
 **Data flow:**
 
@@ -76,14 +80,16 @@ ABC text  ←→  ScoreModel  →  Renderer (abcjs SVG)
 
 ## Tech stack
 
-| Layer | Choice |
-|-------|--------|
-| Language | TypeScript (`strict`) |
-| Platform | Obsidian plugin API |
-| Notation render | **abcjs** (Phase 2+) |
-| Bundler | esbuild (`esbuild.config.mjs`) |
-| Package manager | npm |
-| Lint | ESLint + `eslint-plugin-obsidianmd` |
+
+| Layer           | Choice                              |
+| --------------- | ----------------------------------- |
+| Language        | TypeScript (`strict`)               |
+| Platform        | Obsidian plugin API                 |
+| Notation render | **abcjs** (Phase 2+)                |
+| Bundler         | esbuild (`esbuild.config.mjs`)      |
+| Package manager | npm                                 |
+| Lint            | ESLint + `eslint-plugin-obsidianmd` |
+
 
 ---
 
@@ -176,29 +182,33 @@ Phases run **serially** (0 → 1 → 2 → … → 7+). Within a phase, steps ma
 
 **Goal:** Repo and dev environment exist; plugin loads in Obsidian harmlessly.
 
-| Step | Task | Kind | Exit |
-|------|------|------|------|
-| 0.1 | Create plugin from sample template | Serial | `npm run dev` compiles |
-| 0.2 | Configure `manifest.json` | Serial | id `abc-blocks`, v0.1.0 |
-| 0.3 | Folder layout (stub modules) | Parallel | All module dirs + stubs exist |
-| 0.4 | README skeleton | Parallel | Dev setup documented |
-| 0.5 | Dev vault workflow | Serial | Symlink instructions verified |
+
+| Step | Task                               | Kind     | Exit                          |
+| ---- | ---------------------------------- | -------- | ----------------------------- |
+| 0.1  | Create plugin from sample template | Serial   | `npm run dev` compiles        |
+| 0.2  | Configure `manifest.json`          | Serial   | id `abc-blocks`, v0.1.0       |
+| 0.3  | Folder layout (stub modules)       | Parallel | All module dirs + stubs exist |
+| 0.4  | README skeleton                    | Parallel | Dev setup documented          |
+| 0.5  | Dev vault workflow                 | Serial   | Symlink instructions verified |
+
 
 **Phase exit:** Plugin enables in dev vault; stubs compile; no runtime errors.
 
 ---
 
-### Phase 1 — Block lifecycle ⬅ NEXT
+### Phase 1 — Block lifecycle ⬅ IN PROGRESS
 
 **Goal:** Obsidian recognizes ` ```abc ` blocks; correct behavior per view mode.
 
-| Step | Task | Kind | Blocked by |
-|------|------|------|------------|
-| 1.1 | Register `registerMarkdownCodeBlockProcessor('abc', …)` | **Serial** | — |
-| 1.2 | Reading view render path | Parallel | 1.1 |
-| 1.3 | Live Preview interactive container | Parallel | 1.1 |
-| 1.4 | Preserve Source mode (raw ABC) | Parallel | 1.1 |
-| 1.5 | Detect empty / whitespace blocks | **Serial** | 1.2, 1.3, 1.4 |
+
+| Step | Task                                                    | Kind       | Blocked by    |
+| ---- | ------------------------------------------------------- | ---------- | ------------- |
+| 1.1  | Register `registerMarkdownCodeBlockProcessor('abc', …)` ✅ | **Serial** | —             |
+| 1.2  | Reading view render path                                | Parallel   | 1.1           |
+| 1.3  | Live Preview interactive container                      | Parallel   | 1.1           |
+| 1.4  | Preserve Source mode (raw ABC)                          | Parallel   | 1.1           |
+| 1.5  | Detect empty / whitespace blocks                        | **Serial** | 1.2, 1.3, 1.4 |
+
 
 **Recommended order:** 1.1 → (1.2 ∥ 1.3 ∥ 1.4) → 1.5
 
@@ -210,12 +220,14 @@ Phases run **serially** (0 → 1 → 2 → … → 7+). Within a phase, steps ma
 
 **Goal:** Valid ABC renders; invalid uses fallback; empty uses implicit defaults.
 
-| Step | Task | Kind | Blocked by |
-|------|------|------|------------|
-| 2.1 | Integrate abcjs render path | **Serial** | — |
-| 2.2 | Graceful fallback UI | Parallel | 2.1 |
-| 2.3 | Empty block implicit defaults (staff shell) | Parallel | 2.1 |
-| 2.4 | Reading view static render | Parallel | 2.1 |
+
+| Step | Task                                        | Kind       | Blocked by |
+| ---- | ------------------------------------------- | ---------- | ---------- |
+| 2.1  | Integrate abcjs render path                 | **Serial** | —          |
+| 2.2  | Graceful fallback UI                        | Parallel   | 2.1        |
+| 2.3  | Empty block implicit defaults (staff shell) | Parallel   | 2.1        |
+| 2.4  | Reading view static render                  | Parallel   | 2.1        |
+
 
 **Recommended order:** 2.1 → (2.2 ∥ 2.3 ∥ 2.4)
 
@@ -227,14 +239,16 @@ Phases run **serially** (0 → 1 → 2 → … → 7+). Within a phase, steps ma
 
 **Goal:** Unit-testable `Score` ↔ ABC round-trip for v1 subset.
 
-| Step | Task | Kind | Blocked by |
-|------|------|------|------------|
-| 3.1 | Define `ScoreModel` types (v1 subset) | **Serial** | — |
-| 3.2 | `abc-writer`: model → ABC | Parallel | 3.1 |
-| 3.3 | `abc-parser`: ABC → model | Parallel | 3.1 |
-| 3.4 | Map key, time, durations, rests, accidentals | **Serial** | 3.2, 3.3 |
-| 3.5 | Default note duration = quarter | Parallel | 3.1 |
-| 3.6 | Defer chords / multi-staff in parser | **Serial** | 3.3 |
+
+| Step | Task                                         | Kind       | Blocked by |
+| ---- | -------------------------------------------- | ---------- | ---------- |
+| 3.1  | Define `ScoreModel` types (v1 subset)        | **Serial** | —          |
+| 3.2  | `abc-writer`: model → ABC                    | Parallel   | 3.1        |
+| 3.3  | `abc-parser`: ABC → model                    | Parallel   | 3.1        |
+| 3.4  | Map key, time, durations, rests, accidentals | **Serial** | 3.2, 3.3   |
+| 3.5  | Default note duration = quarter              | Parallel   | 3.1        |
+| 3.6  | Defer chords / multi-staff in parser         | **Serial** | 3.3        |
+
 
 **Phase exit:** Round-trip tests pass for v1 elements; parser rejects/ignores chords and second staff gracefully.
 
@@ -244,13 +258,15 @@ Phases run **serially** (0 → 1 → 2 → … → 7+). Within a phase, steps ma
 
 **Goal:** Editor changes persist to markdown with debounce.
 
-| Step | Task | Kind | Blocked by |
-|------|------|------|------------|
-| 4.1 | Wire model → writer → document update | **Serial** | — |
-| 4.2 | Debounced sync (~300ms) | **Serial** | 4.1 |
-| 4.3 | First-edit generates ABC on empty block | Parallel | 4.1 |
-| 4.4 | Validate Obsidian undo behavior | **Serial** | 4.2 |
-| 4.5 | Source mode reflects Live Preview edits | **Serial** | 4.2 |
+
+| Step | Task                                    | Kind       | Blocked by |
+| ---- | --------------------------------------- | ---------- | ---------- |
+| 4.1  | Wire model → writer → document update   | **Serial** | —          |
+| 4.2  | Debounced sync (~300ms)                 | **Serial** | 4.1        |
+| 4.3  | First-edit generates ABC on empty block | Parallel   | 4.1        |
+| 4.4  | Validate Obsidian undo behavior         | **Serial** | 4.2        |
+| 4.5  | Source mode reflects Live Preview edits | **Serial** | 4.2        |
+
 
 **Phase exit:** Edits in Live Preview update file; undo works; Source shows updated ABC.
 
@@ -260,17 +276,19 @@ Phases run **serially** (0 → 1 → 2 → … → 7+). Within a phase, steps ma
 
 **Goal:** Lightweight composer for v1.
 
-| Step | Task | Kind | Blocked by |
-|------|------|------|------------|
-| 5.1 | Toolbar: duration + accidentals | **Serial** | — |
-| 5.2 | Click staff to place notes | **Serial** | 5.1 |
-| 5.3 | Select existing note | **Serial** | 5.2 |
-| 5.4 | Delete selected note | Parallel | 5.3 |
-| 5.5 | Change duration on selection | Parallel | 5.3 |
-| 5.6 | Rests via toolbar | Parallel | 5.2 |
-| 5.7 | Key / time signature controls | Parallel | 5.1 |
-| 5.8 | Soft 4-measure warning | Parallel | 5.2 |
-| 5.9 | Strip editor chrome in Reading view | **Serial** | 5.1 |
+
+| Step | Task                                | Kind       | Blocked by |
+| ---- | ----------------------------------- | ---------- | ---------- |
+| 5.1  | Toolbar: duration + accidentals     | **Serial** | —          |
+| 5.2  | Click staff to place notes          | **Serial** | 5.1        |
+| 5.3  | Select existing note                | **Serial** | 5.2        |
+| 5.4  | Delete selected note                | Parallel   | 5.3        |
+| 5.5  | Change duration on selection        | Parallel   | 5.3        |
+| 5.6  | Rests via toolbar                   | Parallel   | 5.2        |
+| 5.7  | Key / time signature controls       | Parallel   | 5.1        |
+| 5.8  | Soft 4-measure warning              | Parallel   | 5.2        |
+| 5.9  | Strip editor chrome in Reading view | **Serial** | 5.1        |
+
 
 **Phase exit:** Full v1 editing loop works; Reading view has no chrome; measure warning appears after threshold.
 
@@ -280,13 +298,15 @@ Phases run **serially** (0 → 1 → 2 → … → 7+). Within a phase, steps ma
 
 **Goal:** v1 shippable for personal use.
 
-| Step | Task | Kind |
-|------|------|------|
-| 6.1 | README: quick start + examples | Parallel |
-| 6.2 | LIMITATIONS section | Parallel |
-| 6.3 | Manual test checklist | Parallel |
-| 6.4 | Error copy pass | Parallel |
-| 6.5 | Settings types + hook points (no UI) | Parallel |
+
+| Step | Task                                 | Kind     |
+| ---- | ------------------------------------ | -------- |
+| 6.1  | README: quick start + examples       | Parallel |
+| 6.2  | LIMITATIONS section                  | Parallel |
+| 6.3  | Manual test checklist                | Parallel |
+| 6.4  | Error copy pass                      | Parallel |
+| 6.5  | Settings types + hook points (no UI) | Parallel |
+
 
 **Phase exit:** Docs complete; manual checklist executed; friendly error strings throughout.
 
@@ -294,15 +314,17 @@ Phases run **serially** (0 → 1 → 2 → … → 7+). Within a phase, steps ma
 
 ### Phase 7+ — v2 foundations
 
-| Step | Task | Kind | Notes |
-|------|------|------|-------|
-| 7.1 | Chords (multiple pitches per note) | Serial | Model + parser + editor |
-| 7.2 | Second staff + clef picker (max 2) | Serial | After 7.1 |
-| 7.3 | Staff layout UI ↔ ABC sync | Serial | After 7.2 |
-| 7.4 | Settings tab (vault defaults) | Parallel | Uses `settings/types.ts` |
-| 7.5 | Insert ABC block command | Parallel | |
-| 7.6 | Per-block playback | Parallel | |
-| 7.7 | Community release prep | Serial | After 6.1, 6.2 |
+
+| Step | Task                               | Kind     | Notes                    |
+| ---- | ---------------------------------- | -------- | ------------------------ |
+| 7.1  | Chords (multiple pitches per note) | Serial   | Model + parser + editor  |
+| 7.2  | Second staff + clef picker (max 2) | Serial   | After 7.1                |
+| 7.3  | Staff layout UI ↔ ABC sync         | Serial   | After 7.2                |
+| 7.4  | Settings tab (vault defaults)      | Parallel | Uses `settings/types.ts` |
+| 7.5  | Insert ABC block command           | Parallel |                          |
+| 7.6  | Per-block playback                 | Parallel |                          |
+| 7.7  | Community release prep             | Serial   | After 6.1, 6.2           |
+
 
 ---
 
@@ -312,15 +334,17 @@ Full interactive board: `.cursor/projects/.../canvases/obsidian-music-plugin-kan
 
 **Phase gates (always serial):**
 
-| From | To | Why |
-|------|-----|-----|
-| Phase 0 | Phase 1 | Plugin must load before block registration |
-| Phase 1 | Phase 2 | Block handler must exist before rendering |
-| Phase 2 | Phase 3 | Render spike de-risks abcjs before model work |
-| Phase 3 | Phase 4 | Serializer must exist before document sync |
-| Phase 4 | Phase 5 | Sync must work before visual editing |
-| Phase 5 | Phase 6 | Feature-complete before polish ship |
-| Phase 6 | Phase 7+ | v1 personal-ship before v2 expansion |
+
+| From    | To       | Why                                           |
+| ------- | -------- | --------------------------------------------- |
+| Phase 0 | Phase 1  | Plugin must load before block registration    |
+| Phase 1 | Phase 2  | Block handler must exist before rendering     |
+| Phase 2 | Phase 3  | Render spike de-risks abcjs before model work |
+| Phase 3 | Phase 4  | Serializer must exist before document sync    |
+| Phase 4 | Phase 5  | Sync must work before visual editing          |
+| Phase 5 | Phase 6  | Feature-complete before polish ship           |
+| Phase 6 | Phase 7+ | v1 personal-ship before v2 expansion          |
+
 
 **Critical path (serial spine):**  
 0.1 → 0.2 → 0.5 → 1.1 → 1.5 → 2.1 → 3.1 → 3.4 → 4.1 → 4.2 → 4.4 → 5.1 → 5.2 → 5.3 → 5.9 → 6.x → 7.1 → 7.2 → 7.3 → 7.7
@@ -333,12 +357,14 @@ Future Cursor agents have **no prior chat context**. Start every implementation 
 
 ### Files to @-mention
 
-| File | Purpose |
-|------|---------|
+
+| File             | Purpose                                                  |
+| ---------------- | -------------------------------------------------------- |
 | `docs/DESIGN.md` | Product intent, locked decisions, phase plan (this file) |
-| `AGENTS.md` | Module map, do/don't, dev workflow |
-| `README.md` | Quick start, symlink setup, build commands |
-| `LIMITATIONS.md` | Current scope and what is explicitly out of scope |
+| `AGENTS.md`      | Module map, do/don't, dev workflow                       |
+| `README.md`      | Quick start, symlink setup, build commands               |
+| `LIMITATIONS.md` | Current scope and what is explicitly out of scope        |
+
 
 ### Example prompts
 
@@ -363,7 +389,7 @@ Phase 1 is done. Start Phase 2.1: integrate abcjs render path.
 
 ### Repository
 
-- **GitHub:** https://github.com/milestnnr-music/obsidian-music-notation
+- **GitHub:** [https://github.com/milestnnr-music/obsidian-music-notation](https://github.com/milestnnr-music/obsidian-music-notation)
 - **Local path:** `/Users/milestanner/Desktop/Ideas/Obsidian Extention Idea/obsidian-abc-blocks`
 - **Plugin folder in vault:** `.obsidian/plugins/abc-blocks/` (symlink to repo root)
 
@@ -383,3 +409,4 @@ Phase 1 is done. Start Phase 2.1: integrate abcjs render path.
 - Bump `manifest.json` `version` (SemVer) per release
 - Update `versions.json` with min app version mapping
 - Community release (Phase 7.7): follow [Obsidian plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines)
+
