@@ -65,12 +65,14 @@ Optional: install the [Hot-Reload](https://github.com/pjeby/hot-reload) plugin t
 
 ### Troubleshooting
 
-| Symptom | Fix |
-|---------|-----|
-| Plugin not listed at all | Turn on community plugins; confirm `main.js` and `manifest.json` are directly inside `plugins/abc-blocks/` |
-| Nested folder `abc-blocks/obsidian-abc-blocks/` | Delete `abc-blocks` and recreate the symlink so `abc-blocks` points at the repo root |
-| Plugin listed but won't enable | Run `npm run build` or `npm run dev`; reload Obsidian |
-| Changes not appearing | Keep `npm run dev` running; reload the app |
+
+| Symptom                                         | Fix                                                                                                        |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Plugin not listed at all                        | Turn on community plugins; confirm `main.js` and `manifest.json` are directly inside `plugins/abc-blocks/` |
+| Nested folder `abc-blocks/obsidian-abc-blocks/` | Delete `abc-blocks` and recreate the symlink so `abc-blocks` points at the repo root                       |
+| Plugin listed but won't enable                  | Run `npm run build` or `npm run dev`; reload Obsidian                                                      |
+| Changes not appearing                           | Keep `npm run dev` running; reload the app                                                                 |
+
 
 ### 5. Production build
 
@@ -107,16 +109,18 @@ CDEF|
 
 ## Roadmap
 
-| Phase | Focus |
-|-------|--------|
-| 0 | Project shell (current) |
-| 1 | Block lifecycle in Obsidian |
-| 2 | Read path — render ABC |
-| 3 | Music model + serializer |
-| 4 | Debounced sync to markdown |
-| 5 | Visual editor |
-| 6 | Polish + docs |
-| 7+ | Chords, multi-staff, settings, playback |
+
+| Phase | Focus                                   |
+| ----- | --------------------------------------- |
+| 0     | Project shell (current)                 |
+| 1     | Block lifecycle in Obsidian             |
+| 2     | Read path — render ABC                  |
+| 3     | Music model + serializer                |
+| 4     | Debounced sync to markdown              |
+| 5     | Visual editor                           |
+| 6     | Polish + docs                           |
+| 7+    | Chords, multi-staff, settings, playback |
+
 
 ## API docs
 
