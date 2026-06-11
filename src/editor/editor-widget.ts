@@ -9,6 +9,8 @@ import { mountToolbar } from './toolbar';
 import { isEmptyAbcBlockSource } from '../plugin/block-source';
 import { renderAbcToElementWhenReady } from '../renderer/abcjs-adapter';
 import { mountFallbackUi } from '../ui/fallback';
+import { getScoreMeasureCount } from '../ui/measure-warning';
+import { mountMeasureWarning } from '../ui/measure-warning-ui';
 import {
 	parseSourceToScore,
 	scoreToDisplayAbc,
@@ -45,8 +47,16 @@ export function mountEditorWidget(
 	const toolbarMount = container.createDiv({ cls: 'abc-blocks-toolbar-mount' });
 	mountToolbar(toolbarMount, editorState);
 
+	const measureWarningMount = container.createDiv({
+		cls: 'abc-blocks-measure-warning-mount',
+	});
+
 	let currentScore = parseSourceToScore(source);
 	let detachStaff: (() => void) | null = null;
+
+	const refreshMeasureWarning = (): void => {
+		mountMeasureWarning(measureWarningMount, getScoreMeasureCount(currentScore));
+	};
 
 	const staffMount = container.createDiv({ cls: 'abc-blocks-staff-mount' });
 	const visualRoots = [container, mountOptions.blockRoot].filter(
@@ -54,6 +64,7 @@ export function mountEditorWidget(
 	);
 
 	const renderStaff = (): void => {
+		refreshMeasureWarning();
 		detachStaff?.();
 		detachStaff = null;
 		staffMount.empty();
