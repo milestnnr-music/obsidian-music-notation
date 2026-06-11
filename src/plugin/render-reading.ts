@@ -3,7 +3,7 @@ import { mountAbcOrFallback } from '../ui/fallback';
 import { mountEmptyStaffShell } from '../ui/empty-staff-shell';
 
 /**
- * Phase 1.2 / 2.4 / 2.3: Reading view — static abcjs SVG (no toolbar, no click-to-edit).
+ * Phase 1.2 / 2.4 / 2.3 / 5.8: Reading view — static abcjs SVG only (no toolbar, badge, or interaction).
  */
 export function renderReadingView(root: HTMLElement, source: string): void {
 	const contentState = getAbcBlockContentState(source);
@@ -17,11 +17,6 @@ export function renderReadingView(root: HTMLElement, source: string): void {
 	if (isEmpty) {
 		container.addClass('abc-blocks-empty');
 	}
-
-	container.createDiv({
-		cls: 'abc-blocks-view-badge',
-		text: 'Reading view',
-	});
 
 	if (isEmpty) {
 		const mount = container.createDiv({ cls: 'abc-blocks-reading-mount' });

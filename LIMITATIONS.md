@@ -1,6 +1,6 @@
 # Limitations and roadmap
 
-**Current status:** Phase 5 in progress (v0.2.8). Step **5.1** done (toolbar). Step **5.2** ✅ snap staff interaction verified in Live Preview. Step **5.3** ✅ delete selected note verified in Live Preview. **Next:** 5.4. Phase 4 complete (4.1–4.5).  
+**Current status:** Phase 5 in progress (v0.2.9). Step **5.1** done (toolbar). Step **5.2** ✅ snap staff interaction verified in Live Preview. Step **5.3** ✅ delete selected note verified in Live Preview. Step **5.8** ✅ Reading view static notation only. **Next:** 5.4. Phase 4 complete (4.1–4.5).  
 **Design reference:** [`docs/DESIGN.md`](docs/DESIGN.md) · **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md) · Multi-block LP fixes: [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md)
 
 ## What works today
@@ -8,7 +8,7 @@
 - Plugin loads and enables in a dev vault without errors
 - ` ```abc ` blocks register via `registerMarkdownCodeBlockProcessor`
 - **Live Preview:** valid ABC renders as SVG notation via abcjs (Phase 2.1)
-- **Reading view:** valid ABC renders as static abcjs SVG (Phase 2.4)
+- **Reading view:** valid ABC renders as static abcjs SVG only — no toolbar, badges, sync test buttons, or click-to-edit (Phase 2.4, 5.8)
 - **Invalid ABC:** graceful fallback — friendly message + monospace source, no error banner (Phase 2.2)
 - **Source mode:** raw fence text unchanged — processors do not run (Obsidian default; no overlay registered)
 - **Empty blocks:** implicit-default staff shell (4/4, C major, treble, quarter) via in-memory ABC; file stays empty until first edit (Phase 4.3)

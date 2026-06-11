@@ -16,23 +16,9 @@
 	margin-bottom: 0.5rem;
 }
 
-/* Phase 1.2 — Reading view (static) */
+/* Phase 1.2 / 5.8 — Reading view (static notation only; no LP chrome) */
 .abc-blocks-reading {
-	padding: 0.75rem;
-	border: 1px solid var(--background-modifier-border);
-	border-radius: 6px;
-	background: var(--background-secondary);
-}
-
-.abc-blocks-reading .abc-blocks-view-badge {
-	background: var(--background-modifier-border);
-	color: var(--text-muted);
-}
-
-.abc-blocks-static-label {
-	font-size: 0.85rem;
-	color: var(--text-muted);
-	margin-bottom: 0.5rem;
+	padding: 0.25rem 0;
 }
 
 .abc-blocks-reading-mount {
@@ -40,30 +26,14 @@
 	min-height: 2.5rem;
 }
 
-.abc-blocks-reading-source {
-	margin: 0;
-	padding: 0.5rem 0.65rem;
-	border-radius: 4px;
-	background: var(--background-primary);
-	overflow-x: auto;
-	font-family: var(--font-monospace);
-	font-size: 0.85rem;
-	line-height: 1.4;
-}
-
-.abc-blocks-reading-empty {
-	font-size: 0.85rem;
-	color: var(--text-faint);
-	font-style: italic;
+.abc-blocks-reading-mount svg {
+	cursor: default;
+	pointer-events: none;
 }
 
 /* Phase 1.5 — empty / whitespace-only blocks */
 .abc-blocks-empty {
 	--abc-blocks-empty-border: var(--text-faint);
-}
-
-.abc-blocks-reading.abc-blocks-empty {
-	border-style: dotted;
 }
 
 .abc-blocks-live-preview.abc-blocks-empty {

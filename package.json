@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-abc-blocks",
-	"version": "0.2.8",
+	"version": "0.2.9",
 	"description": "Editable ABC notation blocks for Obsidian",
 	"main": "main.js",
 	"type": "module",

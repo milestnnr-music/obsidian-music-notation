@@ -3,7 +3,7 @@
 **Plugin id:** `abc-blocks`  
 **Repository:** [https://github.com/milestnnr-music/obsidian-music-notation](https://github.com/milestnnr-music/obsidian-music-notation)  
 **Dev vault:** `Desktop/Ideas/Obsidian Dev Vault`  
-**Current status:** Phase 5 **in progress** (v0.2.8). Step **5.1** done (toolbar). Step **5.2** ✅ done — snap staff interaction verified in Live Preview. Step **5.3** ✅ done — delete selected note (Delete/Backspace) verified in Live Preview. **Canonical 5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](HANDOFF-phase-5.2-snap-interaction.md). **Next:** 5.4 (change duration on selection). Phase 4 complete (4.1–4.5). Canonical 4.5 fix notes: [`docs/phase-4.5-multi-block-lp-resolution.md`](phase-4.5-multi-block-lp-resolution.md).
+**Current status:** Phase 5 **in progress** (v0.2.9). Step **5.1** done (toolbar). Step **5.2** ✅ done — snap staff interaction verified in Live Preview. Step **5.3** ✅ done — delete selected note (Delete/Backspace) verified in Live Preview. Step **5.8** ✅ done — Reading view static notation only (no LP chrome). **Canonical 5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](HANDOFF-phase-5.2-snap-interaction.md). **Next:** 5.4 (change duration on selection). Phase 4 complete (4.1–4.5). Canonical 4.5 fix notes: [`docs/phase-4.5-multi-block-lp-resolution.md`](phase-4.5-multi-block-lp-resolution.md).
 
 > **For Cursor agents:** Read this document first before implementing features. See also [AGENTS.md](../AGENTS.md), [README.md](../README.md), and [LIMITATIONS.md](../LIMITATIONS.md).
 
@@ -328,7 +328,7 @@ Phases run **serially** (0 → 1 → 2 → … → 7+). Within a phase, steps ma
 | 5.5  | Rests via toolbar                                            | Parallel   | 5.2        |        |
 | 5.6  | Key / time signature controls                                | Parallel   | 5.1        |        |
 | 5.7  | Soft 4-measure warning                                       | Parallel   | 5.2        |        |
-| 5.8  | Strip editor chrome in Reading view                          | **Serial** | 5.1        |        |
+| 5.8  | Strip editor chrome in Reading view                          | **Serial** | 5.1        | ✅ v0.2.9 — [handoff](HANDOFF-phase-5.8-reading-chrome.md) |
 
 
 **Phase exit:** Full v1 editing loop works; Reading view has no chrome; measure warning appears after threshold.
@@ -477,11 +477,11 @@ Live Preview shell registers a `MarkdownRenderChild` that mounts `mountEditorWid
 
 In dev vault, use a note with a sample ` ```abc ` block. **Reload app without saving** after code changes.
 
-- **Live Preview:** click outside the fence → dashed accent border, “Live Preview” badge, editor widget stub
-- **Reading view:** book icon → solid border, “Reading view” badge, static abcjs SVG (invalid ABC → fallback; no editor stub)
+- **Live Preview:** click outside the fence → dashed accent border, “Live Preview” badge, toolbar, sync test buttons, staff interaction
+- **Reading view:** book icon → static abcjs SVG only (no badge, border, toolbar, or click-to-edit; invalid ABC → fallback; empty → implicit-default staff shell)
 - **Source mode:** raw fence only; no `abc-blocks-*` DOM
 
-Phase 5.9 (“strip editor chrome in Reading view”) should keep using the separate Reading render path — do not mount toolbar/editor UI from `render-reading.ts`.
+Phase 5.8 keeps the separate Reading render path — do not mount toolbar/editor UI from `render-reading.ts`. Manual: [`docs/manual-tests/phase-5.8-reading-view.md`](manual-tests/phase-5.8-reading-view.md).
 
 ### Phase 4 — debounced sync, undo, multi-block identity (4.1–4.5)
 

@@ -4,7 +4,7 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 
 **Repository:** https://github.com/milestnnr-music/obsidian-music-notation  
 **Plugin id:** `abc-blocks`  
-**Current status:** Phase 5 in progress (v0.2.8). Step **5.1** done (toolbar). Step **5.2** ✅ done. Step **5.3** ✅ delete selected note verified in Live Preview. **Next:** 5.4 (change duration on selection). **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md). Phase 4 complete (4.1–4.5). Before changing multi-block LP identity, read [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md).
+**Current status:** Phase 5 in progress (v0.2.9). Step **5.1** done (toolbar). Step **5.2** ✅ done. Step **5.3** ✅ delete selected note verified in Live Preview. Step **5.8** ✅ Reading view chrome stripped. **Next:** 5.4 (change duration on selection). **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md). Phase 4 complete (4.1–4.5). Before changing multi-block LP identity, read [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md).
 
 ---
 
@@ -17,7 +17,7 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 | **2 — Read path (abcjs)** | ✅ **Done** | — |
 | **3 — Score model + serializer** | ✅ **Done** | — |
 | 4 — Debounced sync | ✅ Done | — |
-| 5 — Visual editor | **In progress** | 5.1 ✅; 5.2 ✅; 5.3 ✅ delete (v0.2.8); **5.4** duration on selection |
+| 5 — Visual editor | **In progress** | 5.1 ✅; 5.2 ✅; 5.3 ✅ delete; 5.8 ✅ Reading chrome; **5.4** duration on selection |
 | 6 — Polish + docs | Pending | After Phase 5 |
 | 7+ — v2 (chords, 2 staves, settings, playback) | Pending | After Phase 6 |
 
@@ -141,7 +141,7 @@ Full rationale and CSS class map: [`docs/DESIGN.md` → Agent development notes]
 
 1. Dev vault + `npm run dev` + reload Obsidian after changes.
 2. Note with a ` ```abc ` block; in Live Preview, click **outside** the fence.
-3. Confirm distinct UI: LP = dashed border + editor stub; Reading = solid border + static ABC placeholder; Source = no plugin DOM.
+3. Confirm distinct UI: LP = dashed border + toolbar + sync test buttons; Reading = static notation only (no badge/toolbar); Source = no plugin DOM. See `docs/manual-tests/phase-5.8-reading-view.md`.
 
 ---
 
@@ -211,7 +211,7 @@ Phase 4 manual checklists: `docs/manual-tests/phase-4-undo.md` (4.4), `docs/manu
 ## Manifest (`manifest.json`)
 
 - `id`: `abc-blocks` — stable; never change after release
-- `version`: SemVer — **currently `0.2.8`** (see `manifest.json`; keep in sync with `package.json`)
+- `version`: SemVer — **currently `0.2.9`** (see `manifest.json`; keep in sync with `package.json`)
 - `minAppVersion`: keep accurate when using newer APIs
 - `isDesktopOnly`: `false` (editing is desktop-first; mobile loads safely)
 
