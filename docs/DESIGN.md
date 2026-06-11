@@ -274,6 +274,16 @@ Phases run **serially** (0 → 1 → 2 → … → 7+). Within a phase, steps ma
 
 **Phase exit:** Edits in Live Preview update file; undo works; Source shows updated ABC.
 
+**Agent notes (Phase 4.1–4.2, multi-block Live Preview):** Steps 4.1–4.2 landed the write path (`src/editor/sync.ts`, `src/editor/abc-block-patch.ts`) and per-block debounced scheduling (`AbcSyncScheduler`, `ABC_SYNC_DEBOUNCE_MS`). Manual testing with **two** ` ```abc ` blocks in one note exposed Live Preview–specific identity bugs that did not show up in unit tests:
+
+| Symptom | Cause | Fix (where) |
+| ------- | ----- | ----------- |
+| One button updated two fences / wrong fence in Source | `getSectionInfo().lineStart` and processor **call order** are unreliable in LP; render ordinal could map block 1 → second fence | `resolveAbcBlockOpenLine()` + `claimAbcBlockRenderOrdinal()` / `getAmbiguousSectionLineStarts()` (`abc-block-patch.ts`, `block-ordinal.ts`); **authoritative** mapping via `resolveBlockOpenLineFromPreviewDom()` — embed index among `.cm-embed-block` hosts → fence open line (`block-dom.ts`); DOM resolve on **write** in shell `syncContext()` |
+| Sibling block showed notation while Source showed it empty | After a write, Obsidian re-processes siblings and fires `editor-change`; stale `data-abc-open-line` + `chooseBestAbcSource()` (prefers music lines) made block 2 **read** block 1’s ABC; processor also passed wrong `resolvedSource` on re-render | When `blockOpenLine` is set, read **only** that fence body — no merge (`resolveAbcBlockSourceAsync` in `block-source.ts` + `extractAbcBlockBodyAtOpenLine`); DOM resolve before read in `code-block.ts`; `refreshFromEditor()` / `reconcileAfterLayout()` always call `resolveBlockOpenLine()` (`render-live-preview.ts`) |
+| Block 2 button OK, block 1 button wrote block 2 | Trusted duplicate `lineStart` for block 2; block 1 fell through to ordinal 1 → second fence | Prefer DOM index over ordinal when ambiguous; drop “nearest fence” guessing in `findAbcBlockFenceRange` |
+
+**Do not regress:** treat **markdown fence open line** (0-based) as block id; resolve it from **DOM embed order** in Live Preview for sync, processor read, and post-`editor-change` refresh — not from processor ordinal or `lineStart` alone. Tests: `npm run test:abc-block-patch`, `npm run test:abc-sync-debounce`.
+
 ---
 
 ### Phase 5 — Visual editor

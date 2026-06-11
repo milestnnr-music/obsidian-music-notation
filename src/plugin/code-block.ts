@@ -1,5 +1,12 @@
-import { MarkdownPostProcessorContext, Plugin } from 'obsidian';
-import { resolveAbcBlockSourceAsync } from './block-source';
+import { MarkdownPostProcessorContext, Plugin, TFile } from 'obsidian';
+import { resolveAbcBlockOpenLine } from '../editor/abc-block-patch';
+import {
+	claimAbcBlockRenderOrdinal,
+	getAmbiguousSectionLineStarts,
+	noteAbcBlockSectionLineStart,
+} from './block-ordinal';
+import { resolveBlockOpenLineFromPreviewDom } from './block-dom';
+import { readNoteMarkdown, resolveAbcBlockSourceAsync } from './block-source';
 import { renderLivePreview } from './render-live-preview';
 import { renderReadingView } from './render-reading';
 import { detectAbcBlockViewMode } from './view-mode';
@@ -20,7 +27,12 @@ export function registerAbcCodeBlockProcessor(plugin: Plugin): void {
 	plugin.registerMarkdownCodeBlockProcessor(
 		ABC_BLOCK_LANGUAGE,
 		(source, el, ctx) => {
-			void handleAbcCodeBlock(plugin, source, el, ctx);
+			const sectionInfo = ctx.getSectionInfo(el);
+			if (sectionInfo?.lineStart != null) {
+				noteAbcBlockSectionLineStart(ctx.sourcePath, sectionInfo.lineStart);
+			}
+			const renderOrdinal = claimAbcBlockRenderOrdinal(ctx.sourcePath);
+			void handleAbcCodeBlock(plugin, source, el, ctx, renderOrdinal);
 		},
 	);
 }
@@ -30,18 +42,49 @@ async function handleAbcCodeBlock(
 	source: string,
 	el: HTMLElement,
 	ctx: MarkdownPostProcessorContext,
+	renderOrdinal: number,
 ): Promise<void> {
 	const generation = String(Number(el.getAttribute(PROCESSOR_GENERATION) ?? '0') + 1);
 	el.setAttribute(PROCESSOR_GENERATION, generation);
 
 	const sectionInfo = ctx.getSectionInfo(el);
-	const blockLineHint = sectionInfo?.lineStart ?? null;
+
+	const abstractFile = plugin.app.vault.getAbstractFileByPath(ctx.sourcePath);
+
+	let blockOpenLine: number | null = sectionInfo?.lineStart ?? null;
+	if (abstractFile instanceof TFile) {
+		const markdown = await readNoteMarkdown(
+			plugin.app,
+			abstractFile,
+			ctx.sourcePath,
+		);
+		blockOpenLine = resolveAbcBlockOpenLine(
+			markdown,
+			sectionInfo,
+			source,
+			renderOrdinal,
+			getAmbiguousSectionLineStarts(ctx.sourcePath),
+		);
+	}
+
+	const viewMode = detectAbcBlockViewMode(plugin.app, el);
+	if (viewMode === 'live-preview') {
+		const fromDom = await resolveBlockOpenLineFromPreviewDom(
+			plugin.app,
+			el,
+			ctx.sourcePath,
+		);
+		if (fromDom !== null) {
+			blockOpenLine = fromDom;
+		}
+	}
+
 	const abcSource = await resolveAbcBlockSourceAsync(
 		plugin.app,
 		ctx,
 		source,
 		sectionInfo,
-		blockLineHint,
+		blockOpenLine,
 	);
 
 	if (el.getAttribute(PROCESSOR_GENERATION) !== generation) {
@@ -51,10 +94,16 @@ async function handleAbcCodeBlock(
 	el.empty();
 
 	const root = el.createDiv({ cls: 'abc-blocks-root' });
-	const viewMode = detectAbcBlockViewMode(plugin.app, el);
 
 	if (viewMode === 'live-preview') {
-		renderLivePreview(root, abcSource, source, ctx, plugin.app, blockLineHint);
+		renderLivePreview(
+			root,
+			abcSource,
+			source,
+			ctx,
+			plugin.app,
+			blockOpenLine,
+		);
 	} else {
 		renderReadingView(root, abcSource);
 	}

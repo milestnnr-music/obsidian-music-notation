@@ -6,6 +6,7 @@ import {
 	type MarkdownSectionInformation,
 	type SectionCache,
 } from 'obsidian';
+import { extractAbcBlockBodyAtOpenLine } from '../editor/abc-block-patch';
 
 /** Parsed content state for an ```abc fence body (Phase 1.5). */
 export type AbcBlockContentState = 'empty' | 'has-content';
@@ -68,29 +69,41 @@ export async function resolveAbcBlockSourceAsync(
 	ctx: MarkdownPostProcessorContext,
 	processorSource: string,
 	sectionInfo: MarkdownSectionInformation | null,
-	blockLineHint: number | null,
+	blockOpenLine: number | null,
 ): Promise<string> {
+	const abstractFile = app.vault.getAbstractFileByPath(ctx.sourcePath);
+	if (!(abstractFile instanceof TFile)) {
+		const fromSection = sectionInfo?.text
+			? extractAbcCodeBlockBody(sectionInfo.text)
+			: null;
+		return normalizeAbcBlockBody(
+			chooseBestAbcSource(processorSource, fromSection),
+		);
+	}
+
+	const markdown = await readNoteMarkdown(app, abstractFile, ctx.sourcePath);
+
+	// When the fence is identified, read only that block — never merge in another
+	// block's ABC (chooseBestAbcSource prefers music lines and breaks multi-block).
+	if (blockOpenLine !== null) {
+		const body = extractAbcBlockBodyAtOpenLine(markdown, blockOpenLine);
+		if (body !== null) {
+			return normalizeAbcBlockBody(body);
+		}
+	}
+
 	const fromSection = sectionInfo?.text
 		? extractAbcCodeBlockBody(sectionInfo.text)
 		: null;
 	let resolved = chooseBestAbcSource(processorSource, fromSection);
 
-	const abstractFile = app.vault.getAbstractFileByPath(ctx.sourcePath);
-	if (!(abstractFile instanceof TFile)) {
-		return normalizeAbcBlockBody(resolved);
-	}
-
-	const markdown = await readNoteMarkdown(app, abstractFile, ctx.sourcePath);
-	const lineHint = blockLineHint ?? sectionInfo?.lineStart ?? null;
-
-	// Fence scan of the live note is the most reliable source in Live Preview.
-	const fromScan = extractAbcBlockFromNote(markdown, lineHint);
+	const fromScan = extractAbcBlockFromNote(markdown, blockOpenLine);
 	resolved = chooseBestAbcSource(resolved, fromScan);
 
 	const cache = app.metadataCache.getFileCache(abstractFile);
 	const fromCache =
 		cache?.sections !== undefined
-			? pickAbcBodyFromSectionCache(markdown, cache.sections, lineHint)
+			? pickAbcBodyFromSectionCache(markdown, cache.sections, blockOpenLine)
 			: null;
 	resolved = chooseBestAbcSource(resolved, fromCache);
 
@@ -162,18 +175,7 @@ function pickAbcBodyFromSectionCache(
 			return bodies[idx] ?? null;
 		}
 
-		let nearest = 0;
-		let nearestDistance = Number.POSITIVE_INFINITY;
-		for (let i = 0; i < abcSections.length; i++) {
-			const section = abcSections[i];
-			if (!section) continue;
-			const distance = Math.abs(section.position.start.line - lineHint);
-			if (distance < nearestDistance) {
-				nearestDistance = distance;
-				nearest = i;
-			}
-		}
-		return bodies[nearest] ?? null;
+		return null;
 	}
 
 	return bodies[0] ?? null;
@@ -209,7 +211,7 @@ function abcBlockIndexAtLine(markdown: string, lineStart: number): number {
 	return Math.max(0, index);
 }
 
-async function readNoteMarkdown(
+export async function readNoteMarkdown(
 	app: App,
 	file: TFile,
 	sourcePath: string,

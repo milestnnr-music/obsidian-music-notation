@@ -11,7 +11,10 @@
 		"lint": "eslint .",
 		"test:abc-normalize": "node scripts/check-abc-normalize.mjs",
 		"test:abc-empty-shell": "node scripts/check-abc-empty-shell.mjs",
-		"test:roundtrip": "node scripts/check-abc-roundtrip.mjs"
+		"test:roundtrip": "node scripts/check-abc-roundtrip.mjs",
+		"test:abc-block-patch": "node scripts/check-abc-block-patch.mjs",
+		"test:abc-sync-debounce": "node scripts/check-abc-sync-debounce.mjs",
+		"test:abc-first-edit": "node scripts/check-abc-first-edit.mjs"
 	},
 	"keywords": [
 		"obsidian",
