@@ -147,7 +147,7 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 	}
 
 	private pluginVersion(): string {
-		return '0.1.5';
+		return '0.2.7';
 	}
 
 	/**
@@ -344,7 +344,10 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 		);
 		this.shellRoot.toggleClass('abc-blocks-empty', isEmpty);
 
-		mountEditorWidget(this.containerEl, source, isEmpty);
+		mountEditorWidget(this.containerEl, source, isEmpty, {
+			getSyncContext: () => this.syncContext(),
+			scheduler: this.syncScheduler,
+		});
 		this.recordProbe(source, event);
 	}
 
@@ -415,8 +418,8 @@ export function renderLivePreview(
 	container.createDiv({
 		cls: 'abc-blocks-interactive-label',
 		text: isEmpty
-			? 'New example — 4/4, C major, treble. Toolbar in Phase 5.'
-			: 'Interactive editor shell (toolbar and staff in Phase 5)',
+			? 'New example — 4/4, C major, treble. Choose duration and accidental, then click the staff to place notes.'
+			: 'Choose duration and accidental, then click the staff to add notes.',
 	});
 
 	const mountPoint = container.createDiv({ cls: 'abc-blocks-editor-mount' });

@@ -4,7 +4,7 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 
 **Repository:** https://github.com/milestnnr-music/obsidian-music-notation  
 **Plugin id:** `abc-blocks`  
-**Current status:** Phase 4 complete (v0.1.5). Steps **4.1–4.5** done. **Next:** Phase 5 (visual editor). Before changing multi-block LP identity, read [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md).
+**Current status:** Phase 5 in progress (v0.2.7). Step **5.1** done (toolbar). Step **5.2** ✅ done — snap place + Shift select verified in Live Preview (v0.2.5–0.2.7 bug-fix chain); v0.2.1 free-click placement retired. **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md). **Next:** 5.3 (delete selected note). Phase 4 complete (4.1–4.5). Before changing multi-block LP identity, read [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md).
 
 ---
 
@@ -17,7 +17,7 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 | **2 — Read path (abcjs)** | ✅ **Done** | — |
 | **3 — Score model + serializer** | ✅ **Done** | — |
 | 4 — Debounced sync | ✅ Done | — |
-| 5 — Visual editor | **Next** | Toolbar, staff interaction, measure warning |
+| 5 — Visual editor | **In progress** | 5.1 ✅; 5.2 ✅ snap interaction (v0.2.7); **5.3** delete selected note |
 | 6 — Polish + docs | Pending | After Phase 5 |
 | 7+ — v2 (chords, 2 staves, settings, playback) | Pending | After Phase 6 |
 
@@ -52,8 +52,16 @@ src/
     abcjs-adapter.ts           Phase 2: Score or ABC → SVG via abcjs
   editor/
     editor-widget.ts           Phase 5: Live Preview root widget
-    toolbar.ts                 Phase 5: Duration + accidental controls
-    staff-interaction.ts       Phase 5: Click place / select / delete
+    editor-state.ts            Phase 5.1: Toolbar selection state (duration, accidental)
+    toolbar.ts                 Phase 5.1: Duration + accidental controls
+    snap-grid.ts               Phase 5.2: Discrete pitch snap slots (geometry only)
+    svg-client-geometry.ts     Phase 5.2: elementClientCenterY — unified staff line coords (v0.2.7)
+    measure-hit-test.ts        Phase 5.2: Bar-line X → measure index
+    pitch-hit-test.ts          Phase 5.2: verticalPos → Pitch mapping (treble)
+    note-annotate.ts           Phase 5.2: data-measure-index / data-event-index on SVG notes
+    note-selection.ts          Phase 5.2: Shift+click DOM select, hover preview
+    score-session.ts           Phase 5.2: Parse source, place notes, display ABC
+    staff-interaction.ts       Phase 5.2: Snap place + Shift select orchestration
     sync.ts                    Phase 4: Debounced model → ABC → document write-back
     sync-lifecycle.ts          Phase 4.4: flush pending sync on shell unmount
     abc-block-patch.ts         Phase 4: fence locate/replace in markdown
@@ -94,8 +102,12 @@ ABC text  ←→  ScoreModel  →  Renderer (abcjs)
 - Treat the **markdown file as source of truth**.
 - Match existing TypeScript style (`strict`, tabs in source files).
 - When routing by Obsidian view mode, use `detectAbcBlockViewMode()` in `plugin/view-mode.ts` — see **View mode detection** below.
+- For Phase 5.2 staff interaction, follow [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md) — geometry-only snap grid + Shift modifier; **do not** restore per-note or global note calibration (see v0.2.6–0.2.7 handoff).
 
 ### Don't
+
+- Restore **free-coordinate** staff click placement (`analyzeStaffClick` Y→pitch) — superseded; see [`docs/HANDOFF-phase-5.2-staff-placement.md`](docs/HANDOFF-phase-5.2-staff-placement.md).
+- Add Place/Select toolbar buttons in 5.2 — **Shift** is the mode switch.
 
 - Expand scope toward **MuseScore-lite** (parts, engraving, advanced notation).
 - Add chords, multi-staff, playback, settings UI, or insert command **before their phase**.
@@ -172,6 +184,8 @@ npm run test:abc-block-patch
 npm run test:abc-sync-debounce
 npm run test:abc-first-edit
 npm run test:phase-4.5
+npm run test:editor-toolbar
+npm run test:staff-placement
 npm run test:all
 ```
 
@@ -196,7 +210,7 @@ Phase 4 manual checklists: `docs/manual-tests/phase-4-undo.md` (4.4), `docs/manu
 ## Manifest (`manifest.json`)
 
 - `id`: `abc-blocks` — stable; never change after release
-- `version`: SemVer — **currently `0.1.5`** (see `manifest.json`; keep in sync with `package.json`)
+- `version`: SemVer — **currently `0.2.7`** (see `manifest.json`; keep in sync with `package.json`)
 - `minAppVersion`: keep accurate when using newer APIs
 - `isDesktopOnly`: `false` (editing is desktop-first; mobile loads safely)
 
@@ -231,10 +245,11 @@ No prior chat context is available. Load project state from files:
 ### @-mention these files
 
 1. **`docs/DESIGN.md`** — PRD, locked decisions, phase steps, exit criteria
-2. **`docs/phase-4.5-multi-block-lp-resolution.md`** — multi-block LP identity (read before touching 4.5 code)
-3. **`AGENTS.md`** — this file (module map, do/don't, dev workflow)
-4. **`README.md`** — quick start, symlink, troubleshooting
-5. **`LIMITATIONS.md`** — what works now vs planned
+2. **`docs/HANDOFF-phase-5.2-snap-interaction.md`** — **canonical 5.2 spec** (snap place + Shift select)
+3. **`docs/phase-4.5-multi-block-lp-resolution.md`** — multi-block LP identity (read before touching 4.5 code)
+4. **`AGENTS.md`** — this file (module map, do/don't, dev workflow)
+5. **`README.md`** — quick start, symlink, troubleshooting
+6. **`LIMITATIONS.md`** — what works now vs planned
 
 ### Example prompts
 
@@ -244,6 +259,10 @@ No prior chat context is available. Load project state from files:
 
 ```
 @docs/DESIGN.md @docs/phase-4.5-multi-block-lp-resolution.md Start Phase 5 — visual editor.
+```
+
+```
+@docs/HANDOFF-phase-5.2-snap-interaction.md Implement Phase 5.2 snap redesign. Do not restore free-click placement.
 ```
 
 ```

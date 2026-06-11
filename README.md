@@ -2,14 +2,14 @@
 
 Editable ABC notation blocks for [Obsidian](https://obsidian.md). Write short musical examples directly in your notes using ` ```abc ` fences, with a lightweight visual editor in Live Preview and ABC stored in the markdown file.
 
-**Status:** Phase 4 complete (v0.1.5) — debounced sync, multi-block Live Preview identity, and Source-mode reflection of LP edits (4.1–4.5). **Next:** Phase 5 (visual editor). Multi-block LP fix notes: [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md).
+**Status:** Phase 5 in progress (v0.2.7). Step **5.1** done (toolbar). Step **5.2** ✅ snap staff interaction (place + Shift select) verified in Live Preview. v0.2.1 free-click placement retired. **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md). **Next:** 5.3 (delete selected note). Phase 4 complete (4.1–4.5). Multi-block LP fix notes: [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md).
 
 📐 **Full product design & phased plan:** [`docs/DESIGN.md`](docs/DESIGN.md)  
 🤖 **Cursor agents:** read [`AGENTS.md`](AGENTS.md) before implementing.
 
 ## What it will do (v1)
 
-- Hybrid editing: click a staff in **Live Preview**; ABC syncs to the file (debounced ~300ms)
+- Hybrid editing: snap-to-place on staff in **Live Preview** (Shift+click to select); ABC syncs to the file (debounced ~300ms)
 - ` ```abc ` code blocks in markdown
 - Single treble staff, simple melodies (~4 measures soft guideline), quarter-note default
 - Graceful fallback when ABC is invalid
@@ -142,7 +142,7 @@ CDEF|
 | 2     | Read path — render ABC                  | ✅ Complete |
 | 3     | Music model + serializer                | ✅ Complete |
 | 4     | Debounced sync to markdown              | ✅ Complete (4.1–4.5) |
-| 5     | Visual editor                           | **Next**    |
+| 5     | Visual editor (5.1 ✅; 5.2 ✅ snap) | **In progress** |
 | 6     | Polish + docs                           | Planned     |
 | 7+    | Chords, multi-staff, settings, playback | Planned     |
 

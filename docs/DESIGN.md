@@ -3,7 +3,7 @@
 **Plugin id:** `abc-blocks`  
 **Repository:** [https://github.com/milestnnr-music/obsidian-music-notation](https://github.com/milestnnr-music/obsidian-music-notation)  
 **Dev vault:** `Desktop/Ideas/Obsidian Dev Vault`  
-**Current status:** Phase 4 **complete** (v0.1.5). Steps 4.1–4.5 done — multi-block LP identity, inline source edit, and sync isolation verified. **Next:** Phase 5 (visual editor). Canonical 4.5 fix notes: [`docs/phase-4.5-multi-block-lp-resolution.md`](phase-4.5-multi-block-lp-resolution.md).
+**Current status:** Phase 5 **in progress** (v0.2.7). Step **5.1** done (toolbar). Step **5.2** ✅ **done** — snap staff interaction (place + Shift select) verified in Live Preview (v0.2.5–0.2.7 bug-fix chain). v0.2.1 free-click placement **retired**. **Canonical 5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](HANDOFF-phase-5.2-snap-interaction.md). **Next:** 5.3 (delete selected note). Phase 4 complete (4.1–4.5). Canonical 4.5 fix notes: [`docs/phase-4.5-multi-block-lp-resolution.md`](phase-4.5-multi-block-lp-resolution.md).
 
 > **For Cursor agents:** Read this document first before implementing features. See also [AGENTS.md](../AGENTS.md), [README.md](../README.md), and [LIMITATIONS.md](../LIMITATIONS.md).
 
@@ -34,7 +34,8 @@ These were decided in design sessions and should not be re-litigated without exp
 | Sync                  | Debounced live sync ~**300ms**; **file is source of truth**                                                                    |
 | Empty block           | Staff + toolbar with implicit defaults (4/4, C major, treble); ABC generated on **first edit**; file can stay empty until then |
 | Invalid ABC           | Graceful fallback — monospace ABC + friendly message; **no red error banner**                                                  |
-| v1 editor             | **Lightweight composer (B):** toolbar durations + accidentals, click to place, select/delete. **Not** MuseScore-lite           |
+| v1 editor             | **Lightweight composer (B):** toolbar durations + accidentals, snap-to-place, Shift+click select, delete. **Not** MuseScore-lite |
+| Staff interaction     | **Snap grid (hybrid):** discrete pitch slots for place; DOM note hit-test for select; **Shift** modifier only (no tool buttons in toolbar) |
 | Default note duration | Quarter                                                                                                                        |
 | v1 musical elements   | Treble only; key/time sig; whole/half/quarter/eighth; rests; accidentals; **single pitch per note** (no chords)                |
 | Measure limit         | Soft 4-measure **warning** (not hard cap); pasted ABC can exceed                                                               |
@@ -138,14 +139,14 @@ CDEF|GABc|
 
 1. User types ` ```abc ` and closes the fence in Live Preview.
 2. Plugin shows empty staff shell + toolbar (no ABC in file yet).
-3. User selects quarter note on toolbar, clicks staff → note appears.
+3. User selects quarter note on toolbar, hovers staff (guide line snaps to pitch), clicks → note appears at snapped pitch.
 4. After ~300ms debounce, ABC headers + body are written to the block.
 
 ### 2. Edit existing ABC (hybrid)
 
 1. User opens note in Live Preview; block already contains ABC.
 2. Plugin parses ABC → `Score` → renders staff.
-3. User clicks to add/change/delete notes via toolbar.
+3. User clicks to place notes (snap grid); Shift+click to select; delete and duration-on-selection in later 5.x steps.
 4. Debounced sync updates the ` ```abc ` body in markdown.
 
 ### 3. Paste ABC from elsewhere
@@ -318,17 +319,16 @@ Phases run **serially** (0 → 1 → 2 → … → 7+). Within a phase, steps ma
 **Goal:** Lightweight composer for v1.
 
 
-| Step | Task                                | Kind       | Blocked by |
-| ---- | ----------------------------------- | ---------- | ---------- |
-| 5.1  | Toolbar: duration + accidentals     | **Serial** | —          |
-| 5.2  | Click staff to place notes          | **Serial** | 5.1        |
-| 5.3  | Select existing note                | **Serial** | 5.2        |
-| 5.4  | Delete selected note                | Parallel   | 5.3        |
-| 5.5  | Change duration on selection        | Parallel   | 5.3        |
-| 5.6  | Rests via toolbar                   | Parallel   | 5.2        |
-| 5.7  | Key / time signature controls       | Parallel   | 5.1        |
-| 5.8  | Soft 4-measure warning              | Parallel   | 5.2        |
-| 5.9  | Strip editor chrome in Reading view | **Serial** | 5.1        |
+| Step | Task                                                         | Kind       | Blocked by | Status |
+| ---- | ------------------------------------------------------------ | ---------- | ---------- | ------ |
+| 5.1  | Toolbar: duration + accidentals                              | **Serial** | —          | ✅     |
+| 5.2  | Snap staff interaction (place + Shift select highlight)      | **Serial** | 5.1        | ✅ v0.2.7 — [handoff](HANDOFF-phase-5.2-snap-interaction.md); LP verified |
+| 5.3  | Delete selected note                                         | **Serial** | 5.2        |        |
+| 5.4  | Change duration on selection                                 | Parallel   | 5.3        |        |
+| 5.5  | Rests via toolbar                                            | Parallel   | 5.2        |        |
+| 5.6  | Key / time signature controls                                | Parallel   | 5.1        |        |
+| 5.7  | Soft 4-measure warning                                       | Parallel   | 5.2        |        |
+| 5.8  | Strip editor chrome in Reading view                          | **Serial** | 5.1        |        |
 
 
 **Phase exit:** Full v1 editing loop works; Reading view has no chrome; measure warning appears after threshold.
@@ -388,7 +388,7 @@ Full interactive board: `.cursor/projects/.../canvases/obsidian-music-plugin-kan
 
 
 **Critical path (serial spine):**  
-0.1 → 0.2 → 0.5 → 1.1 → 1.5 → 2.1 → 3.1 → 3.4 → 4.1 → 4.2 → 4.4 → 5.1 → 5.2 → 5.3 → 5.9 → 6.x → 7.1 → 7.2 → 7.3 → 7.7
+0.1 → 0.2 → 0.5 → 1.1 → 1.5 → 2.1 → 3.1 → 3.4 → 4.1 → 4.2 → 4.4 → 5.1 → 5.2 → 5.3 → 5.8 → 6.x → 7.1 → 7.2 → 7.3 → 7.7
 
 ---
 
@@ -404,6 +404,8 @@ Future Cursor agents have **no prior chat context**. Start every implementation 
 | `docs/DESIGN.md` | Product intent, locked decisions, phase plan (this file) |
 | `docs/phase-4.5-multi-block-lp-resolution.md` | Canonical 4.5 fix reference (identity, probe, regressions) |
 | `docs/HANDOFF-phase-4.5-multi-block.md` | Historical 4.5 session log + pointers |
+| `docs/HANDOFF-phase-5.2-snap-interaction.md` | **Canonical 5.2 spec** — snap place + Shift select (redesign) |
+| `docs/HANDOFF-phase-5.2-staff-placement.md` | Superseded free-click 5.2 attempt — do not restore |
 | `AGENTS.md`      | Module map, do/don't, dev workflow                       |
 | `README.md`      | Quick start, symlink setup, build commands               |
 | `LIMITATIONS.md` | Current scope and what is explicitly out of scope        |
@@ -505,6 +507,37 @@ npm run compare:phase-4.5-probe   # after reload + open Test.md in LP
 ```
 
 Manual: `docs/manual-tests/phase-4-undo.md`, `docs/manual-tests/phase-4-source-mode.md` §1–4 (dev vault; reload without saving after `npm run build`).
+
+### Phase 5 — snap staff interaction (5.2 redesign)
+
+**Canonical spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](HANDOFF-phase-5.2-snap-interaction.md)
+
+The v0.2.1 **free-coordinate** click path (`analyzeStaffClick` in `pitch-hit-test.ts`) is **retired** — pitch was unreliable in Live Preview. **Do not restore** continuous Y→pitch math.
+
+**Locked behavior (5.2):**
+
+| Mode | Input | Behavior |
+| ---- | ----- | -------- |
+| Place (default) | Hover | Horizontal guide line at snapped pitch slot (staff + one ledger) |
+| Place | Click | Append note to end of clicked measure; toolbar duration/accidental |
+| Select | Shift+hover | Note hover preview; no guide line |
+| Select | Shift+click note | `.abc-blocks-note-selected` + `data-measure-index` / `data-event-index` |
+| Select | Shift+click empty | Clear selection |
+| Any edit | — | Clear selection (index re-resolve deferred) |
+
+**Rhythm:** measure + append now; **beat-grid X snap** is a later phase (explicitly not 5.2).
+
+**Modules:** `snap-grid.ts`, `svg-client-geometry.ts`, `measure-hit-test.ts`, `pitch-hit-test.ts`, `note-selection.ts`, `staff-interaction.ts`, `note-annotate.ts`. Post-render: inject `data-*` on note groups.
+
+**5.2 bug-fix chain (do not regress):**
+
+| Version | Issue | Handoff |
+| ------- | ----- | ------- |
+| v0.2.5 | Octave/serializer mismatch — notes ~7 steps above guide | [§ octave mismatch](HANDOFF-phase-5.2-snap-interaction.md#root-cause-octave-mismatch-v025-fix) |
+| v0.2.6 | Per-note slot calibration — grid jumped over existing notes | [§ per-note calibration](HANDOFF-phase-5.2-snap-interaction.md#root-cause-per-note-snap-calibration-v026-fix) |
+| v0.2.7 | Mixed staff-line coordinates + global calibration — guide below staff, wrong placement | [§ geometry drift](HANDOFF-phase-5.2-snap-interaction.md#root-cause-geometry-coordinate-drift-v027-fix) |
+
+**Tests:** `npm run test:staff-placement` (octave round-trip + geometry regression). LP place/select verified v0.2.7.
 
 ---
 

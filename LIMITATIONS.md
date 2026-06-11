@@ -1,7 +1,7 @@
 # Limitations and roadmap
 
-**Current status:** Phase 4 complete (v0.1.5). Steps 4.1–4.5 done (debounced sync, first-edit write, undo validation, multi-block LP identity, Source reflects LP edits). **Next:** Phase 5 (visual editor).  
-**Design reference:** [`docs/DESIGN.md`](docs/DESIGN.md) · Multi-block LP fixes: [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md)
+**Current status:** Phase 5 in progress (v0.2.7). Step **5.1** done (toolbar). Step **5.2** ✅ snap staff interaction (place + Shift select) verified in Live Preview. v0.2.1 free-click placement retired. **Next:** 5.3 (delete selected note). Phase 4 complete (4.1–4.5).  
+**Design reference:** [`docs/DESIGN.md`](docs/DESIGN.md) · **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md) · Multi-block LP fixes: [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md)
 
 ## What works today
 
@@ -12,6 +12,8 @@
 - **Invalid ABC:** graceful fallback — friendly message + monospace source, no error banner (Phase 2.2)
 - **Source mode:** raw fence text unchanged — processors do not run (Obsidian default; no overlay registered)
 - **Empty blocks:** implicit-default staff shell (4/4, C major, treble, quarter) via in-memory ABC; file stays empty until first edit (Phase 4.3)
+- **Live Preview toolbar (Phase 5.1):** duration (whole/half/quarter/eighth) and accidental (♯/♭/♮) controls; default quarter
+- **Snap staff interaction (Phase 5.2, v0.2.7):** hover guide line + click to place (measure + append); Shift+hover/click to select; debounced ABC sync — LP verified after geometry fix (v0.2.5–0.2.7)
 - **Debounced sync (Phase 4.1–4.2):** Score → ABC → markdown write via dev test buttons (~300ms debounce); per-block `AbcSyncScheduler`; multi-block notes target the correct fence when block index is established
 - **First edit (Phase 4.3):** empty fence receives headers + body on first scored edit (dev test button)
 - **Undo / teardown (Phase 4.4):** pending debounced writes flushed on shell unmount; manual undo/redo checklist passed (`docs/manual-tests/phase-4-undo.md`)
@@ -22,10 +24,28 @@
 - Build pipeline (`npm run dev`, `npm run build`, `npm run lint`, `npm run test:all`, `npm run test:phase-4.5`, `npm run compare:phase-4.5-probe` with Obsidian + dev vault)
 - View mode routing via `src/plugin/view-mode.ts` (see `docs/DESIGN.md` → Agent development notes if LP and Reading look identical)
 
-## What does not work yet
+## Retired (do not restore)
 
-- No visual editor, toolbar, or staff interaction (Phase 5) — sync plumbing is ready; dev test buttons drive writes until Phase 5 UI
-- No measure warning (Phase 5)
+The v0.2.1 **free-coordinate click-to-place** path (`analyzeStaffClick`) is **removed** — pitch was unreliable in Live Preview. Replaced by geometry-only snap grid (v0.2.4+; coordinate bugs fixed v0.2.5–0.2.7). See [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md).
+
+**5.2 interaction (Shift modifier only; no Place/Select toolbar buttons):**
+
+| Mode | Input | Behavior |
+| ---- | ----- | ---------- |
+| Place (default) | Hover | Horizontal guide line at snapped pitch (staff + one ledger) |
+| Place | Click | Append note to end of clicked measure; toolbar duration/accidental |
+| Select | Shift+hover | Note hover preview; no guide line |
+| Select | Shift+click note | `.abc-blocks-note-selected` highlight |
+| Select | Shift+click empty | Clear selection |
+| Any score edit | — | Clear selection |
+
+**Rhythm:** measure + append (beat-grid X snap is a later phase).
+
+## What does not work yet
+- Delete selected note (Phase 5.3)
+- Change duration on selection (Phase 5.4)
+- Rests via toolbar (Phase 5.5+)
+- No measure warning (Phase 5.7)
 - Serializer not yet driving Live Preview render path (still abcjs-on-ABC text directly for display)
 
 ## v1 scope (planned)
@@ -41,7 +61,7 @@ Still planned for v1:
 
 - Soft warning after 4 measures (not a hard cap; pasted ABC can exceed)
 - Live Preview: editable; Reading view: static; Source: raw ABC
-- Hybrid editing with debounced ABC sync from toolbar/staff (Phase 5; sync plumbing ✅)
+- Hybrid editing with debounced ABC sync from toolbar/staff (Phase 5; sync plumbing ✅; staff snap interaction ✅ v0.2.7)
 - Graceful fallback for invalid ABC (no red error banners) — render path ✅; model path N/A until Phase 5 UI
 
 ## Explicitly out of scope for v1
