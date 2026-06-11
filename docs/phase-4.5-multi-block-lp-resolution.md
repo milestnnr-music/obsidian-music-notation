@@ -204,7 +204,7 @@ flowchart TD
 | File | Role in Phase 4.5 |
 | ---- | ----------------- |
 | `src/plugin/block-dom.ts` | `listAbcBlockEmbedHosts`, `isPreviewAbcMappingUnreliable`, `resolveDomBlockIndexWhenReliable`, `resolveLivePreviewProcessorIdentity` |
-| `src/plugin/block-identity.ts` | Attr constants; `readPersistedBlockIndex` (shell then processor); `writePersistedBlockIdentity*` |
+| `src/plugin/block-identity.ts` | Attr constants; `readPersistedBlockIndex` (processor then shell); `writePersistedBlockIdentity*` |
 | `src/plugin/code-block.ts` | Processor registration; LP identity via `resolveLivePreviewProcessorIdentity`; conditional `el.empty()` skip |
 | `src/plugin/render-live-preview.ts` | `AbcLivePreviewShell` — bootstrap, `editor-change` reconcile, sync buttons, DOM index validation |
 | `src/plugin/block-source.ts` | `readNoteMarkdown`, `readAbcBodyAtBlockIndex`; **no** `chooseBestAbcSource` when index known |

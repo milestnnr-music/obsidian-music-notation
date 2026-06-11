@@ -1,11 +1,7 @@
 import { MarkdownView, TFile, type App } from 'obsidian';
-import {
-	findEmbedHostContainingProcessor,
-	listAbcBlockEmbedHosts,
-} from '../plugin/block-dom';
+import { buildLpEmbedSnapshot } from '../plugin/lp-embed-snapshot';
 import {
 	abcHasMusicLines,
-	findMarkdownViewContaining,
 	isEmptyAbcBlockSource,
 	readAbcBodyAtBlockIndex,
 } from '../plugin/block-source';
@@ -47,22 +43,6 @@ export interface Phase45ProbeSnapshot {
 	readonly shells: Phase45ProbeShell[];
 }
 
-function resolveDomEmbedIndex(
-	app: App,
-	sourcePath: string,
-	processorEl: HTMLElement,
-): number | null {
-	const view = findMarkdownViewContaining(app, sourcePath, processorEl);
-	const previewRoot = view?.contentEl ?? processorEl.ownerDocument.body;
-	const hosts = listAbcBlockEmbedHosts(previewRoot);
-	const host = findEmbedHostContainingProcessor(previewRoot, processorEl);
-	if (!host) {
-		return null;
-	}
-	const idx = hosts.indexOf(host);
-	return idx >= 0 ? idx : null;
-}
-
 /** Dev / test: structured LP state for automated diff. */
 export function buildPhase45ProbeShell(
 	shellRoot: HTMLElement,
@@ -80,7 +60,8 @@ export function buildPhase45ProbeShell(
 	const openLine =
 		openLineRaw !== null && openLineRaw !== '' ? Number(openLineRaw) : null;
 	const isEmpty = isEmptyAbcBlockSource(resolvedSource);
-	const domEmbedIndex = resolveDomEmbedIndex(app, sourcePath, processorEl);
+	const domEmbedIndex =
+		buildLpEmbedSnapshot(app, processorEl, sourcePath)?.domEmbedIndex ?? null;
 
 	return {
 		blockIndex: Number.isFinite(blockIndex) ? blockIndex : null,

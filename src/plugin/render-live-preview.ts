@@ -14,8 +14,6 @@ import {
 	getAbcBlockContentState,
 	isEmptyAbcBlockSource,
 	readAbcBodyAtBlockIndex,
-	findMarkdownViewContaining,
-	getMarkdownFromView,
 	readNoteMarkdown,
 } from './block-source';
 import {
@@ -25,7 +23,12 @@ import {
 	parseBlockOpenLineAttr,
 	writePersistedBlockIdentityToShellAndProcessor,
 } from './block-identity';
-import { afterPreviewLayout, resolveDomBlockIndexWhenReliable } from './block-dom';
+import { afterPreviewLayout } from './block-dom';
+import {
+	buildLpEmbedSnapshot,
+	domBlockIndexWhenReliable,
+	type LpEmbedSnapshot,
+} from './lp-embed-snapshot';
 import { mountEditorWidget } from '../editor/editor-widget';
 import { flushAbcSyncScheduler } from '../editor/sync-lifecycle';
 import {
@@ -173,27 +176,25 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 	 * Re-read fence body from the editor by `data-abc-block-index`.
 	 * Runs even when DOM embed mapping is unreliable (inline sibling source edit).
 	 */
+	private applyDomIndexFromSnapshot(snapshot: LpEmbedSnapshot): void {
+		const domIndex = domBlockIndexWhenReliable(snapshot);
+		if (domIndex === null || domIndex === this.currentBlockIndex()) {
+			return;
+		}
+		const openLine = openLineForAbcBlockIndex(snapshot.markdown, domIndex);
+		if (openLine !== null) {
+			this.persistBlockIdentity(openLine, domIndex);
+		}
+	}
+
 	private async reconcileFromEditorByIndex(event: string): Promise<void> {
-		const domIndex = resolveDomBlockIndexWhenReliable(
+		const snapshot = buildLpEmbedSnapshot(
 			this.app,
 			this.processorEl,
 			this.ctx.sourcePath,
 		);
-		if (domIndex !== null && domIndex !== this.currentBlockIndex()) {
-			const view = findMarkdownViewContaining(
-				this.app,
-				this.ctx.sourcePath,
-				this.processorEl,
-			);
-			if (view) {
-				const openLine = openLineForAbcBlockIndex(
-					getMarkdownFromView(view),
-					domIndex,
-				);
-				if (openLine !== null) {
-					this.persistBlockIdentity(openLine, domIndex);
-				}
-			}
+		if (snapshot) {
+			this.applyDomIndexFromSnapshot(snapshot);
 		}
 
 		const resolved = await this.readAbcForThisBlock();
@@ -208,26 +209,16 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 	/** Sync target: DOM embed index when reliable, else shell attrs (inline edit). */
 	private buildSyncContext(): AbcBlockSyncContext {
 		let blockIndex = this.currentBlockIndex();
-		const domIndex = resolveDomBlockIndexWhenReliable(
+		const snapshot = buildLpEmbedSnapshot(
 			this.app,
 			this.processorEl,
 			this.ctx.sourcePath,
 		);
-		if (domIndex !== null) {
-			blockIndex = domIndex;
-			const view = findMarkdownViewContaining(
-				this.app,
-				this.ctx.sourcePath,
-				this.processorEl,
-			);
-			if (view) {
-				const openLine = openLineForAbcBlockIndex(
-					getMarkdownFromView(view),
-					domIndex,
-				);
-				if (openLine !== null) {
-					this.persistBlockIdentity(openLine, domIndex);
-				}
+		if (snapshot) {
+			this.applyDomIndexFromSnapshot(snapshot);
+			const domIndex = domBlockIndexWhenReliable(snapshot);
+			if (domIndex !== null) {
+				blockIndex = domIndex;
 			}
 		}
 

@@ -11,11 +11,13 @@ import {
 import {
 	readPersistedBlockIndex,
 	writePersistedBlockIdentity,
+	writePersistedBlockIdentityToShellAndProcessor,
 } from './block-identity';
+import { buildLpEmbedSnapshot, type LpEmbedSnapshot } from './lp-embed-snapshot';
 import {
-	isPreviewAbcMappingUnreliable,
-	resolveLivePreviewProcessorIdentity,
-} from './block-dom';
+	resolveLpProcessorIdentity,
+	shouldSkipProcessorRerender,
+} from './lp-processor-identity';
 import {
 	readAbcBodyAtBlockIndex,
 	readNoteMarkdown,
@@ -83,6 +85,7 @@ async function handleAbcCodeBlock(
 
 	let blockOpenLine: number | null = null;
 	let blockIndex: number | null = null;
+	let lpSnapshot: LpEmbedSnapshot | null = null;
 
 	const sectionSnapshot =
 		sectionInfo !== null && sectionInfo !== undefined
@@ -93,21 +96,21 @@ async function handleAbcCodeBlock(
 				}
 			: null;
 
-	if (viewMode === 'live-preview' && markdown.length > 0) {
-		const identity = await resolveLivePreviewProcessorIdentity(
-			plugin.app,
-			el,
-			ctx.sourcePath,
-			sectionSnapshot,
-			source,
-			renderOrdinal,
-			ambiguousLineStarts,
-			persistedIndex,
-			markdown,
-		);
-		if (identity !== null) {
-			blockOpenLine = identity.openLine;
-			blockIndex = identity.blockIndex;
+	if (viewMode === 'live-preview') {
+		lpSnapshot = buildLpEmbedSnapshot(plugin.app, el, ctx.sourcePath);
+		if (lpSnapshot && markdown.length > 0) {
+			const identity = resolveLpProcessorIdentity({
+				snapshot: lpSnapshot,
+				persistedBlockIndex: persistedIndex,
+				sectionInfo: sectionSnapshot,
+				processorSource: source,
+				renderOrdinal,
+				ambiguousSectionLineStarts: ambiguousLineStarts,
+			});
+			if (identity !== null) {
+				blockOpenLine = identity.openLine;
+				blockIndex = identity.blockIndex;
+			}
 		}
 	} else if (persistedIndex !== null && markdown.length > 0) {
 		blockIndex = persistedIndex;
@@ -127,20 +130,38 @@ async function handleAbcCodeBlock(
 	}
 
 	const existingShell = el.querySelector('.abc-blocks-live-preview');
-	const mappingUnreliable =
-		viewMode === 'live-preview' &&
-		(await isPreviewAbcMappingUnreliable(plugin.app, el, ctx.sourcePath));
+	const existingShellEl =
+		existingShell instanceof HTMLElement ? existingShell : null;
+	const resolvedIdentity =
+		blockIndex !== null && blockOpenLine !== null
+			? { blockIndex, openLine: blockOpenLine }
+			: null;
 
 	// Sibling inline source edit hides one embed host — skip el.empty() when the shell
 	// is still mounted; it refreshes by block index on editor-change. When the shell
 	// was torn down for the block being edited, fall through and recreate it below.
 	if (
-		mappingUnreliable &&
-		blockIndex !== null &&
-		blockOpenLine !== null &&
-		existingShell !== null
+		lpSnapshot &&
+		resolvedIdentity !== null &&
+		shouldSkipProcessorRerender(
+			lpSnapshot,
+			existingShellEl !== null,
+			resolvedIdentity,
+		)
 	) {
-		writePersistedBlockIdentity(el, blockIndex, blockOpenLine);
+		if (existingShellEl) {
+			writePersistedBlockIdentityToShellAndProcessor(
+				existingShellEl,
+				resolvedIdentity.blockIndex,
+				resolvedIdentity.openLine,
+			);
+		} else {
+			writePersistedBlockIdentity(
+				el,
+				resolvedIdentity.blockIndex,
+				resolvedIdentity.openLine,
+			);
+		}
 		return;
 	}
 

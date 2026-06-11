@@ -28,15 +28,21 @@ export function findProcessorElementFromShell(shellRoot: HTMLElement): HTMLEleme
 	return processor;
 }
 
-/** Block index stored on the processor host or its live preview shell. */
+/**
+ * Block index on the processor host or its LP shell.
+ * Processor `el` first — survives `el.empty()` and skip-rerender writes that
+ * may not yet update the shell; shell is fallback when processor has no attr.
+ */
 export function readPersistedBlockIndex(processorEl: HTMLElement): number | null {
-	const shell = processorEl.querySelector('.abc-blocks-live-preview');
-	const onShell = parseBlockIndexAttr(shell?.getAttribute(ABC_BLOCK_INDEX_ATTR) ?? null);
-	if (onShell !== null) {
-		return onShell;
+	const onProcessor = parseBlockIndexAttr(
+		processorEl.getAttribute(ABC_BLOCK_INDEX_ATTR),
+	);
+	if (onProcessor !== null) {
+		return onProcessor;
 	}
 
-	return parseBlockIndexAttr(processorEl.getAttribute(ABC_BLOCK_INDEX_ATTR));
+	const shell = processorEl.querySelector('.abc-blocks-live-preview');
+	return parseBlockIndexAttr(shell?.getAttribute(ABC_BLOCK_INDEX_ATTR) ?? null);
 }
 
 /** Keep processor `el` and shell attrs in sync (shell is updated after layout reconcile). */

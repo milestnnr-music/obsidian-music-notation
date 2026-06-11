@@ -42,8 +42,13 @@ const {
 	findEmbedHostContainingProcessor,
 	isAbcEmbedHostCountReliable,
 	listAbcBlockEmbedHosts,
-	resolveDomBlockIndexWhenReliable,
 } = await jiti.import('../src/plugin/block-dom.ts');
+const { buildLpEmbedSnapshotFromDom } = await jiti.import(
+	'../src/plugin/lp-embed-snapshot.ts',
+);
+const { resolveLpProcessorIdentity } = await jiti.import(
+	'../src/plugin/lp-processor-identity.ts',
+);
 const {
 	ABC_BLOCK_INDEX_ATTR,
 	ABC_OPEN_LINE_ATTR,
@@ -342,38 +347,22 @@ if (EXPECTED.block0WriteTestBodyContains) {
 
 // --- LP inline source edit: processor attrs without shell --------------------
 
-/** Mirrors resolveLivePreviewProcessorIdentity (DOM when reliable, else persisted). */
-function resolveLpProcessorIdentity(
+function resolveLpIdentityInTest(
 	markdown,
 	processorEl,
 	processorSource,
 	renderOrdinal,
 	previewRoot,
 ) {
-	const openLines = findAllAbcBlockFenceOpenLines(markdown);
-	const hosts = listAbcBlockEmbedHosts(previewRoot);
-	const host = findEmbedHostContainingProcessor(previewRoot, processorEl);
-	if (
-		host &&
-		isAbcEmbedHostCountReliable(hosts.length, openLines.length)
-	) {
-		const blockIndex = hosts.indexOf(host);
-		const openLine = openLines[blockIndex];
-		if (blockIndex >= 0 && openLine !== undefined) {
-			return { blockIndex, openLine };
-		}
-	}
-	const persistedIndex = readPersistedBlockIndex(processorEl);
-	if (persistedIndex !== null && markdown.length > 0) {
-		return {
-			blockIndex: persistedIndex,
-			openLine: openLineForAbcBlockIndex(markdown, persistedIndex),
-		};
-	}
-	const identity = resolveAbcBlockIdentity(markdown, null, processorSource, renderOrdinal);
-	return identity
-		? { blockIndex: identity.blockIndex, openLine: identity.openLine }
-		: null;
+	const snapshot = buildLpEmbedSnapshotFromDom(markdown, previewRoot, processorEl);
+	return resolveLpProcessorIdentity({
+		snapshot,
+		persistedBlockIndex: readPersistedBlockIndex(processorEl),
+		sectionInfo: null,
+		processorSource,
+		renderOrdinal,
+		ambiguousSectionLineStarts: new Set(),
+	});
 }
 
 const inlineEditProcessor = window.document.createElement('div');
@@ -394,7 +383,7 @@ const twoEmptyDom = buildTwoBlockPreviewDom(window);
 const staleIndexProcessor = twoEmptyDom.hosts[1].processor;
 staleIndexProcessor.setAttribute(ABC_BLOCK_INDEX_ATTR, '0');
 staleIndexProcessor.setAttribute(ABC_OPEN_LINE_ATTR, String(twoEmptyOpenLines[0]));
-const twoEmptyIdentity = resolveLpProcessorIdentity(
+const twoEmptyIdentity = resolveLpIdentityInTest(
 	twoEmptyMarkdown,
 	staleIndexProcessor,
 	emptyProcessorSource,
@@ -406,7 +395,7 @@ assert(
 	'two empty fences: DOM embed index overrides stale persisted index 0 on block 1',
 );
 
-const inlineIdentity = resolveLpProcessorIdentity(
+const inlineIdentity = resolveLpIdentityInTest(
 	TWO_BLOCK_MARKDOWN,
 	inlineEditProcessor,
 	emptyProcessorSource,
@@ -425,7 +414,7 @@ assert(
 const inlineEditBlock1 = window.document.createElement('div');
 inlineEditBlock1.setAttribute(ABC_BLOCK_INDEX_ATTR, '1');
 inlineEditBlock1.setAttribute(ABC_OPEN_LINE_ATTR, String(openLines[1]));
-const inlineIdentity1 = resolveLpProcessorIdentity(
+const inlineIdentity1 = resolveLpIdentityInTest(
 	TWO_BLOCK_MARKDOWN,
 	inlineEditBlock1,
 	filledProcessorSource,
@@ -437,7 +426,7 @@ assert(
 	'LP inline edit: block 1 processor keeps index 1 when sibling is being edited',
 );
 
-// --- Persisted identity: shell wins over processor ---------------------------
+// --- Persisted identity: processor first, reconcile keeps both in sync -------
 
 const processor = window.document.createElement('div');
 processor.setAttribute(ABC_BLOCK_INDEX_ATTR, '0');
@@ -448,7 +437,17 @@ shell.className = 'abc-blocks-live-preview';
 processor.appendChild(root);
 root.appendChild(shell);
 writePersistedBlockIdentityToShellAndProcessor(shell, 1, openLines[1]);
-assert(readPersistedBlockIndex(processor) === 1, 'shell block index wins over stale processor el');
+assert(
+	readPersistedBlockIndex(processor) === 1,
+	'reconcile syncs processor and shell to the same block index',
+);
+
+processor.setAttribute(ABC_BLOCK_INDEX_ATTR, '1');
+shell.setAttribute(ABC_BLOCK_INDEX_ATTR, '0');
+assert(
+	readPersistedBlockIndex(processor) === 1,
+	'processor block index wins over stale shell attr',
+);
 
 // Processor-time read: when blockIndex is known, always use index read (code-block.ts).
 function resolveProcessorAbcSource(markdown, blockIndex, blockOpenLine, processorSource) {

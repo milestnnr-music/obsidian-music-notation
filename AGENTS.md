@@ -34,7 +34,9 @@ src/
     code-block.ts              Phase 1: ```abc processor registration & view routing
     block-source.ts            Phase 1.5 / 4: fence body read; multi-block by index
     block-identity.ts          Phase 4.4: persisted block index on processor el
-    block-dom.ts                 Phase 4.5: resolveLivePreviewProcessorIdentity, DOM embed index
+    block-dom.ts                 LP embed host DOM helpers
+    lp-embed-snapshot.ts         One markdown + embed fetch per processor
+    lp-processor-identity.ts     Pure LP block-index policy
     view-mode.ts               Phase 1: Reading vs Live Preview DOM detection
     render-reading.ts          Phase 1.2 / 2.4: static Reading view abcjs render
     render-live-preview.ts     Phase 1.3 / 4: LP shell, debounced refresh, undo flush

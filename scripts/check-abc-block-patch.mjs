@@ -10,7 +10,6 @@ const {
 	findAllAbcBlockFenceOpenLines,
 	openLineForAbcBlockIndex,
 	resolveAbcBlockIdentity,
-	resolveAbcBlockOpenLine,
 	resolveOpenLineFromSectionRange,
 	extractAbcBlockBodyAtOpenLine,
 	replaceAbcBlockBodyInMarkdown,
@@ -105,11 +104,8 @@ assert(openLines.length === 2, 'finds two abc fence open lines');
 assert(openLines[0] === 2, 'first block open line');
 assert(openLines[1] === 10, 'second block open line');
 
-const resolvedSecond = resolveAbcBlockOpenLine(twoBlocks, null, '', 1);
-assert(resolvedSecond === 10, 'render ordinal 1 resolves second block');
-
-const resolvedFirst = resolveAbcBlockOpenLine(twoBlocks, null, '', 0);
-assert(resolvedFirst === 2, 'render ordinal 0 resolves first block');
+assert(openLineForAbcBlockIndex(twoBlocks, 1) === 10, 'block index 1 maps to second fence');
+assert(openLineForAbcBlockIndex(twoBlocks, 0) === 2, 'block index 0 maps to first fence');
 
 const fromSectionRange = resolveOpenLineFromSectionRange(twoBlocks, {
 	text: '```abc\nX:1\nK:G\nG|\n```',
@@ -118,31 +114,21 @@ const fromSectionRange = resolveOpenLineFromSectionRange(twoBlocks, {
 });
 assert(fromSectionRange === 10, 'section line range finds opening fence');
 
-const resolvedByDomIndex = resolveAbcBlockOpenLine(twoBlocks, null, '', 99, new Set(), 0);
-assert(resolvedByDomIndex === 2, 'dom block index 0 maps to first fence');
-
-const resolvedByDomIndexSecond = resolveAbcBlockOpenLine(
-	twoBlocks,
-	null,
-	'',
-	99,
-	new Set(),
-	1,
-);
-assert(resolvedByDomIndexSecond === 10, 'dom block index 1 maps to second fence');
-
 const duplicateLineStart = new Set([10]);
-const resolvedWithDuplicateSection = resolveAbcBlockOpenLine(
+const ambiguousIdentity = resolveAbcBlockIdentity(
 	twoBlocks,
-	{ text: '', lineStart: 10, lineEnd: 12 },
+	{ text: '', lineStart: 5, lineEnd: 8 },
 	'',
 	0,
 	duplicateLineStart,
-	0,
 );
 assert(
-	resolvedWithDuplicateSection === 2,
-	'dom index wins over ambiguous section lineStart',
+	ambiguousIdentity === null,
+	'section span without a fence does not guess multi-block identity',
+);
+assert(
+	openLineForAbcBlockIndex(twoBlocks, 0) === 2,
+	'block index 0 maps to first fence when section lineStart is ambiguous',
 );
 
 const block1Body = extractAbcBlockBodyAtOpenLine(twoBlocks, 2);
@@ -256,7 +242,14 @@ root.appendChild(shell);
 writePersistedBlockIdentityToShellAndProcessor(shell, 1, 10);
 assert(
 	readPersistedBlockIndex(processor) === 1,
-	'shell block index wins over stale processor el after reconcile',
+	'reconcile syncs processor and shell to the same block index',
+);
+
+processor.setAttribute('data-abc-block-index', '1');
+shell.setAttribute('data-abc-block-index', '0');
+assert(
+	readPersistedBlockIndex(processor) === 1,
+	'processor block index wins over stale shell attr',
 );
 
 console.log(`\n${passed} passed, ${failed} failed`);
