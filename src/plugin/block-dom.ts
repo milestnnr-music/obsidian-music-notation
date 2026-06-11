@@ -1,9 +1,14 @@
-import { MarkdownView, TFile, type App } from 'obsidian';
+import type { App } from 'obsidian';
 import {
+	type AbcBlockSectionInfo,
 	findAllAbcBlockFenceOpenLines,
 	openLineForAbcBlockIndex,
+	resolveAbcBlockIdentity,
 } from '../editor/abc-block-patch';
-import { readNoteMarkdown } from './block-source';
+import {
+	findMarkdownViewContaining,
+	getMarkdownFromView,
+} from './block-source';
 
 /** Stable ```abc block identity from Live Preview DOM order. */
 export interface PreviewDomBlockIdentity {
@@ -31,6 +36,19 @@ function isAbcLanguageEmbed(element: HTMLElement): boolean {
 		(className) =>
 			className === 'cm-language-abc' || className.includes('language-abc'),
 	);
+}
+
+/** Embed host that directly contains this processor output element. */
+export function findEmbedHostContainingProcessor(
+	previewRoot: ParentNode,
+	processorEl: HTMLElement,
+): HTMLElement | null {
+	for (const host of listAbcBlockEmbedHosts(previewRoot)) {
+		if (host.contains(processorEl)) {
+			return host;
+		}
+	}
+	return null;
 }
 
 /** Every ```abc embed host in the preview, in document order. */
@@ -77,72 +95,152 @@ export function isAbcEmbedHostCountReliable(
 	return embedHostCount > 0 && embedHostCount === fenceCount;
 }
 
-function findMarkdownViewContaining(
-	app: App,
-	sourcePath: string,
-	element: HTMLElement,
-): MarkdownView | null {
-	for (const leaf of app.workspace.getLeavesOfType('markdown')) {
-		const view = leaf.view;
-		if (
-			view instanceof MarkdownView &&
-			view.file?.path === sourcePath &&
-			view.contentEl.contains(element)
-		) {
-			return view;
-		}
-	}
-
-	return app.workspace.getActiveViewOfType(MarkdownView)?.file?.path === sourcePath
-		? app.workspace.getActiveViewOfType(MarkdownView)
-		: null;
-}
-
 /**
- * Map a Live Preview shell to its fence line using DOM order among ```abc embeds.
- * Reliable after the preview has finished laying out every block in the note.
- * Returns null when embed host count ≠ fence count (inline source edit on a sibling).
+ * Resolve ```abc block identity in Live Preview for one processor `el`.
+ * Prefers the embed host that **contains** the processor (not `closest`, which can
+ * climb to a sibling's embed). Falls back to section/body/ordinal resolution.
  */
-export async function resolveBlockOpenLineFromPreviewDom(
+export async function resolvePreviewBlockIdentity(
 	app: App,
-	element: HTMLElement,
+	processorEl: HTMLElement,
 	sourcePath: string,
+	sectionInfo: AbcBlockSectionInfo | null,
+	processorSource: string,
+	renderOrdinal: number,
+	ambiguousSectionLineStarts: ReadonlySet<number> = new Set(),
 ): Promise<PreviewDomBlockIdentity | null> {
-	const host = findAbcBlockEmbedHost(element);
-	if (!host) {
-		return null;
-	}
-
-	const view = findMarkdownViewContaining(app, sourcePath, element);
+	const view = findMarkdownViewContaining(app, sourcePath, processorEl);
 	if (!view) {
 		return null;
+	}
+
+	const markdown = getMarkdownFromView(view);
+	const openLines = findAllAbcBlockFenceOpenLines(markdown);
+	if (openLines.length === 0) {
+		return null;
+	}
+	if (openLines.length === 1) {
+		const openLine = openLines[0];
+		return openLine !== undefined ? { openLine, blockIndex: 0 } : null;
 	}
 
 	const previewRoot =
 		view.contentEl.querySelector('.markdown-source-view') ?? view.contentEl;
 	const hosts = listAbcBlockEmbedHosts(previewRoot);
-	const blockIndex = hosts.indexOf(host);
-	if (blockIndex < 0) {
+	const host = findEmbedHostContainingProcessor(previewRoot, processorEl);
+
+	if (
+		host &&
+		isAbcEmbedHostCountReliable(hosts.length, openLines.length)
+	) {
+		const blockIndex = hosts.indexOf(host);
+		if (blockIndex >= 0 && blockIndex < openLines.length) {
+			const openLine = openLines[blockIndex];
+			if (openLine !== undefined) {
+				return { openLine, blockIndex };
+			}
+		}
+	}
+
+	return resolveAbcBlockIdentity(
+		markdown,
+		sectionInfo,
+		processorSource,
+		renderOrdinal,
+		ambiguousSectionLineStarts,
+	);
+}
+
+/**
+ * Embed-host block index when host count matches fence count.
+ * Synchronous — safe to call from sync button handlers.
+ */
+export function resolveDomBlockIndexWhenReliable(
+	app: App,
+	processorEl: HTMLElement,
+	sourcePath: string,
+): number | null {
+	const view = findMarkdownViewContaining(app, sourcePath, processorEl);
+	if (!view) {
 		return null;
 	}
 
-	const file = app.vault.getAbstractFileByPath(sourcePath);
-	if (!(file instanceof TFile)) {
-		return null;
-	}
-
-	const markdown = await readNoteMarkdown(app, file, sourcePath);
+	const markdown = getMarkdownFromView(view);
 	const openLines = findAllAbcBlockFenceOpenLines(markdown);
-	if (!isAbcEmbedHostCountReliable(hosts.length, openLines.length)) {
+	if (openLines.length <= 1) {
+		return openLines.length === 1 ? 0 : null;
+	}
+
+	const previewRoot =
+		view.contentEl.querySelector('.markdown-source-view') ?? view.contentEl;
+	const hosts = listAbcBlockEmbedHosts(previewRoot);
+	const host = findEmbedHostContainingProcessor(previewRoot, processorEl);
+
+	if (
+		!host ||
+		!isAbcEmbedHostCountReliable(hosts.length, openLines.length)
+	) {
 		return null;
 	}
 
-	const openLine = openLineForAbcBlockIndex(markdown, blockIndex);
-	if (openLine === null) {
-		return null;
+	const blockIndex = hosts.indexOf(host);
+	return blockIndex >= 0 && blockIndex < openLines.length ? blockIndex : null;
+}
+
+/**
+ * LP processor identity: DOM embed index when reliable; else persisted attrs
+ * (inline source edit); else section/body heuristics — never blind ordinal.
+ */
+export async function resolveLivePreviewProcessorIdentity(
+	app: App,
+	processorEl: HTMLElement,
+	sourcePath: string,
+	sectionInfo: AbcBlockSectionInfo | null,
+	processorSource: string,
+	renderOrdinal: number,
+	ambiguousSectionLineStarts: ReadonlySet<number>,
+	persistedIndex: number | null,
+	markdown: string,
+): Promise<PreviewDomBlockIdentity | null> {
+	const mappingUnreliable = await isPreviewAbcMappingUnreliable(
+		app,
+		processorEl,
+		sourcePath,
+	);
+
+	if (!mappingUnreliable) {
+		const domIndex = resolveDomBlockIndexWhenReliable(app, processorEl, sourcePath);
+		if (domIndex !== null) {
+			const openLine = openLineForAbcBlockIndex(markdown, domIndex);
+			if (openLine !== null) {
+				return { blockIndex: domIndex, openLine };
+			}
+		}
 	}
 
-	return { openLine, blockIndex };
+	if (persistedIndex !== null) {
+		const openLine = openLineForAbcBlockIndex(markdown, persistedIndex);
+		if (openLine !== null) {
+			return { blockIndex: persistedIndex, openLine };
+		}
+	}
+
+	return resolveAbcBlockIdentity(
+		markdown,
+		sectionInfo,
+		processorSource,
+		renderOrdinal,
+		ambiguousSectionLineStarts,
+	);
+}
+
+/** @deprecated Use resolvePreviewBlockIdentity — kept for call-site migration. */
+export async function resolveBlockOpenLineFromPreviewDom(
+	app: App,
+	element: HTMLElement,
+	sourcePath: string,
+): Promise<PreviewDomBlockIdentity | null> {
+	return resolvePreviewBlockIdentity(app, element, sourcePath, null, '', 0);
 }
 
 /**
@@ -151,10 +249,10 @@ export async function resolveBlockOpenLineFromPreviewDom(
  */
 export async function isPreviewAbcMappingUnreliable(
 	app: App,
-	element: HTMLElement,
+	processorEl: HTMLElement,
 	sourcePath: string,
 ): Promise<boolean> {
-	const view = findMarkdownViewContaining(app, sourcePath, element);
+	const view = findMarkdownViewContaining(app, sourcePath, processorEl);
 	if (!view) {
 		return false;
 	}
@@ -163,14 +261,15 @@ export async function isPreviewAbcMappingUnreliable(
 		view.contentEl.querySelector('.markdown-source-view') ?? view.contentEl;
 	const hosts = listAbcBlockEmbedHosts(previewRoot);
 
-	const file = app.vault.getAbstractFileByPath(sourcePath);
-	if (!(file instanceof TFile)) {
+	const markdown = getMarkdownFromView(view);
+	const fenceCount = findAllAbcBlockFenceOpenLines(markdown).length;
+	if (fenceCount <= 1) {
 		return false;
 	}
-
-	const markdown = await readNoteMarkdown(app, file, sourcePath);
-	const fenceCount = findAllAbcBlockFenceOpenLines(markdown).length;
-	return fenceCount > 1 && !isAbcEmbedHostCountReliable(hosts.length, fenceCount);
+	if (!isAbcEmbedHostCountReliable(hosts.length, fenceCount)) {
+		return true;
+	}
+	return findEmbedHostContainingProcessor(previewRoot, processorEl) === null;
 }
 
 /** Defer until embed siblings have mounted (processor order ≠ document order in LP). */

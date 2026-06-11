@@ -2,7 +2,7 @@
 
 Editable ABC notation blocks for [Obsidian](https://obsidian.md). Write short musical examples directly in your notes using ` ```abc ` fences, with a lightweight visual editor in Live Preview and ABC stored in the markdown file.
 
-**Status:** Phase 4 in progress (v0.1.1) — debounced sync, first-edit write, and undo validation (4.1–4.4) are done. **Next:** Phase 4.5 (Source mode reflects Live Preview edits).
+**Status:** Phase 4 complete (v0.1.5) — debounced sync, multi-block Live Preview identity, and Source-mode reflection of LP edits (4.1–4.5). **Next:** Phase 5 (visual editor). Multi-block LP fix notes: [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md).
 
 📐 **Full product design & phased plan:** [`docs/DESIGN.md`](docs/DESIGN.md)  
 🤖 **Cursor agents:** read [`AGENTS.md`](AGENTS.md) before implementing.
@@ -92,6 +92,14 @@ npm run test:roundtrip
 npm run test:abc-block-patch
 npm run test:abc-sync-debounce
 npm run test:abc-first-edit
+npm run test:phase-4.5
+```
+
+With Obsidian dev vault open (`Test.md` in Live Preview after reload):
+
+```bash
+npm run sync:test-note
+npm run compare:phase-4.5-probe
 ```
 
 ## Project layout
@@ -99,7 +107,8 @@ npm run test:abc-first-edit
 ```
 src/
   main.ts                 Plugin entry
-  plugin/                 code-block, block-identity, block-dom, render paths (Phases 1–4)
+  plugin/                 code-block, block-identity, block-dom, render paths (Phases 1–4 ✅)
+  dev/                    phase-45-probe (LP automation for agents)
   model/                  Score types + createEmptyScore() (Phase 3 ✅)
   serializer/             ABC ↔ Score parser/writer + mapping (Phase 3 ✅)
   renderer/               abcjs adapter (Phase 2)
@@ -108,7 +117,8 @@ src/
   settings/types.ts       Vault settings types (UI in Phase 7)
 docs/
   DESIGN.md               Product design & phased implementation plan
-  manual-tests/           Phase 4.4 undo checklist (✅), 4.5 source mode (pending)
+  phase-4.5-multi-block-lp-resolution.md   Canonical multi-block LP fix reference
+  manual-tests/           Phase 4.4 undo (✅), 4.5 source mode (✅)
 ```
 
 ## Example block (future)
@@ -131,8 +141,8 @@ CDEF|
 | 1     | Block lifecycle in Obsidian             | ✅ Complete |
 | 2     | Read path — render ABC                  | ✅ Complete |
 | 3     | Music model + serializer                | ✅ Complete |
-| 4     | Debounced sync to markdown              | In progress (4.1–4.4 ✅; **4.5** next) |
-| 5     | Visual editor                           | Planned     |
+| 4     | Debounced sync to markdown              | ✅ Complete (4.1–4.5) |
+| 5     | Visual editor                           | **Next**    |
 | 6     | Polish + docs                           | Planned     |
 | 7+    | Chords, multi-staff, settings, playback | Planned     |
 

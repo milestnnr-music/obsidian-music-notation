@@ -1,7 +1,7 @@
 {
 	"id": "abc-blocks",
 	"name": "ABC Blocks",
-	"version": "0.1.1",
+	"version": "0.1.5",
 	"minAppVersion": "1.5.0",
 	"description": "Editable ABC notation blocks in markdown notes for quick musical examples.",
 	"author": "Miles Tanner",

@@ -11,6 +11,8 @@ export function mountEditorWidget(
 	source = '',
 	isEmpty = isEmptyAbcBlockSource(source),
 ): void {
+	container.empty();
+
 	if (isEmpty) {
 		mountEmptyStaffShell(container);
 		return;

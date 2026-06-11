@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-abc-blocks",
-	"version": "0.1.1",
+	"version": "0.1.5",
 	"description": "Editable ABC notation blocks for Obsidian",
 	"main": "main.js",
 	"type": "module",
@@ -14,7 +14,15 @@
 		"test:roundtrip": "node scripts/check-abc-roundtrip.mjs",
 		"test:abc-block-patch": "node scripts/check-abc-block-patch.mjs",
 		"test:abc-sync-debounce": "node scripts/check-abc-sync-debounce.mjs",
-		"test:abc-first-edit": "node scripts/check-abc-first-edit.mjs"
+		"test:abc-first-edit": "node scripts/check-abc-first-edit.mjs",
+		"test:phase-4.5": "node scripts/check-abc-multi-block-lp.mjs",
+		"test:all": "npm run test:abc-normalize && npm run test:abc-empty-shell && npm run test:roundtrip && npm run test:abc-block-patch && npm run test:abc-sync-debounce && npm run test:abc-first-edit && npm run test:phase-4.5",
+		"sync:test-note": "node scripts/sync-test-note-to-vault.mjs",
+		"verify:test-note": "node scripts/verify-test-note.mjs",
+		"compare:phase-4.5-probe": "node scripts/compare-phase-45-probe.mjs",
+		"wait:phase-4.5-probe": "node scripts/wait-and-compare-probe.mjs",
+		"cycle:phase-4.5": "node scripts/run-phase-45-cycle.mjs",
+		"iterate:phase-4.5": "bash scripts/iterate-phase-4.5.sh"
 	},
 	"keywords": [
 		"obsidian",

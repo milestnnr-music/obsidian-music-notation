@@ -4,7 +4,7 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 
 **Repository:** https://github.com/milestnnr-music/obsidian-music-notation  
 **Plugin id:** `abc-blocks`  
-**Current status:** Phase 4 in progress (v0.1.1). Steps **4.1–4.4** done. **Next:** Phase 4.5 (Source mode reflects Live Preview edits).
+**Current status:** Phase 4 complete (v0.1.5). Steps **4.1–4.5** done. **Next:** Phase 5 (visual editor). Before changing multi-block LP identity, read [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md).
 
 ---
 
@@ -16,8 +16,8 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 | **1 — Block lifecycle** | ✅ **Done** | — |
 | **2 — Read path (abcjs)** | ✅ **Done** | — |
 | **3 — Score model + serializer** | ✅ **Done** | — |
-| 4 — Debounced sync | In progress | **4.5** next (4.1–4.4 ✅) |
-| 5 — Visual editor | Pending | After Phase 4 exit |
+| 4 — Debounced sync | ✅ Done | — |
+| 5 — Visual editor | **Next** | Toolbar, staff interaction, measure warning |
 | 6 — Polish + docs | Pending | After Phase 5 |
 | 7+ — v2 (chords, 2 staves, settings, playback) | Pending | After Phase 6 |
 
@@ -34,7 +34,7 @@ src/
     code-block.ts              Phase 1: ```abc processor registration & view routing
     block-source.ts            Phase 1.5 / 4: fence body read; multi-block by index
     block-identity.ts          Phase 4.4: persisted block index on processor el
-    block-dom.ts                 Phase 4: DOM embed order; inline-source guard
+    block-dom.ts                 Phase 4.5: resolveLivePreviewProcessorIdentity, DOM embed index
     view-mode.ts               Phase 1: Reading vs Live Preview DOM detection
     render-reading.ts          Phase 1.2 / 2.4: static Reading view abcjs render
     render-live-preview.ts     Phase 1.3 / 4: LP shell, debounced refresh, undo flush
@@ -61,6 +61,8 @@ src/
     measure-warning.ts         Phase 5: Soft warning past measure threshold
   settings/
     types.ts                   AbcBlocksSettings + DEFAULT_SETTINGS (UI in Phase 7)
+  dev/
+    phase-45-probe.ts          LP probe schema v2 → test-results/ (agent compare)
 ```
 
 **Root artifacts:** `manifest.json`, `main.js` (esbuild output), `styles.css`, `esbuild.config.mjs`
@@ -81,6 +83,7 @@ ABC text  ←→  ScoreModel  →  Renderer (abcjs)
 
 - Read `docs/DESIGN.md` before any feature work.
 - Follow the **phased plan** — implement only the current phase’s steps unless fixing a regression.
+- **Bump version** when completing work (patch / minor / major per DESIGN.md); sync manifest, package.json, versions.json, and doc status lines.
 - Use the **layered model**: editor mutates `Score`; serializer owns ABC I/O; renderer owns SVG.
 - Keep `main.ts` minimal (lifecycle + registration only).
 - Use `this.register*` helpers for events, DOM, intervals.
@@ -166,9 +169,13 @@ npm run test:roundtrip
 npm run test:abc-block-patch
 npm run test:abc-sync-debounce
 npm run test:abc-first-edit
+npm run test:phase-4.5
+npm run test:all
 ```
 
-Phase 4.4 manual checklist: `docs/manual-tests/phase-4-undo.md`.
+Phase 4 manual checklists: `docs/manual-tests/phase-4-undo.md` (4.4), `docs/manual-tests/phase-4-source-mode.md` (4.5 §1–4).
+
+**Multi-block LP probe (requires Obsidian + dev vault):** `npm run sync:test-note` → reload → open `Test.md` in LP → `npm run compare:phase-4.5-probe`.
 
 ---
 
@@ -187,9 +194,21 @@ Phase 4.4 manual checklist: `docs/manual-tests/phase-4-undo.md`.
 ## Manifest (`manifest.json`)
 
 - `id`: `abc-blocks` — stable; never change after release
-- `version`: SemVer (currently `0.1.1`)
+- `version`: SemVer — **currently `0.1.5`** (see `manifest.json`; keep in sync with `package.json`)
 - `minAppVersion`: keep accurate when using newer APIs
 - `isDesktopOnly`: `false` (editing is desktop-first; mobile loads safely)
+
+### Version bumps (required for agents)
+
+When you land a phase step, bug fix, or other shippable change, update version in **`manifest.json`**, **`package.json`**, and **`versions.json`**, then refresh `(vX.Y.Z)` status lines in `docs/DESIGN.md`, `README.md`, `LIMITATIONS.md`, and this file.
+
+| Change | Bump | Example |
+|--------|------|---------|
+| Small edit / bug fix | PATCH (third digit) | `0.1.5` → `0.1.6` |
+| Larger change (e.g. phase step or phase done) | MINOR (second digit, patch → `0`) | `0.1.6` → `0.2.0` |
+| **Phase 5 complete** (v1 ready) | MAJOR | → **`1.0.0`** |
+
+Full policy: [`docs/DESIGN.md` → Versioning](docs/DESIGN.md#versioning-agents-must-keep-in-sync).
 
 ---
 
@@ -210,9 +229,10 @@ No prior chat context is available. Load project state from files:
 ### @-mention these files
 
 1. **`docs/DESIGN.md`** — PRD, locked decisions, phase steps, exit criteria
-2. **`AGENTS.md`** — this file (module map, do/don't, dev workflow)
-3. **`README.md`** — quick start, symlink, troubleshooting
-4. **`LIMITATIONS.md`** — what works now vs planned
+2. **`docs/phase-4.5-multi-block-lp-resolution.md`** — multi-block LP identity (read before touching 4.5 code)
+3. **`AGENTS.md`** — this file (module map, do/don't, dev workflow)
+4. **`README.md`** — quick start, symlink, troubleshooting
+5. **`LIMITATIONS.md`** — what works now vs planned
 
 ### Example prompts
 
@@ -221,7 +241,11 @@ No prior chat context is available. Load project state from files:
 ```
 
 ```
-@docs/DESIGN.md Continue Phase 4 — step 4.5 Source mode reflects Live Preview edits.
+@docs/DESIGN.md @docs/phase-4.5-multi-block-lp-resolution.md Start Phase 5 — visual editor.
+```
+
+```
+@docs/phase-4.5-multi-block-lp-resolution.md Fix a multi-block Live Preview regression.
 ```
 
 ```

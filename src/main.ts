@@ -1,4 +1,8 @@
-import { Plugin } from 'obsidian';
+import { Notice, Plugin } from 'obsidian';
+import {
+	PHASE_45_PROBE_SCHEMA_VERSION,
+	writeStartupProbeMarker,
+} from './dev/phase-45-probe';
 import { registerAbcCodeBlockProcessor } from './plugin/code-block';
 import {
 	DEFAULT_SETTINGS,
@@ -11,6 +15,8 @@ export default class AbcBlocksPlugin extends Plugin {
 	async onload(): Promise<void> {
 		await this.loadSettings();
 		registerAbcCodeBlockProcessor(this);
+		await writeStartupProbeMarker(this);
+		new Notice(`ABC Blocks v${this.manifest.version} loaded`, 4000);
 	}
 
 	onunload(): void {}

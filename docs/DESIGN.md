@@ -3,7 +3,7 @@
 **Plugin id:** `abc-blocks`  
 **Repository:** [https://github.com/milestnnr-music/obsidian-music-notation](https://github.com/milestnnr-music/obsidian-music-notation)  
 **Dev vault:** `Desktop/Ideas/Obsidian Dev Vault`  
-**Current status:** Phase 4 in progress (v0.1.1). Phases 0–3 done; Phase 4 steps **4.1–4.4** done (debounced sync, first-edit write, undo validation, multi-block LP identity hardening). **Next:** Phase 4.5 (Source mode reflects Live Preview edits).
+**Current status:** Phase 4 **complete** (v0.1.5). Steps 4.1–4.5 done — multi-block LP identity, inline source edit, and sync isolation verified. **Next:** Phase 5 (visual editor). Canonical 4.5 fix notes: [`docs/phase-4.5-multi-block-lp-resolution.md`](phase-4.5-multi-block-lp-resolution.md).
 
 > **For Cursor agents:** Read this document first before implementing features. See also [AGENTS.md](../AGENTS.md), [README.md](../README.md), and [LIMITATIONS.md](../LIMITATIONS.md).
 
@@ -269,12 +269,12 @@ Phases run **serially** (0 → 1 → 2 → … → 7+). Within a phase, steps ma
 | 4.2  | Debounced sync (~300ms)                 | **Serial** | 4.1        | ✅     |
 | 4.3  | First-edit generates ABC on empty block | Parallel   | 4.1        | ✅     |
 | 4.4  | Validate Obsidian undo behavior         | **Serial** | 4.2        | ✅     |
-| 4.5  | Source mode reflects Live Preview edits | **Serial** | 4.2        | —      |
+| 4.5  | Source mode reflects Live Preview edits | **Serial** | 4.2        | ✅     |
 
 
-**Phase exit:** Edits in Live Preview update file; undo works; Source shows updated ABC.
+**Phase exit:** Edits in Live Preview update file; undo works; Source shows updated ABC; multi-block notes keep each fence isolated (including inline source edit and two-empty-fence cases).
 
-**Agent notes (Phase 4 — write path, undo, multi-block Live Preview):** Steps 4.1–4.4 are **complete** (verified in dev vault, June 2026). Write path: `src/editor/sync.ts`, `src/editor/abc-block-patch.ts`, per-block `AbcSyncScheduler` (~300ms). First edit on empty fence: `syncScoreToAbcBlock` / phase 4.3 dev button. Undo (4.4): `flushAbcSyncScheduler()` on shell unmount (`src/editor/sync-lifecycle.ts`). Multi-block LP identity: `block-identity.ts`, `block-dom.ts`, `block-source.ts`, `code-block.ts`, `render-live-preview.ts` — see tables below. Manual checklist (4.4 exit, executed): `docs/manual-tests/phase-4-undo.md`.
+**Agent notes (Phase 4 — write path, undo, multi-block Live Preview):** Steps 4.1–4.5 **complete** (June 2026, v0.1.5). Full fix write-up: [`docs/phase-4.5-multi-block-lp-resolution.md`](phase-4.5-multi-block-lp-resolution.md). Write path: `src/editor/sync.ts`, `src/editor/abc-block-patch.ts`, per-block `AbcSyncScheduler` (~300ms). First edit on empty fence: `syncScoreToAbcBlock` / phase 4.3 dev button. Undo (4.4): `flushAbcSyncScheduler()` on shell unmount (`src/editor/sync-lifecycle.ts`). Multi-block LP identity: `resolveLivePreviewProcessorIdentity()` in `block-dom.ts`; `code-block.ts`, `render-live-preview.ts`, `block-identity.ts`, `block-source.ts` — see resolution doc decision flow. Manual: `docs/manual-tests/phase-4-undo.md` (4.4), `docs/manual-tests/phase-4-source-mode.md` (4.5 §1–4).
 
 #### Symptom → cause → fix
 
@@ -283,10 +283,13 @@ Phases run **serially** (0 → 1 → 2 → … → 7+). Within a phase, steps ma
 | One button updated two fences / wrong fence in Source | `getSectionInfo().lineStart` and processor **call order** are unreliable in LP; render ordinal could map block 1 → second fence | `resolveAbcBlockOpenLine()` + `claimAbcBlockRenderOrdinal()` / `getAmbiguousSectionLineStarts()` (`abc-block-patch.ts`, `block-ordinal.ts`); **authoritative** mapping via `resolveBlockOpenLineFromPreviewDom()` — embed index among `.cm-embed-block` hosts → fence open line (`block-dom.ts`); DOM resolve on **write** in shell `syncContext()` |
 | Sibling block showed notation while Source showed it empty | After a write, Obsidian re-processes siblings and fires `editor-change`; stale `data-abc-open-line` + `chooseBestAbcSource()` (prefers music lines) made block 2 **read** block 1’s ABC; a mount guard then **blocked** UI recovery | When `blockOpenLine` is set, read **only** that fence body — no merge (`readAbcBodyAtFenceLine` / `readAbcBodyAtBlockIndex` in `block-source.ts`); never fall through to `chooseBestAbcSource` for a stale line hint; removed the music-line mount skip guard (`render-live-preview.ts`) |
 | Manual Source edit of block 1 changed block 2 **appearance** only | Same as above on `editor-change` refresh, or stale open line after line-number shift | Prefer **stable block index** (`data-abc-block-index`) → `openLineForAbcBlockIndex()`; validate cached open line before reuse; skip refresh when line cannot be resolved |
-| Block 2 mirrored block 1 via **inline embed source** (per-block pencil in LP), **not** note-level Source mode | Inline edit hides block 1’s preview embed → `listAbcBlockEmbedHosts()` count ≠ fence count; Obsidian re-runs block 2’s processor **alone** (`renderOrdinal` 0); `el.empty()` destroys the shell **before** inner `data-abc-block-index` helps; wrong ABC mounted | Persist identity on **processor `el`** (`block-identity.ts` — survives `el.empty()`); **skip** destructive processor re-render when `isPreviewAbcMappingUnreliable()` and shell already exists (`code-block.ts`); read ABC by **block index** (`readAbcBodyAtBlockIndex`); suppress `editor-change` / reconcile refresh while mapping unreliable (`render-live-preview.ts`) |
+| Block 2 mirrored block 1 via **inline embed source** (per-block pencil in LP), **not** note-level Source mode | Inline edit hides block 1’s preview embed → DOM ordinal unreliable; processor re-run calls `el.empty()` | Persist identity on **processor `el`**; **skip** `el.empty()` when shell exists + `isPreviewAbcMappingUnreliable()` (`code-block.ts`); shell **always** re-reads by `data-abc-block-index` on `editor-change` / reconcile — **do not** skip refresh when DOM unreliable |
+| LP shows wrong notation until Source toggle (indices 0/1 correct) | `reconcileAfterLayout` / `refreshFromEditorStable` skipped when embed host count ≠ fence count; initial processor `abcSource` never corrected | `reconcileFromEditorByIndex()` always uses `readAbcBodyAtBlockIndex`; deferred reconcile (+100ms); removed broken mount guard |
 | Full note Source mode (pencil icon) — no sibling bleed | Processor not invoked; LP shells inactive | No plugin change needed; contrasts with inline embed path above |
 | Block 2 button OK, block 1 button wrote block 2 | Trusted duplicate `lineStart` for block 2; block 1 fell through to ordinal 1 → second fence | Prefer DOM index over ordinal when ambiguous; drop “nearest fence” guessing in `findAbcBlockFenceRange` |
 | Ghost write / undo corruption after navigating away mid-debounce | `onunload` called `cancel()` on scheduler; or timer fired after shell teardown | `flushAbcSyncScheduler()` in `onunload` (`sync-lifecycle.ts`, `render-live-preview.ts`) |
+| Two-block LP: test button writes **wrong fence**; notation in sibling block | (1) `renderOrdinal` always `0` when processors re-run one at a time → wrong persisted index on empty fences; (2) stale persisted index trusted over DOM; (3) inline edit tore down shell → identity re-resolved | **Fixed (v0.1.5):** `resolveLivePreviewProcessorIdentity` — DOM embed index when reliable, else persisted; removed multi-block ordinal fallbacks in `resolveAbcBlockIdentity`; `resolveDomBlockIndexWhenReliable` on sync/reconcile; probe in `test-results/`. See resolution doc. |
+| Wrong block with **same note in two windows** | Unscoped leaf read/write | Scope via `containingElement` + embed-host anchor in `findMarkdownViewContaining` |
 
 #### Two ways to edit Source in Live Preview
 
@@ -294,16 +297,19 @@ Phases run **serially** (0 → 1 → 2 → … → 7+). Within a phase, steps ma
 | ---- | ----------------- | --------------- |
 | **Note-level Source** (top pencil) | Entire note raw markdown; no code-block processor | Safe — no LP widget refresh |
 | **Inline embed source** (small icon on one fence) | That block’s preview embed hidden; sibling processors may re-run in isolation | **Unreliable** DOM ordinal mapping — use persisted block index + skip re-render (see table above) |
+| **Split pane in one window** (Source + Live Preview, same leaf) | Single editor buffer; both panes share `editor.getValue()` | **Supported** — 4.5 manual test §5 passes |
+| **Same note in two windows** (e.g. Source in window A, LP in window B) | Two leaves / buffers for one path | **Scoped** via `containingElement` on processor shell / sync context — each pane reads and writes its own editor buffer |
 
 #### Identity model (do not regress)
 
 1. **Block index** (0-based among ` ```abc ` fences in file) — stable across inline sibling source edit; stored on processor `el` and shell (`block-identity.ts`).
-2. **Fence open line** (0-based line of opening ` ```abc `) — can shift when content above grows/shrinks; derive from index via `openLineForAbcBlockIndex()` when refreshing.
-3. **DOM embed order** — authoritative only when `hosts.length === fenceCount` (`isAbcEmbedHostCountReliable`); else do not remap index or re-run `el.empty()`.
+2. **Fence open line** (0-based line of opening ` ```abc `) — can shift when content above grows/shrinks; derive from index via `openLineForAbcBlockIndex()` when refreshing/writing.
+3. **DOM embed order** — **authoritative when** `hosts.length === fenceCount` (`resolveDomBlockIndexWhenReliable`); overrides stale persisted index in that state. When mapping is **unreliable** (inline embed source edit), trust **persisted processor index** and skip `el.empty()` only if the shell is still mounted.
+4. **Render ordinal** — **never** use as block index when `fenceCount > 1` (processors often re-run alone with ordinal `0`).
 
-**Modules:** `block-identity.ts`, `block-dom.ts`, `block-source.ts`, `code-block.ts`, `render-live-preview.ts`, `sync-lifecycle.ts`.
+**Modules:** `block-dom.ts` (`resolveLivePreviewProcessorIdentity`), `block-identity.ts`, `block-source.ts`, `code-block.ts`, `render-live-preview.ts`, `sync-lifecycle.ts`.
 
-**Tests:** `npm run test:abc-block-patch`, `npm run test:abc-sync-debounce`. **Manual:** `docs/manual-tests/phase-4-undo.md` (sections 5a / 5b for Source vs inline embed).
+**Tests:** `npm run test:abc-block-patch`, `npm run test:abc-sync-debounce`, `npm run test:phase-4.5`, `npm run compare:phase-4.5-probe` (requires Obsidian + dev vault). **Manual:** `docs/manual-tests/phase-4-undo.md`; `docs/manual-tests/phase-4-source-mode.md` (4.5 — §1–4 required; §5 optional split-pane).
 
 ---
 
@@ -396,6 +402,8 @@ Future Cursor agents have **no prior chat context**. Start every implementation 
 | File             | Purpose                                                  |
 | ---------------- | -------------------------------------------------------- |
 | `docs/DESIGN.md` | Product intent, locked decisions, phase plan (this file) |
+| `docs/phase-4.5-multi-block-lp-resolution.md` | Canonical 4.5 fix reference (identity, probe, regressions) |
+| `docs/HANDOFF-phase-4.5-multi-block.md` | Historical 4.5 session log + pointers |
 | `AGENTS.md`      | Module map, do/don't, dev workflow                       |
 | `README.md`      | Quick start, symlink setup, build commands               |
 | `LIMITATIONS.md` | Current scope and what is explicitly out of scope        |
@@ -408,7 +416,11 @@ Read docs/DESIGN.md and AGENTS.md, then implement Phase 1.
 ```
 
 ```
-Continue Phase 4 — implement step 4.5 (Source mode reflects Live Preview edits) per DESIGN.md.
+Read docs/phase-4.5-multi-block-lp-resolution.md before changing multi-block LP identity code.
+```
+
+```
+Start Phase 5 — visual editor per DESIGN.md (Phase 4 complete at v0.1.5).
 ```
 
 ```
@@ -421,6 +433,7 @@ Phase 1 is done. Start Phase 2.1: integrate abcjs render path.
 2. Identify the **step id** (e.g. 1.1) and its blockers from the phase tables above.
 3. Touch only modules listed for that phase; keep stubs until their phase.
 4. Run `npm run dev` and test in the **dev vault** (`Desktop/Ideas/Obsidian Dev Vault`).
+5. When you finish a step or fix, **bump `version`** per [Versioning](#versioning-agents-must-keep-in-sync) and sync all listed files.
 
 ### Repository
 
@@ -454,7 +467,7 @@ Notes from implementation sessions for future agents. **These do not change the 
 | ---- | ------ | ------------ | ------------- |
 | Reading | `render-reading.ts` | `abc-blocks-reading`, `abc-blocks-static` | abcjs SVG + empty staff shell (2.3–2.4 ✅) |
 | Live Preview | `render-live-preview.ts` | `abc-blocks-live-preview`, `abc-blocks-interactive`, `abc-blocks-editor-mount` | abcjs + fallback + empty shell (2.1–2.3 ✅); editor UI in Phases 5+ |
-| Source | *(processor not invoked)* | — | Edits visible when toggling to LP; sync 4.1–4.4 ✅; 4.5 verification pending |
+| Source | *(processor not invoked)* | — | Edits visible when toggling to LP; sync 4.1–4.5 ✅ |
 
 Live Preview shell registers a `MarkdownRenderChild` that mounts `mountEditorWidget()` from `editor/editor-widget.ts` (stub until Phase 5).
 
@@ -468,7 +481,7 @@ In dev vault, use a note with a sample ` ```abc ` block. **Reload app without sa
 
 Phase 5.9 (“strip editor chrome in Reading view”) should keep using the separate Reading render path — do not mount toolbar/editor UI from `render-reading.ts`.
 
-### Phase 4 — debounced sync, undo, multi-block identity (4.1–4.4)
+### Phase 4 — debounced sync, undo, multi-block identity (4.1–4.5)
 
 **Debounced write:** `AbcSyncScheduler` in `src/editor/sync.ts` (~300ms). One pending callback per block shell.
 
@@ -476,18 +489,22 @@ Phase 5.9 (“strip editor chrome in Reading view”) should keep using the sepa
 
 **Reading fence body:** Never use `chooseBestAbcSource()` when a block index or open line is known — it prefers fences with music lines and will attach block 1’s ABC to block 2 in multi-block notes.
 
-**Processor re-render trap:** Correct `data-abc-block-index` on the inner shell is **not** sufficient. Obsidian calls `registerMarkdownCodeBlockProcessor` again during inline embed edits; `code-block.ts` runs `el.empty()` on the processor host, destroying children. Identity must live on the processor `el`, and sibling blocks must skip full re-render when `isPreviewAbcMappingUnreliable()` returns true.
+**Processor re-render trap:** Obsidian re-runs `registerMarkdownCodeBlockProcessor` during inline embed edits; `el.empty()` destroys shell children. Identity must live on the processor `el`. When mapping is unreliable and the shell is still mounted, skip `el.empty()`; when the shell was torn down, recreate using persisted index. When mapping is reliable, **DOM embed index wins** over stale persisted attrs (`resolveLivePreviewProcessorIdentity`).
 
-**Dev verification (4.4 exit — ✅ done):**
+**Multi-block LP (4.5):** See [`docs/phase-4.5-multi-block-lp-resolution.md`](phase-4.5-multi-block-lp-resolution.md). Probe: `npm run compare:phase-4.5-probe` reads `test-results/phase-45-probe.json`.
+
+**Dev verification (4.4–4.5 exit — ✅ done):**
 
 ```bash
 npm run build
 npm run lint
 npm run test:abc-sync-debounce
 npm run test:abc-block-patch
+npm run test:phase-4.5
+npm run compare:phase-4.5-probe   # after reload + open Test.md in LP
 ```
 
-Manual checklist `docs/manual-tests/phase-4-undo.md` executed in dev vault (reload app without saving after `npm run dev`).
+Manual: `docs/manual-tests/phase-4-undo.md`, `docs/manual-tests/phase-4-source-mode.md` §1–4 (dev vault; reload without saving after `npm run build`).
 
 ---
 
@@ -500,9 +517,28 @@ Manual checklist `docs/manual-tests/phase-4-undo.md` executed in dev vault (relo
 
 ---
 
+## Versioning (agents must keep in sync)
+
+Pre-1.0 versions use **`0.MINOR.PATCH`**. **Agents: bump the version when you complete meaningful work** — do not leave `manifest.json` stale while docs claim a new phase step is done.
+
+| Change type | Bump | Example |
+| ----------- | ---- | ------- |
+| Small edit, bug fix, doc-only fix within a phase | **PATCH** (+1 on third number) | `0.1.5` → `0.1.6` |
+| Larger slice — typically **phase step or phase complete** | **MINOR** (+1 on second, reset patch to `0`) | `0.1.6` → `0.2.0` |
+| **Phase 5 complete** (v1 feature-complete per this plan) | **MAJOR** → **`1.0.0`** | `0.x.y` → `1.0.0` |
+
+**After any version bump, update all of:**
+
+1. `manifest.json` → `version`
+2. `package.json` → `version` (keep identical to manifest)
+3. `versions.json` → add `"<version>": "<minAppVersion>"` (usually same `minAppVersion` as today unless Obsidian API requirements changed)
+4. Status lines in `docs/DESIGN.md`, `README.md`, `LIMITATIONS.md`, and `AGENTS.md` (the `(vX.Y.Z)` suffix)
+
+Use judgment: a one-line typo fix may skip a bump; landing a phase step (e.g. 4.3) warrants at least a patch, often a minor if the step is substantial.
+
+---
+
 ## Version & release notes (future)
 
-- Bump `manifest.json` `version` (SemVer) per release
-- Update `versions.json` with min app version mapping
 - Community release (Phase 7.7): follow [Obsidian plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines)
 

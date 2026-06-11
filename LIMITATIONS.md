@@ -1,7 +1,7 @@
 # Limitations and roadmap
 
-**Current status:** Phase 4 in progress (v0.1.1). Steps 4.1–4.4 complete (debounced sync, first-edit write, undo validation, multi-block LP identity). **Next:** Phase 4.5 (Source mode reflects Live Preview edits).  
-**Design reference:** [`docs/DESIGN.md`](docs/DESIGN.md)
+**Current status:** Phase 4 complete (v0.1.5). Steps 4.1–4.5 done (debounced sync, first-edit write, undo validation, multi-block LP identity, Source reflects LP edits). **Next:** Phase 5 (visual editor).  
+**Design reference:** [`docs/DESIGN.md`](docs/DESIGN.md) · Multi-block LP fixes: [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md)
 
 ## What works today
 
@@ -15,17 +15,16 @@
 - **Debounced sync (Phase 4.1–4.2):** Score → ABC → markdown write via dev test buttons (~300ms debounce); per-block `AbcSyncScheduler`; multi-block notes target the correct fence when block index is established
 - **First edit (Phase 4.3):** empty fence receives headers + body on first scored edit (dev test button)
 - **Undo / teardown (Phase 4.4):** pending debounced writes flushed on shell unmount; manual undo/redo checklist passed (`docs/manual-tests/phase-4-undo.md`)
-- **Multi-block Live Preview (Phase 4.4):** sibling blocks stay isolated during manual Source edits and inline embed source edit on block 1 (see DESIGN.md agent notes)
+- **Multi-block Live Preview (Phase 4.5):** each fence renders and syncs independently — initial open, inline source edit in LP, both-empty fences, and test-button writes (see resolution doc)
+- **Source reflects LP sync (Phase 4.5):** after debounced sync write, Source mode shows the updated fence body (`docs/manual-tests/phase-4-source-mode.md` §1–4 passed)
 - **Score model + serializer (Phase 3):** `parseAbc` / `writeAbc` round-trip for v1 — treble staff, key/time sig, whole/half/quarter/eighth notes, rests, accidentals, quarter default; chords and multi-staff parse with warnings and use first pitch/voice only
 - **ABC normalization:** interior blank lines inside a fence are stripped before render (extra line breaks can break abcjs; the file on disk is not rewritten)
-- Build pipeline (`npm run dev`, `npm run build`, `npm run lint`, `npm run test:abc-normalize`, `npm run test:abc-empty-shell`, `npm run test:roundtrip`, `npm run test:abc-block-patch`, `npm run test:abc-sync-debounce`, `npm run test:abc-first-edit`)
+- Build pipeline (`npm run dev`, `npm run build`, `npm run lint`, `npm run test:all`, `npm run test:phase-4.5`, `npm run compare:phase-4.5-probe` with Obsidian + dev vault)
 - View mode routing via `src/plugin/view-mode.ts` (see `docs/DESIGN.md` → Agent development notes if LP and Reading look identical)
 
 ## What does not work yet
 
-- **Phase 4.5:** formal verification that Source mode always reflects Live Preview sync edits (checklist in `docs/manual-tests/phase-4-source-mode.md`)
-- **Phase 4 exit:** full “sync works end-to-end” for real editor gestures (dev test buttons only until Phase 5)
-- No visual editor, toolbar, or staff interaction (Phase 5)
+- No visual editor, toolbar, or staff interaction (Phase 5) — sync plumbing is ready; dev test buttons drive writes until Phase 5 UI
 - No measure warning (Phase 5)
 - Serializer not yet driving Live Preview render path (still abcjs-on-ABC text directly for display)
 

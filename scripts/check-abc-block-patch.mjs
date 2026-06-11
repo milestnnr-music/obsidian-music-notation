@@ -9,6 +9,7 @@ const {
 	findAbcBlockFenceRange,
 	findAllAbcBlockFenceOpenLines,
 	openLineForAbcBlockIndex,
+	resolveAbcBlockIdentity,
 	resolveAbcBlockOpenLine,
 	resolveOpenLineFromSectionRange,
 	extractAbcBlockBodyAtOpenLine,
@@ -26,6 +27,11 @@ const { readAbcBodyAtBlockIndex, readAbcBodyAtFenceLine } = await jiti.import(
 	'../src/plugin/block-source.ts',
 );
 const { isAbcEmbedHostCountReliable } = await jiti.import('../src/plugin/block-dom.ts');
+const {
+	readPersistedBlockIndex,
+	writePersistedBlockIdentityToShellAndProcessor,
+} = await jiti.import('../src/plugin/block-identity.ts');
+const { Window } = await import('happy-dom');
 
 let passed = 0;
 let failed = 0;
@@ -215,6 +221,43 @@ assert(
 
 const secondByIndex = readAbcBodyAtBlockIndex(twoBlocks, 1);
 assert(secondByIndex === 'X:1\nK:G\nG|', 'block index 1 reads second fence body only');
+
+const twoBlocksOneEmpty = `# Note
+
+\`\`\`abc
+X:1
+K:C
+C|
+\`\`\`
+
+\`\`\`abc
+
+\`\`\`
+`;
+const filledProcessor = 'X:1\nK:C\nC|';
+const emptyProcessor = '';
+const idFilled = resolveAbcBlockIdentity(twoBlocksOneEmpty, null, filledProcessor, 0);
+assert(idFilled?.blockIndex === 0, 'processor body match resolves first block');
+const idEmptyAt1 = resolveAbcBlockIdentity(twoBlocksOneEmpty, null, emptyProcessor, 1);
+assert(idEmptyAt1?.blockIndex === 1, 'empty processor at ordinal 1 resolves empty fence');
+const idEmptyAt0 = resolveAbcBlockIdentity(twoBlocksOneEmpty, null, emptyProcessor, 0);
+assert(idEmptyAt0?.blockIndex === 1, 'empty processor at ordinal 0 maps to sole empty fence');
+
+const window = new Window();
+globalThis.HTMLElement = window.HTMLElement;
+const processor = window.document.createElement('div');
+processor.setAttribute('data-abc-block-index', '0');
+const root = window.document.createElement('div');
+root.className = 'abc-blocks-root';
+const shell = window.document.createElement('div');
+shell.className = 'abc-blocks-live-preview';
+processor.appendChild(root);
+root.appendChild(shell);
+writePersistedBlockIdentityToShellAndProcessor(shell, 1, 10);
+assert(
+	readPersistedBlockIndex(processor) === 1,
+	'shell block index wins over stale processor el after reconcile',
+);
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

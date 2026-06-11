@@ -7,10 +7,15 @@ const EMPTY_SHELL_FALLBACK_MESSAGE = "Couldn't render the default staff.";
 /** Phase 2.3: Render an empty treble staff using implicit defaults (4/4, C, quarter). */
 export function mountEmptyStaffShell(container: HTMLElement): void {
 	container.empty();
+	container.createDiv({
+		cls: 'abc-blocks-empty-staff-loading',
+		text: 'Empty staff…',
+	});
 	const abc = getImplicitDefaultAbcShell();
 
 	void renderAbcToElementWhenReady(container, abc).then((result) => {
 		if (result.ok) {
+			container.querySelector('.abc-blocks-empty-staff-loading')?.remove();
 			container.setAttribute('data-abc-rendered', 'true');
 			container.setAttribute('data-abc-empty-shell', 'true');
 			container.removeAttribute('data-abc-render-error');

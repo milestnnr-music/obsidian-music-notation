@@ -10,11 +10,15 @@ import type { Score } from '../model/types';
 import { writeAbc } from '../serializer/abc-writer';
 import { parseAbc } from '../serializer/abc-parser';
 import { createEmptyScore, createFirstEditScore, scoreHasEvents } from '../model/score';
-import { isEmptyAbcBlockSource } from '../plugin/block-source';
+import {
+	findMarkdownViewContaining,
+	isEmptyAbcBlockSource,
+} from '../plugin/block-source';
 import {
 	extractAbcBlockBodyAtOpenLine,
 	findAbcBlockFenceRange,
 	isAbcBlockBodyEmpty,
+	openLineForAbcBlockIndex,
 	replaceAbcBlockBodyInMarkdown,
 	type AbcBlockFenceRange,
 } from './abc-block-patch';
@@ -26,6 +30,10 @@ export interface AbcBlockSyncContext {
 	readonly sourcePath: string;
 	/** Opening ```abc fence line in the note (0-based). */
 	readonly blockOpenLine: number | null;
+	/** 0-based index among ```abc fences — authoritative for sync target. */
+	readonly blockIndex: number | null;
+	/** LP shell / processor element — scopes editor read-write to the correct leaf. */
+	readonly containingElement?: HTMLElement;
 }
 
 export type AbcSyncResult =
@@ -145,12 +153,19 @@ export async function isAbcBlockEmptyInDocument(
 		return true;
 	}
 
-	const editor = findMarkdownEditorForPath(ctx.app, ctx.sourcePath);
+	const editor = findMarkdownEditorForPath(
+		ctx.app,
+		ctx.sourcePath,
+		ctx.containingElement,
+	);
 	const markdown = editor
 		? editor.getValue()
 		: await ctx.app.vault.read(file);
 
-	return isAbcBlockEmptyInMarkdown(markdown, ctx.blockOpenLine);
+	return isAbcBlockEmptyInMarkdown(
+		markdown,
+		resolveSyncBlockOpenLine(markdown, ctx),
+	);
 }
 
 /**
@@ -197,15 +212,27 @@ export async function applyAbcBodyToDocument(
 		return { ok: false, reason: 'Note file not found' };
 	}
 
-	const editor = findMarkdownEditorForPath(ctx.app, ctx.sourcePath);
+	const editor = findMarkdownEditorForPath(
+		ctx.app,
+		ctx.sourcePath,
+		ctx.containingElement,
+	);
 	if (editor) {
-		return applyAbcBodyViaEditor(editor, ctx.blockOpenLine, abcBody);
+		const blockOpenLine = resolveSyncBlockOpenLine(editor.getValue(), ctx);
+		if (blockOpenLine === null) {
+			return { ok: false, reason: 'Abc block identity not resolved' };
+		}
+		return applyAbcBodyViaEditor(editor, blockOpenLine, abcBody);
 	}
 
 	const markdown = await ctx.app.vault.read(file);
+	const blockOpenLine = resolveSyncBlockOpenLine(markdown, ctx);
+	if (blockOpenLine === null) {
+		return { ok: false, reason: 'Abc block identity not resolved' };
+	}
 	const updated = replaceAbcBlockBodyInMarkdown(
 		markdown,
-		ctx.blockOpenLine,
+		blockOpenLine,
 		abcBody,
 	);
 	if (updated === null) {
@@ -248,7 +275,29 @@ function getAbcBlockBodyEditRange(
 	return { from, to: { line: endLine, ch: endCh } };
 }
 
-function findMarkdownEditorForPath(app: App, sourcePath: string): Editor | null {
+/** Re-derive fence open line from block index against fresh markdown. */
+export function resolveSyncBlockOpenLine(
+	markdown: string,
+	ctx: AbcBlockSyncContext,
+): number | null {
+	if (ctx.blockIndex !== null) {
+		return openLineForAbcBlockIndex(markdown, ctx.blockIndex);
+	}
+	return ctx.blockOpenLine;
+}
+
+function findMarkdownEditorForPath(
+	app: App,
+	sourcePath: string,
+	containingElement?: HTMLElement,
+): Editor | null {
+	if (containingElement) {
+		const view = findMarkdownViewContaining(app, sourcePath, containingElement);
+		if (view?.editor) {
+			return view.editor;
+		}
+	}
+
 	const active = app.workspace.activeEditor;
 	if (active?.file?.path === sourcePath && active.editor) {
 		return active.editor;
@@ -262,7 +311,7 @@ function findMarkdownEditorForPath(app: App, sourcePath: string): Editor | null 
 	for (const leaf of app.workspace.getLeavesOfType('markdown')) {
 		const view = leaf.view;
 		if (view instanceof MarkdownView && view.file?.path === sourcePath) {
-			return view.editor;
+			return view.editor ?? null;
 		}
 	}
 

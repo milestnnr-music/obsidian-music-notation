@@ -1,5 +1,6 @@
 import {
 	extractAllAbcBlockBodies,
+	isEmptyAbcBlockSource,
 	normalizeAbcBlockBody,
 } from '../plugin/block-source';
 
@@ -19,6 +20,109 @@ export interface AbcBlockSectionInfo {
 	readonly text: string;
 	readonly lineStart: number;
 	readonly lineEnd: number;
+}
+
+/** Resolved ```abc block in a note (fence open line + 0-based index). */
+export interface AbcBlockIdentity {
+	readonly openLine: number;
+	readonly blockIndex: number;
+}
+
+function identityFromOpenLine(
+	openLines: number[],
+	openLine: number,
+): AbcBlockIdentity | null {
+	const blockIndex = openLines.indexOf(openLine);
+	if (blockIndex < 0) {
+		return null;
+	}
+	return { openLine, blockIndex };
+}
+
+/**
+ * Resolve block identity without DOM. Section range → body match → empty fence → ordinal.
+ * Used when embed host mapping is missing or unreliable (LP often reports duplicate lineStart).
+ */
+export function resolveAbcBlockIdentity(
+	markdown: string,
+	sectionInfo: AbcBlockSectionInfo | null,
+	processorSource: string,
+	renderOrdinal: number,
+	ambiguousSectionLineStarts: ReadonlySet<number> = new Set(),
+): AbcBlockIdentity | null {
+	const openLines = findAllAbcBlockFenceOpenLines(markdown);
+	if (openLines.length === 0) {
+		return null;
+	}
+	if (openLines.length === 1) {
+		const openLine = openLines[0];
+		return openLine !== undefined ? { openLine, blockIndex: 0 } : null;
+	}
+
+	if (sectionInfo) {
+		const fromRange = resolveOpenLineFromSectionRange(markdown, sectionInfo);
+		if (fromRange !== null) {
+			const identity = identityFromOpenLine(openLines, fromRange);
+			if (identity) {
+				return identity;
+			}
+		}
+	}
+
+	const processorBody = normalizeAbcBlockBody(processorSource);
+	if (processorBody.length > 0) {
+		const match = matchOpenLineByBody(markdown, openLines, processorBody);
+		if (match !== null) {
+			return identityFromOpenLine(openLines, match);
+		}
+	}
+
+	const sectionBody = sectionInfo?.text
+		? normalizeAbcBlockBody(sectionInfo.text)
+		: '';
+	if (sectionBody.length > 0) {
+		const match = matchOpenLineByBody(markdown, openLines, sectionBody);
+		if (match !== null) {
+			return identityFromOpenLine(openLines, match);
+		}
+	}
+
+	if (!processorBody.length) {
+		const emptyOpenLines = openLines.filter((line) => {
+			const body = extractAbcBlockBodyAtOpenLine(markdown, line) ?? '';
+			return isEmptyAbcBlockSource(body);
+		});
+		if (emptyOpenLines.length === 1) {
+			const openLine = emptyOpenLines[0];
+			if (openLine !== undefined) {
+				return identityFromOpenLine(openLines, openLine);
+			}
+		}
+		// Multiple empty fences: never use renderOrdinal — processors often re-run
+		// one at a time (ordinal always 0). Use DOM embed index in LP instead.
+	}
+
+	const sectionLine = sectionInfo?.lineStart;
+	const sectionLineIsTrusted =
+		sectionLine !== undefined &&
+		sectionLine !== null &&
+		!ambiguousSectionLineStarts.has(sectionLine);
+	if (sectionLineIsTrusted) {
+		const exact = openLines.find((line) => line === sectionLine);
+		if (exact !== undefined) {
+			return identityFromOpenLine(openLines, exact);
+		}
+	}
+
+	// renderOrdinal is only meaningful when every processor runs in one pass (rare in LP).
+	if (openLines.length === 1 && renderOrdinal === 0) {
+		const openLine = openLines[0];
+		if (openLine !== undefined) {
+			return { openLine, blockIndex: 0 };
+		}
+	}
+
+	return null;
 }
 
 /** Opening fence line for the Nth ```abc block in document order (0-based index). */

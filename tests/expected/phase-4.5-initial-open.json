@@ -1,0 +1,19 @@
+{
+	"description": "Expected per-block state on first LP open (before any test-button clicks). Used by probe diff and integration tests.",
+	"fenceCount": 2,
+	"blocks": [
+		{
+			"blockIndex": 0,
+			"isEmpty": false,
+			"hasMusic": true,
+			"bodyContains": "CDEF|"
+		},
+		{
+			"blockIndex": 1,
+			"isEmpty": true,
+			"hasMusic": false
+		}
+	],
+	"syncBlock0MustNotTouchBlock1": true,
+	"block0WriteTestBodyContains": "GABc"
+}

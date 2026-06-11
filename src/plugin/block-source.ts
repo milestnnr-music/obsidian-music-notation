@@ -71,6 +71,7 @@ export async function resolveAbcBlockSourceAsync(
 	sectionInfo: MarkdownSectionInformation | null,
 	blockOpenLine: number | null,
 	blockIndex: number | null = null,
+	containingElement?: HTMLElement,
 ): Promise<string> {
 	const abstractFile = app.vault.getAbstractFileByPath(ctx.sourcePath);
 	if (!(abstractFile instanceof TFile)) {
@@ -82,7 +83,12 @@ export async function resolveAbcBlockSourceAsync(
 		);
 	}
 
-	const markdown = await readNoteMarkdown(app, abstractFile, ctx.sourcePath);
+	const markdown = await readNoteMarkdown(
+		app,
+		abstractFile,
+		ctx.sourcePath,
+		containingElement,
+	);
 
 	// When the fence is identified, read only that block — never merge in another
 	// block's ABC (chooseBestAbcSource prefers music lines and breaks multi-block).
@@ -95,6 +101,11 @@ export async function resolveAbcBlockSourceAsync(
 
 	if (blockOpenLine !== null) {
 		return readAbcBodyAtFenceLine(markdown, blockOpenLine, processorSource);
+	}
+
+	// Multi-block note before DOM identity is known — never merge siblings.
+	if (extractAllAbcBlockBodies(markdown).length > 1) {
+		return normalizeAbcBlockBody(processorSource);
 	}
 
 	const fromSection = sectionInfo?.text
@@ -242,11 +253,57 @@ function abcBlockIndexAtLine(markdown: string, lineStart: number): number {
 	return Math.max(0, index);
 }
 
+function containingAnchorForMarkdownView(element: HTMLElement): HTMLElement {
+	const embed = element.closest('.cm-embed-block');
+	if (embed instanceof HTMLElement) {
+		return embed;
+	}
+	return element;
+}
+
+/** MarkdownView leaf that contains `element` (correct pane when one note is open in multiple windows). */
+export function findMarkdownViewContaining(
+	app: App,
+	sourcePath: string,
+	element: HTMLElement,
+): MarkdownView | null {
+	const anchor = containingAnchorForMarkdownView(element);
+	for (const leaf of app.workspace.getLeavesOfType('markdown')) {
+		const view = leaf.view;
+		if (
+			view instanceof MarkdownView &&
+			view.file?.path === sourcePath &&
+			view.contentEl.contains(anchor)
+		) {
+			return view;
+		}
+	}
+
+	const activeView = app.workspace.getActiveViewOfType(MarkdownView);
+	return activeView?.file?.path === sourcePath ? activeView : null;
+}
+
+/** Live buffer when an editor exists; otherwise the view's last-known data. */
+export function getMarkdownFromView(view: MarkdownView): string {
+	if (view.editor) {
+		return view.editor.getValue();
+	}
+	return view.data;
+}
+
 export async function readNoteMarkdown(
 	app: App,
 	file: TFile,
 	sourcePath: string,
+	containingElement?: HTMLElement,
 ): Promise<string> {
+	if (containingElement) {
+		const view = findMarkdownViewContaining(app, sourcePath, containingElement);
+		if (view) {
+			return getMarkdownFromView(view);
+		}
+	}
+
 	const active = app.workspace.activeEditor;
 	if (active?.file?.path === sourcePath && active.editor) {
 		return active.editor.getValue();
@@ -254,20 +311,13 @@ export async function readNoteMarkdown(
 
 	const activeView = app.workspace.getActiveViewOfType(MarkdownView);
 	if (activeView?.file?.path === sourcePath) {
-		// Prefer live editor buffer — same text Source mode displays after LP sync writes.
-		if (activeView.editor) {
-			return activeView.editor.getValue();
-		}
-		return activeView.data;
+		return getMarkdownFromView(activeView);
 	}
 
 	for (const leaf of app.workspace.getLeavesOfType('markdown')) {
 		const view = leaf.view;
 		if (view instanceof MarkdownView && view.file?.path === sourcePath) {
-			if (view.editor) {
-				return view.editor.getValue();
-			}
-			return view.data;
+			return getMarkdownFromView(view);
 		}
 	}
 
