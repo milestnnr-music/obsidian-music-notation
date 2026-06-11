@@ -1,8 +1,5 @@
 import { Notice, Plugin } from 'obsidian';
-import {
-	PHASE_45_PROBE_SCHEMA_VERSION,
-	writeStartupProbeMarker,
-} from './dev/phase-45-probe';
+import { writeStartupProbeMarker } from './dev/phase-45-probe';
 import { registerAbcCodeBlockProcessor } from './plugin/code-block';
 import {
 	DEFAULT_SETTINGS,

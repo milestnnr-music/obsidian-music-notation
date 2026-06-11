@@ -1,6 +1,6 @@
 # Limitations and roadmap
 
-**Current status:** Phase 5 in progress (v0.2.9). Step **5.1** done (toolbar). Step **5.2** ✅ snap staff interaction verified in Live Preview. Step **5.3** ✅ delete selected note verified in Live Preview. Step **5.8** ✅ Reading view static notation only. **Next:** 5.4. Phase 4 complete (4.1–4.5).  
+**Current status:** Phase 5 in progress (v0.3.0). Step **5.1** done (toolbar). Step **5.2** ✅ snap staff interaction verified in Live Preview. Step **5.3** ✅ delete selected note verified in Live Preview. Step **5.6** ✅ key/time signature controls per block. Step **5.8** ✅ Reading view static notation only. **Next:** 5.4. Phase 4 complete (4.1–4.5).  
 **Design reference:** [`docs/DESIGN.md`](docs/DESIGN.md) · **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md) · Multi-block LP fixes: [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md)
 
 ## What works today
@@ -13,6 +13,7 @@
 - **Source mode:** raw fence text unchanged — processors do not run (Obsidian default; no overlay registered)
 - **Empty blocks:** implicit-default staff shell (4/4, C major, treble, quarter) via in-memory ABC; file stays empty until first edit (Phase 4.3)
 - **Live Preview toolbar (Phase 5.1):** duration (whole/half/quarter/eighth) and accidental (♯/♭/♮) controls; default quarter
+- **Key / time signature (Phase 5.6, v0.3.0):** per-block key (C, G, F, D, Bb) and time (4/4, 3/4, 2/4) pickers; debounced ABC sync for `K:` / `M:` headers
 - **Snap staff interaction (Phase 5.2, v0.2.7):** hover guide line + click to place (measure + append); Shift+hover/click to select; debounced ABC sync — LP verified after geometry fix (v0.2.5–0.2.7)
 - **Delete selected note (Phase 5.3, v0.2.8):** Shift+click to select (outline highlight), then Delete or Backspace — LP verified; selection clears on toolbar/outside click
 - **Debounced sync (Phase 4.1–4.2):** Score → ABC → markdown write via dev test buttons (~300ms debounce); per-block `AbcSyncScheduler`; multi-block notes target the correct fence when block index is established

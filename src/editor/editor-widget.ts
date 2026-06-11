@@ -4,6 +4,7 @@
  */
 import type { Score } from '../model/types';
 import { EditorStateController } from './editor-state';
+import { mountKeyTimeControls } from './key-time-controls';
 import { mountToolbar } from './toolbar';
 import { isEmptyAbcBlockSource } from '../plugin/block-source';
 import { renderAbcToElementWhenReady } from '../renderer/abcjs-adapter';
@@ -91,6 +92,18 @@ export function mountEditorWidget(
 			detachStaff = attachStaffInteraction(staffMount, interaction);
 		});
 	};
+
+	if (sync) {
+		mountKeyTimeControls(toolbarMount, {
+			getScore: () => currentScore,
+			onScoreChange: (score: Score) => {
+				currentScore = score;
+				renderStaff();
+			},
+			getSyncContext: sync.getSyncContext,
+			scheduler: sync.scheduler,
+		});
+	}
 
 	disposeByMount.set(container, () => {
 		detachStaff?.();

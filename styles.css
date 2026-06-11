@@ -141,6 +141,23 @@
 	color: var(--text-on-accent);
 }
 
+.abc-blocks-toolbar-select {
+	min-width: 3.5rem;
+	padding: 0.2rem 0.35rem;
+	border-radius: 4px;
+	border: 1px solid var(--background-modifier-border);
+	background: var(--background-primary);
+	color: var(--text-normal);
+	font-size: 0.85rem;
+	line-height: 1.2;
+	cursor: pointer;
+}
+
+.abc-blocks-toolbar-select:hover {
+	background: var(--background-modifier-hover);
+	border-color: var(--background-modifier-border-hover);
+}
+
 .abc-blocks-staff-mount {
 	position: relative;
 	width: 100%;

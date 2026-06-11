@@ -4,7 +4,7 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 
 **Repository:** https://github.com/milestnnr-music/obsidian-music-notation  
 **Plugin id:** `abc-blocks`  
-**Current status:** Phase 5 in progress (v0.2.9). Step **5.1** done (toolbar). Step **5.2** ✅ done. Step **5.3** ✅ delete selected note verified in Live Preview. Step **5.8** ✅ Reading view chrome stripped. **Next:** 5.4 (change duration on selection). **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md). Phase 4 complete (4.1–4.5). Before changing multi-block LP identity, read [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md).
+**Current status:** Phase 5 in progress (v0.3.0). Step **5.1** done (toolbar). Step **5.2** ✅ done. Step **5.3** ✅ delete selected note verified in Live Preview. Step **5.6** ✅ key/time signature controls per block. Step **5.8** ✅ Reading view chrome stripped. **Next:** 5.4 (change duration on selection). **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md). Phase 4 complete (4.1–4.5). Before changing multi-block LP identity, read [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md).
 
 ---
 
@@ -17,7 +17,7 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 | **2 — Read path (abcjs)** | ✅ **Done** | — |
 | **3 — Score model + serializer** | ✅ **Done** | — |
 | 4 — Debounced sync | ✅ Done | — |
-| 5 — Visual editor | **In progress** | 5.1 ✅; 5.2 ✅; 5.3 ✅ delete; 5.8 ✅ Reading chrome; **5.4** duration on selection |
+| 5 — Visual editor | **In progress** | 5.1 ✅; 5.2 ✅; 5.3 ✅ delete; 5.6 ✅ key/time; 5.8 ✅ Reading chrome; **5.4** duration on selection |
 | 6 — Polish + docs | Pending | After Phase 5 |
 | 7+ — v2 (chords, 2 staves, settings, playback) | Pending | After Phase 6 |
 
@@ -54,6 +54,8 @@ src/
     editor-widget.ts           Phase 5: Live Preview root widget
     editor-state.ts            Phase 5.1: Toolbar selection state (duration, accidental)
     toolbar.ts                 Phase 5.1: Duration + accidental controls
+    key-time-controls.ts       Phase 5.6: Key/time signature pickers
+    score-header-mutations.ts  Phase 5.6: setKeySignature / setTimeSignature
     snap-grid.ts               Phase 5.2: Discrete pitch snap slots (geometry only)
     svg-client-geometry.ts     Phase 5.2: elementClientCenterY — unified staff line coords (v0.2.7)
     measure-hit-test.ts        Phase 5.2: Bar-line X → measure index
@@ -187,6 +189,7 @@ npm run test:phase-4.5
 npm run test:editor-toolbar
 npm run test:staff-placement
 npm run test:note-delete
+npm run test:key-time-controls
 npm run test:all
 ```
 
@@ -211,7 +214,7 @@ Phase 4 manual checklists: `docs/manual-tests/phase-4-undo.md` (4.4), `docs/manu
 ## Manifest (`manifest.json`)
 
 - `id`: `abc-blocks` — stable; never change after release
-- `version`: SemVer — **currently `0.2.9`** (see `manifest.json`; keep in sync with `package.json`)
+- `version`: SemVer — **currently `0.3.0`** (see `manifest.json`; keep in sync with `package.json`)
 - `minAppVersion`: keep accurate when using newer APIs
 - `isDesktopOnly`: `false` (editing is desktop-first; mobile loads safely)
 

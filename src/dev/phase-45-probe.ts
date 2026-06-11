@@ -13,6 +13,8 @@ import {
 export const PHASE_45_PROBE_FILENAME = 'phase-45-probe.json';
 /** Written via vault adapter into the plugin folder (symlink → repo test-results/). */
 export const PHASE_45_PROBE_PLUGIN_PATH =
+	// Dev probe path — intentionally under default config dir for symlinked plugin layout.
+	// eslint-disable-next-line obsidianmd/hardcoded-config-path -- fixed probe output for dev vault symlink
 	'.obsidian/plugins/abc-blocks/test-results/phase-45-probe.json';
 /** Visible copy in vault root for manual inspection. */
 export const PHASE_45_PROBE_VAULT_PATH = 'abc-blocks-probe/phase-45-probe.json';
@@ -179,7 +181,11 @@ async function writeProbePayload(app: App, payload: string): Promise<void> {
 	}
 
 	if (!wrote) {
-		throw errors[0] ?? new Error('probe write failed');
+		const first = errors[0];
+		if (first instanceof Error) {
+			throw first;
+		}
+		throw new Error('probe write failed');
 	}
 }
 

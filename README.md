@@ -2,7 +2,7 @@
 
 Editable ABC notation blocks for [Obsidian](https://obsidian.md). Write short musical examples directly in your notes using ` ```abc ` fences, with a lightweight visual editor in Live Preview and ABC stored in the markdown file.
 
-**Status:** Phase 5 in progress (v0.2.9). Step **5.1** done (toolbar). Step **5.2** ✅ snap staff interaction verified in Live Preview. Step **5.3** ✅ delete selected note verified in Live Preview. Step **5.8** ✅ Reading view static notation only. **Next:** 5.4 (change duration on selection). **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md). Phase 4 complete (4.1–4.5). Multi-block LP fix notes: [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md).
+**Status:** Phase 5 in progress (v0.3.0). Step **5.1** done (toolbar). Step **5.2** ✅ snap staff interaction verified in Live Preview. Step **5.3** ✅ delete selected note verified in Live Preview. Step **5.6** ✅ key/time signature controls per block. Step **5.8** ✅ Reading view static notation only. **Next:** 5.4 (change duration on selection). **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md). Phase 4 complete (4.1–4.5). Multi-block LP fix notes: [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md).
 
 📐 **Full product design & phased plan:** [`docs/DESIGN.md`](docs/DESIGN.md)  
 🤖 **Cursor agents:** read [`AGENTS.md`](AGENTS.md) before implementing.

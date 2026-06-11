@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-abc-blocks",
-	"version": "0.2.9",
+	"version": "0.3.0",
 	"description": "Editable ABC notation blocks for Obsidian",
 	"main": "main.js",
 	"type": "module",
@@ -19,7 +19,8 @@
 		"test:editor-toolbar": "node scripts/check-editor-toolbar.mjs",
 		"test:staff-placement": "node scripts/check-staff-placement.mjs",
 		"test:note-delete": "node scripts/check-note-delete.mjs",
-		"test:all": "npm run test:abc-normalize && npm run test:abc-empty-shell && npm run test:roundtrip && npm run test:abc-block-patch && npm run test:abc-sync-debounce && npm run test:abc-first-edit && npm run test:phase-4.5 && npm run test:editor-toolbar && npm run test:staff-placement && npm run test:note-delete",
+		"test:key-time-controls": "node scripts/check-key-time-controls.mjs",
+		"test:all": "npm run test:abc-normalize && npm run test:abc-empty-shell && npm run test:roundtrip && npm run test:abc-block-patch && npm run test:abc-sync-debounce && npm run test:abc-first-edit && npm run test:phase-4.5 && npm run test:editor-toolbar && npm run test:staff-placement && npm run test:note-delete && npm run test:key-time-controls",
 		"sync:test-note": "node scripts/sync-test-note-to-vault.mjs",
 		"verify:test-note": "node scripts/verify-test-note.mjs",
 		"compare:phase-4.5-probe": "node scripts/compare-phase-45-probe.mjs",
