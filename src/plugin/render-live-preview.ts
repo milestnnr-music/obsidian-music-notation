@@ -1,13 +1,27 @@
-import { App, MarkdownPostProcessorContext, MarkdownRenderChild } from 'obsidian';
+import { App, MarkdownPostProcessorContext, MarkdownRenderChild, TFile } from 'obsidian';
+import {
+	extractAbcBlockBodyAtOpenLine,
+	openLineForAbcBlockIndex,
+} from '../editor/abc-block-patch';
 import {
 	abcHasMusicLines,
 	getAbcBlockContentState,
 	isEmptyAbcBlockSource,
+	readAbcBodyAtBlockIndex,
+	readNoteMarkdown,
 	resolveAbcBlockSourceAsync,
 } from './block-source';
 import {
+	ABC_BLOCK_INDEX_ATTR,
+	ABC_OPEN_LINE_ATTR,
+	parseBlockIndexAttr,
+	parseBlockOpenLineAttr,
+} from './block-identity';
+import {
 	afterPreviewLayout,
+	isPreviewAbcMappingUnreliable,
 	resolveBlockOpenLineFromPreviewDom,
+	type PreviewDomBlockIdentity,
 } from './block-dom';
 import { mountEditorWidget } from '../editor/editor-widget';
 import { flushAbcSyncScheduler } from '../editor/sync-lifecycle';
@@ -19,22 +33,12 @@ import {
 	type AbcBlockSyncContext,
 } from '../editor/sync';
 
-const ABC_OPEN_LINE_ATTR = 'data-abc-open-line';
-
-function parseBlockOpenLine(shellRoot: HTMLElement): number | null {
-	const raw = shellRoot.getAttribute(ABC_OPEN_LINE_ATTR);
-	if (!raw) {
-		return null;
-	}
-	const line = Number(raw);
-	return Number.isFinite(line) ? line : null;
-}
-
 class AbcLivePreviewShell extends MarkdownRenderChild {
 	private lastSource = '';
 	private refreshTimer: number | null = null;
 	private readonly syncScheduler = new AbcSyncScheduler();
 	private resolvedBlockOpenLine: number | null;
+	private resolvedBlockIndex: number | null;
 	private readonly startedAsEmptyFence: boolean;
 
 	constructor(
@@ -45,9 +49,11 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 		private readonly resolvedSource: string,
 		private readonly processorSource: string,
 		blockOpenLine: number | null,
+		blockIndex: number | null,
 	) {
 		super(containerEl);
 		this.resolvedBlockOpenLine = blockOpenLine;
+		this.resolvedBlockIndex = blockIndex;
 		this.startedAsEmptyFence = isEmptyAbcBlockSource(resolvedSource);
 	}
 
@@ -64,7 +70,7 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 					window.clearTimeout(this.refreshTimer);
 				}
 				this.refreshTimer = window.setTimeout(() => {
-					void this.refreshFromEditor();
+					void this.refreshFromEditorStable();
 				}, ABC_SYNC_DEBOUNCE_MS);
 			}),
 		);
@@ -78,38 +84,163 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 		}
 	}
 
+	private persistBlockIdentity(openLine: number, blockIndex: number): void {
+		this.resolvedBlockOpenLine = openLine;
+		this.resolvedBlockIndex = blockIndex;
+		this.shellRoot.setAttribute(ABC_OPEN_LINE_ATTR, String(openLine));
+		this.shellRoot.setAttribute(ABC_BLOCK_INDEX_ATTR, String(blockIndex));
+	}
+
+	private applyDomIdentity(identity: PreviewDomBlockIdentity): number {
+		this.persistBlockIdentity(identity.openLine, identity.blockIndex);
+		return identity.openLine;
+	}
+
 	/**
-	 * Resolve this block's fence line from preview DOM order (authoritative in LP).
-	 * Processor call order and cached `data-abc-open-line` are not reliable alone.
+	 * Stable fence line from cached block index (survives inline embed source edit on
+	 * siblings — DOM host lists shrink when block 1 shows raw source in LP).
+	 */
+	private async resolveBlockOpenLineFromStableIndex(
+		markdown: string,
+	): Promise<number | null> {
+		const blockIndex =
+			parseBlockIndexAttr(this.shellRoot.getAttribute(ABC_BLOCK_INDEX_ATTR)) ??
+			this.resolvedBlockIndex;
+		if (blockIndex === null) {
+			return null;
+		}
+
+		const openLine = openLineForAbcBlockIndex(markdown, blockIndex);
+		if (openLine === null) {
+			return null;
+		}
+
+		this.persistBlockIdentity(openLine, blockIndex);
+		return openLine;
+	}
+
+	/**
+	 * Resolve fence line for sync writes and post-layout reconcile. May remap from DOM.
 	 */
 	private async resolveBlockOpenLine(): Promise<number | null> {
+		const file = this.app.vault.getAbstractFileByPath(this.ctx.sourcePath);
+		if (!(file instanceof TFile)) {
+			return null;
+		}
+
+		const markdown = await readNoteMarkdown(this.app, file, this.ctx.sourcePath);
+
+		const fromIndex = await this.resolveBlockOpenLineFromStableIndex(markdown);
+		if (fromIndex !== null) {
+			return fromIndex;
+		}
+
 		const fromDom = await resolveBlockOpenLineFromPreviewDom(
 			this.app,
 			this.shellRoot,
 			this.ctx.sourcePath,
 		);
 		if (fromDom !== null) {
-			this.resolvedBlockOpenLine = fromDom;
-			this.shellRoot.setAttribute(ABC_OPEN_LINE_ATTR, String(fromDom));
-			return fromDom;
+			return this.applyDomIdentity(fromDom);
 		}
 
-		return parseBlockOpenLine(this.shellRoot) ?? this.resolvedBlockOpenLine;
+		const cached =
+			parseBlockOpenLineAttr(this.shellRoot.getAttribute(ABC_OPEN_LINE_ATTR)) ??
+			this.resolvedBlockOpenLine;
+		if (cached === null) {
+			return null;
+		}
+
+		if (extractAbcBlockBodyAtOpenLine(markdown, cached) !== null) {
+			this.resolvedBlockOpenLine = cached;
+			return cached;
+		}
+
+		return null;
 	}
 
-	private async reconcileAfterLayout(): Promise<void> {
-		const blockOpenLine = await this.resolveBlockOpenLine();
-		if (blockOpenLine === null) {
-			return;
+	private currentBlockIndex(): number | null {
+		return (
+			parseBlockIndexAttr(this.shellRoot.getAttribute(ABC_BLOCK_INDEX_ATTR)) ??
+			this.resolvedBlockIndex
+		);
+	}
+
+	/** Editor-change refresh: never remap DOM index (unreliable during inline source edit). */
+	private async resolveBlockOpenLineStable(): Promise<number | null> {
+		const file = this.app.vault.getAbstractFileByPath(this.ctx.sourcePath);
+		if (!(file instanceof TFile)) {
+			return null;
 		}
 
-		const resolved = await resolveAbcBlockSourceAsync(
+		const markdown = await readNoteMarkdown(this.app, file, this.ctx.sourcePath);
+
+		const fromIndex = await this.resolveBlockOpenLineFromStableIndex(markdown);
+		if (fromIndex !== null) {
+			return fromIndex;
+		}
+
+		const cached =
+			parseBlockOpenLineAttr(this.shellRoot.getAttribute(ABC_OPEN_LINE_ATTR)) ??
+			this.resolvedBlockOpenLine;
+		if (cached === null) {
+			return null;
+		}
+
+		if (extractAbcBlockBodyAtOpenLine(markdown, cached) !== null) {
+			this.resolvedBlockOpenLine = cached;
+			return cached;
+		}
+
+		return null;
+	}
+
+	private async resolveSourceFromEditor(): Promise<string | null> {
+		const file = this.app.vault.getAbstractFileByPath(this.ctx.sourcePath);
+		if (!(file instanceof TFile)) {
+			return null;
+		}
+
+		const markdown = await readNoteMarkdown(this.app, file, this.ctx.sourcePath);
+		const blockIndex = this.currentBlockIndex();
+		if (blockIndex !== null) {
+			const fromIndex = readAbcBodyAtBlockIndex(markdown, blockIndex);
+			if (fromIndex !== null) {
+				return fromIndex;
+			}
+		}
+
+		const blockOpenLine = await this.resolveBlockOpenLineStable();
+		if (blockOpenLine === null) {
+			return null;
+		}
+
+		return resolveAbcBlockSourceAsync(
 			this.app,
 			this.ctx,
 			this.processorSource,
 			null,
 			blockOpenLine,
+			blockIndex,
 		);
+	}
+
+	private async reconcileAfterLayout(): Promise<void> {
+		if (
+			await isPreviewAbcMappingUnreliable(
+				this.app,
+				this.shellRoot,
+				this.ctx.sourcePath,
+			)
+		) {
+			return;
+		}
+
+		const resolved = await this.resolveSourceFromEditor();
+		if (resolved === null) {
+			return;
+		}
+
 		this.mount(resolved);
 	}
 
@@ -166,29 +297,27 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 		runPhase43FirstEditTest(ctx, this.syncScheduler);
 	}
 
-	private async refreshFromEditor(): Promise<void> {
-		const blockOpenLine = await this.resolveBlockOpenLine();
-		const resolved = await resolveAbcBlockSourceAsync(
-			this.app,
-			this.ctx,
-			this.processorSource,
-			null,
-			blockOpenLine,
-		);
+	private async refreshFromEditorStable(): Promise<void> {
+		if (
+			await isPreviewAbcMappingUnreliable(
+				this.app,
+				this.shellRoot,
+				this.ctx.sourcePath,
+			)
+		) {
+			return;
+		}
+
+		const resolved = await this.resolveSourceFromEditor();
+		if (resolved === null) {
+			return;
+		}
+
 		this.mount(resolved);
 	}
 
 	private mount(source: string): void {
 		const isEmpty = isEmptyAbcBlockSource(source);
-
-		if (
-			abcHasMusicLines(this.lastSource) &&
-			!abcHasMusicLines(source) &&
-			!isEmpty &&
-			this.containerEl.dataset.abcRendered === 'true'
-		) {
-			return;
-		}
 
 		if (source === this.lastSource && this.containerEl.dataset.abcRendered === 'true') {
 			return;
@@ -217,6 +346,7 @@ export function renderLivePreview(
 	ctx: MarkdownPostProcessorContext,
 	app: App,
 	blockOpenLine: number | null,
+	blockIndex: number | null = null,
 ): void {
 	const contentState = getAbcBlockContentState(resolvedSource);
 	const isEmpty = contentState === 'empty';
@@ -228,6 +358,9 @@ export function renderLivePreview(
 			'data-abc-resolved-music': String(abcHasMusicLines(resolvedSource)),
 			...(blockOpenLine !== null
 				? { [ABC_OPEN_LINE_ATTR]: String(blockOpenLine) }
+				: {}),
+			...(blockIndex !== null
+				? { [ABC_BLOCK_INDEX_ATTR]: String(blockIndex) }
 				: {}),
 		},
 	});
@@ -258,6 +391,7 @@ export function renderLivePreview(
 			resolvedSource,
 			processorSource,
 			blockOpenLine,
+			blockIndex,
 		),
 	);
 }

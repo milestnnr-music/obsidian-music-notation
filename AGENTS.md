@@ -4,7 +4,7 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 
 **Repository:** https://github.com/milestnnr-music/obsidian-music-notation  
 **Plugin id:** `abc-blocks`  
-**Current status:** Phase 3 complete (v0.1.1). **Next:** Phase 4 (debounced sync).
+**Current status:** Phase 4 in progress (v0.1.1). Steps **4.1–4.4** done. **Next:** Phase 4.5 (Source mode reflects Live Preview edits).
 
 ---
 
@@ -16,8 +16,8 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 | **1 — Block lifecycle** | ✅ **Done** | — |
 | **2 — Read path (abcjs)** | ✅ **Done** | — |
 | **3 — Score model + serializer** | ✅ **Done** | — |
-| 4 — Debounced sync | Pending | **4.1** next |
-| 5 — Visual editor | Pending | After Phase 4 |
+| 4 — Debounced sync | In progress | **4.5** next (4.1–4.4 ✅) |
+| 5 — Visual editor | Pending | After Phase 4 exit |
 | 6 — Polish + docs | Pending | After Phase 5 |
 | 7+ — v2 (chords, 2 staves, settings, playback) | Pending | After Phase 6 |
 
@@ -32,10 +32,12 @@ src/
   main.ts                      Plugin entry — load settings, register code block processor
   plugin/
     code-block.ts              Phase 1: ```abc processor registration & view routing
-    block-source.ts            Phase 1.5: empty / whitespace-only fence detection
+    block-source.ts            Phase 1.5 / 4: fence body read; multi-block by index
+    block-identity.ts          Phase 4.4: persisted block index on processor el
+    block-dom.ts                 Phase 4: DOM embed order; inline-source guard
     view-mode.ts               Phase 1: Reading vs Live Preview DOM detection
     render-reading.ts          Phase 1.2 / 2.4: static Reading view abcjs render
-    render-live-preview.ts     Phase 1.3: interactive Live Preview shell
+    render-live-preview.ts     Phase 1.3 / 4: LP shell, debounced refresh, undo flush
   model/
     types.ts                   Score, Staff, Measure, NoteEvent, RestEvent, Pitch types
     score.ts                   Phase 3: createEmptyScore(), immutable updates
@@ -51,6 +53,8 @@ src/
     toolbar.ts                 Phase 5: Duration + accidental controls
     staff-interaction.ts       Phase 5: Click place / select / delete
     sync.ts                    Phase 4: Debounced model → ABC → document write-back
+    sync-lifecycle.ts          Phase 4.4: flush pending sync on shell unmount
+    abc-block-patch.ts         Phase 4: fence locate/replace in markdown
   ui/
     empty-staff-shell.ts       Phase 2.3: Empty block implicit-default staff shell
     fallback.ts                Phase 2.2: Invalid ABC fallback UI + mountAbcOrFallback
@@ -159,7 +163,12 @@ npm run lint    # ESLint
 npm run test:abc-normalize
 npm run test:abc-empty-shell
 npm run test:roundtrip
+npm run test:abc-block-patch
+npm run test:abc-sync-debounce
+npm run test:abc-first-edit
 ```
+
+Phase 4.4 manual checklist: `docs/manual-tests/phase-4-undo.md`.
 
 ---
 
@@ -212,7 +221,7 @@ No prior chat context is available. Load project state from files:
 ```
 
 ```
-@docs/DESIGN.md Continue Phase 4 — step 4.1 wire model → writer → document update.
+@docs/DESIGN.md Continue Phase 4 — step 4.5 Source mode reflects Live Preview edits.
 ```
 
 ```

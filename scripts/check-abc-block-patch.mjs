@@ -8,6 +8,7 @@ const jiti = createJiti(import.meta.url);
 const {
 	findAbcBlockFenceRange,
 	findAllAbcBlockFenceOpenLines,
+	openLineForAbcBlockIndex,
 	resolveAbcBlockOpenLine,
 	resolveOpenLineFromSectionRange,
 	extractAbcBlockBodyAtOpenLine,
@@ -21,6 +22,10 @@ const {
 	getAmbiguousSectionLineStarts,
 	noteAbcBlockSectionLineStart,
 } = await jiti.import('../src/plugin/block-ordinal.ts');
+const { readAbcBodyAtBlockIndex, readAbcBodyAtFenceLine } = await jiti.import(
+	'../src/plugin/block-source.ts',
+);
+const { isAbcEmbedHostCountReliable } = await jiti.import('../src/plugin/block-dom.ts');
 
 let passed = 0;
 let failed = 0;
@@ -181,6 +186,35 @@ assert(
 	roundTripReplace?.includes('CDEF|GABc|'),
 	'writer output patches empty fence',
 );
+
+const staleLineBody = readAbcBodyAtFenceLine(twoBlocks, 99, '');
+assert(staleLineBody === '', 'stale open line uses processor fallback, not sibling ABC');
+
+const secondByLine = readAbcBodyAtFenceLine(twoBlocks, 10, 'SHOULD_NOT_USE');
+assert(
+	secondByLine === 'X:1\nK:G\nG|',
+	'valid open line reads only that fence body',
+);
+
+assert(
+	openLineForAbcBlockIndex(twoBlocks, 1) === 10,
+	'block index 1 maps to second fence open line',
+);
+assert(
+	openLineForAbcBlockIndex(twoBlocks, 0) === 2,
+	'block index 0 maps to first fence open line',
+);
+assert(
+	!isAbcEmbedHostCountReliable(1, 2),
+	'one embed host for two fences is unreliable (inline source edit)',
+);
+assert(
+	isAbcEmbedHostCountReliable(2, 2),
+	'matching embed and fence counts are reliable',
+);
+
+const secondByIndex = readAbcBodyAtBlockIndex(twoBlocks, 1);
+assert(secondByIndex === 'X:1\nK:G\nG|', 'block index 1 reads second fence body only');
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

@@ -1,6 +1,15 @@
 import { MarkdownView, TFile, type App } from 'obsidian';
-import { findAllAbcBlockFenceOpenLines } from '../editor/abc-block-patch';
+import {
+	findAllAbcBlockFenceOpenLines,
+	openLineForAbcBlockIndex,
+} from '../editor/abc-block-patch';
 import { readNoteMarkdown } from './block-source';
+
+/** Stable ```abc block identity from Live Preview DOM order. */
+export interface PreviewDomBlockIdentity {
+	readonly openLine: number;
+	readonly blockIndex: number;
+}
 
 /** CM6 Live Preview embed or Reading view block host for one ```abc fence. */
 export function findAbcBlockEmbedHost(element: HTMLElement): HTMLElement | null {
@@ -57,6 +66,17 @@ export function listAbcBlockEmbedHosts(previewRoot: ParentNode): HTMLElement[] {
 	return hosts;
 }
 
+/**
+ * True when every markdown fence has a matching preview embed host.
+ * False during inline embed source edit (first block's preview host is often hidden).
+ */
+export function isAbcEmbedHostCountReliable(
+	embedHostCount: number,
+	fenceCount: number,
+): boolean {
+	return embedHostCount > 0 && embedHostCount === fenceCount;
+}
+
 function findMarkdownViewContaining(
 	app: App,
 	sourcePath: string,
@@ -81,12 +101,13 @@ function findMarkdownViewContaining(
 /**
  * Map a Live Preview shell to its fence line using DOM order among ```abc embeds.
  * Reliable after the preview has finished laying out every block in the note.
+ * Returns null when embed host count ≠ fence count (inline source edit on a sibling).
  */
 export async function resolveBlockOpenLineFromPreviewDom(
 	app: App,
 	element: HTMLElement,
 	sourcePath: string,
-): Promise<number | null> {
+): Promise<PreviewDomBlockIdentity | null> {
 	const host = findAbcBlockEmbedHost(element);
 	if (!host) {
 		return null;
@@ -112,7 +133,44 @@ export async function resolveBlockOpenLineFromPreviewDom(
 
 	const markdown = await readNoteMarkdown(app, file, sourcePath);
 	const openLines = findAllAbcBlockFenceOpenLines(markdown);
-	return openLines[blockIndex] ?? null;
+	if (!isAbcEmbedHostCountReliable(hosts.length, openLines.length)) {
+		return null;
+	}
+
+	const openLine = openLineForAbcBlockIndex(markdown, blockIndex);
+	if (openLine === null) {
+		return null;
+	}
+
+	return { openLine, blockIndex };
+}
+
+/**
+ * True when a sibling ```abc block is in inline source edit (preview embed hidden).
+ * DOM index mapping and processor render ordinals are unreliable in this state.
+ */
+export async function isPreviewAbcMappingUnreliable(
+	app: App,
+	element: HTMLElement,
+	sourcePath: string,
+): Promise<boolean> {
+	const view = findMarkdownViewContaining(app, sourcePath, element);
+	if (!view) {
+		return false;
+	}
+
+	const previewRoot =
+		view.contentEl.querySelector('.markdown-source-view') ?? view.contentEl;
+	const hosts = listAbcBlockEmbedHosts(previewRoot);
+
+	const file = app.vault.getAbstractFileByPath(sourcePath);
+	if (!(file instanceof TFile)) {
+		return false;
+	}
+
+	const markdown = await readNoteMarkdown(app, file, sourcePath);
+	const fenceCount = findAllAbcBlockFenceOpenLines(markdown).length;
+	return fenceCount > 1 && !isAbcEmbedHostCountReliable(hosts.length, fenceCount);
 }
 
 /** Defer until embed siblings have mounted (processor order ≠ document order in LP). */

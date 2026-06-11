@@ -70,6 +70,7 @@ export async function resolveAbcBlockSourceAsync(
 	processorSource: string,
 	sectionInfo: MarkdownSectionInformation | null,
 	blockOpenLine: number | null,
+	blockIndex: number | null = null,
 ): Promise<string> {
 	const abstractFile = app.vault.getAbstractFileByPath(ctx.sourcePath);
 	if (!(abstractFile instanceof TFile)) {
@@ -85,11 +86,15 @@ export async function resolveAbcBlockSourceAsync(
 
 	// When the fence is identified, read only that block — never merge in another
 	// block's ABC (chooseBestAbcSource prefers music lines and breaks multi-block).
-	if (blockOpenLine !== null) {
-		const body = extractAbcBlockBodyAtOpenLine(markdown, blockOpenLine);
-		if (body !== null) {
-			return normalizeAbcBlockBody(body);
+	if (blockIndex !== null) {
+		const fromIndex = readAbcBodyAtBlockIndex(markdown, blockIndex);
+		if (fromIndex !== null) {
+			return fromIndex;
 		}
+	}
+
+	if (blockOpenLine !== null) {
+		return readAbcBodyAtFenceLine(markdown, blockOpenLine, processorSource);
 	}
 
 	const fromSection = sectionInfo?.text
@@ -108,6 +113,32 @@ export async function resolveAbcBlockSourceAsync(
 	resolved = chooseBestAbcSource(resolved, fromCache);
 
 	return normalizeAbcBlockBody(resolved);
+}
+
+/** Read the Nth ```abc fence body in document order (0-based index). */
+export function readAbcBodyAtBlockIndex(
+	markdown: string,
+	blockIndex: number,
+): string | null {
+	const bodies = extractAllAbcBlockBodies(markdown);
+	const body = bodies[blockIndex];
+	return body !== undefined ? normalizeAbcBlockBody(body) : null;
+}
+
+/**
+ * Read one fence body by its opening line. When the line hint is stale after
+ * manual Source edits, return the processor fallback only — never scan siblings.
+ */
+export function readAbcBodyAtFenceLine(
+	markdown: string,
+	blockOpenLine: number,
+	processorFallback: string,
+): string {
+	const body = extractAbcBlockBodyAtOpenLine(markdown, blockOpenLine);
+	if (body !== null) {
+		return normalizeAbcBlockBody(body);
+	}
+	return normalizeAbcBlockBody(processorFallback);
 }
 
 /** Extract every ```abc fence body from markdown (opening/closing fences excluded). */
@@ -223,12 +254,19 @@ export async function readNoteMarkdown(
 
 	const activeView = app.workspace.getActiveViewOfType(MarkdownView);
 	if (activeView?.file?.path === sourcePath) {
+		// Prefer live editor buffer — same text Source mode displays after LP sync writes.
+		if (activeView.editor) {
+			return activeView.editor.getValue();
+		}
 		return activeView.data;
 	}
 
 	for (const leaf of app.workspace.getLeavesOfType('markdown')) {
 		const view = leaf.view;
 		if (view instanceof MarkdownView && view.file?.path === sourcePath) {
+			if (view.editor) {
+				return view.editor.getValue();
+			}
 			return view.data;
 		}
 	}

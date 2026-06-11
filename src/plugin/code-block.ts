@@ -1,11 +1,22 @@
 import { MarkdownPostProcessorContext, Plugin, TFile } from 'obsidian';
-import { resolveAbcBlockOpenLine } from '../editor/abc-block-patch';
+import {
+	findAllAbcBlockFenceOpenLines,
+	openLineForAbcBlockIndex,
+	resolveAbcBlockOpenLine,
+} from '../editor/abc-block-patch';
 import {
 	claimAbcBlockRenderOrdinal,
 	getAmbiguousSectionLineStarts,
 	noteAbcBlockSectionLineStart,
 } from './block-ordinal';
-import { resolveBlockOpenLineFromPreviewDom } from './block-dom';
+import {
+	readPersistedBlockIndex,
+	writePersistedBlockIdentity,
+} from './block-identity';
+import {
+	isPreviewAbcMappingUnreliable,
+	resolveBlockOpenLineFromPreviewDom,
+} from './block-dom';
 import { readNoteMarkdown, resolveAbcBlockSourceAsync } from './block-source';
 import { renderLivePreview } from './render-live-preview';
 import { renderReadingView } from './render-reading';
@@ -48,16 +59,30 @@ async function handleAbcCodeBlock(
 	el.setAttribute(PROCESSOR_GENERATION, generation);
 
 	const sectionInfo = ctx.getSectionInfo(el);
+	const persistedIndex = readPersistedBlockIndex(el);
+	const viewMode = detectAbcBlockViewMode(plugin.app, el);
 
 	const abstractFile = plugin.app.vault.getAbstractFileByPath(ctx.sourcePath);
+	let markdown = '';
+	if (abstractFile instanceof TFile) {
+		markdown = await readNoteMarkdown(plugin.app, abstractFile, ctx.sourcePath);
+	}
 
 	let blockOpenLine: number | null = sectionInfo?.lineStart ?? null;
-	if (abstractFile instanceof TFile) {
-		const markdown = await readNoteMarkdown(
-			plugin.app,
-			abstractFile,
-			ctx.sourcePath,
-		);
+	let blockIndex: number | null = null;
+
+	const fromDom =
+		viewMode === 'live-preview'
+			? await resolveBlockOpenLineFromPreviewDom(plugin.app, el, ctx.sourcePath)
+			: null;
+
+	if (fromDom !== null) {
+		blockOpenLine = fromDom.openLine;
+		blockIndex = fromDom.blockIndex;
+	} else if (persistedIndex !== null && markdown.length > 0) {
+		blockIndex = persistedIndex;
+		blockOpenLine = openLineForAbcBlockIndex(markdown, persistedIndex);
+	} else if (abstractFile instanceof TFile) {
 		blockOpenLine = resolveAbcBlockOpenLine(
 			markdown,
 			sectionInfo,
@@ -65,18 +90,29 @@ async function handleAbcCodeBlock(
 			renderOrdinal,
 			getAmbiguousSectionLineStarts(ctx.sourcePath),
 		);
+		const openLines = findAllAbcBlockFenceOpenLines(markdown);
+		if (blockOpenLine !== null) {
+			const derivedIndex = openLines.indexOf(blockOpenLine);
+			blockIndex = derivedIndex >= 0 ? derivedIndex : null;
+		}
 	}
 
-	const viewMode = detectAbcBlockViewMode(plugin.app, el);
-	if (viewMode === 'live-preview') {
-		const fromDom = await resolveBlockOpenLineFromPreviewDom(
-			plugin.app,
-			el,
-			ctx.sourcePath,
-		);
-		if (fromDom !== null) {
-			blockOpenLine = fromDom;
+	if (
+		viewMode === 'live-preview' &&
+		fromDom === null &&
+		persistedIndex !== null &&
+		blockIndex === persistedIndex &&
+		el.querySelector('.abc-blocks-live-preview') !== null &&
+		(await isPreviewAbcMappingUnreliable(plugin.app, el, ctx.sourcePath))
+	) {
+		if (blockIndex !== null && blockOpenLine !== null) {
+			writePersistedBlockIdentity(el, blockIndex, blockOpenLine);
 		}
+		return;
+	}
+
+	if (blockIndex !== null && blockOpenLine !== null) {
+		writePersistedBlockIdentity(el, blockIndex, blockOpenLine);
 	}
 
 	const abcSource = await resolveAbcBlockSourceAsync(
@@ -85,6 +121,7 @@ async function handleAbcCodeBlock(
 		source,
 		sectionInfo,
 		blockOpenLine,
+		blockIndex,
 	);
 
 	if (el.getAttribute(PROCESSOR_GENERATION) !== generation) {
@@ -103,6 +140,7 @@ async function handleAbcCodeBlock(
 			ctx,
 			plugin.app,
 			blockOpenLine,
+			blockIndex,
 		);
 	} else {
 		renderReadingView(root, abcSource);

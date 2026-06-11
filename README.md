@@ -2,7 +2,7 @@
 
 Editable ABC notation blocks for [Obsidian](https://obsidian.md). Write short musical examples directly in your notes using ` ```abc ` fences, with a lightweight visual editor in Live Preview and ABC stored in the markdown file.
 
-**Status:** Phase 3 complete (v0.1.1) — read path (abcjs render, fallback, empty staff shell) plus ABC ↔ `Score` round-trip for the v1 subset. **Next:** Phase 4 (debounced sync to markdown).
+**Status:** Phase 4 in progress (v0.1.1) — debounced sync, first-edit write, and undo validation (4.1–4.4) are done. **Next:** Phase 4.5 (Source mode reflects Live Preview edits).
 
 📐 **Full product design & phased plan:** [`docs/DESIGN.md`](docs/DESIGN.md)  
 🤖 **Cursor agents:** read [`AGENTS.md`](AGENTS.md) before implementing.
@@ -89,6 +89,9 @@ npm run lint
 npm run test:abc-normalize
 npm run test:abc-empty-shell
 npm run test:roundtrip
+npm run test:abc-block-patch
+npm run test:abc-sync-debounce
+npm run test:abc-first-edit
 ```
 
 ## Project layout
@@ -96,15 +99,16 @@ npm run test:roundtrip
 ```
 src/
   main.ts                 Plugin entry
-  plugin/code-block.ts    ```abc block registration (Phase 1)
+  plugin/                 code-block, block-identity, block-dom, render paths (Phases 1–4)
   model/                  Score types + createEmptyScore() (Phase 3 ✅)
   serializer/             ABC ↔ Score parser/writer + mapping (Phase 3 ✅)
   renderer/               abcjs adapter (Phase 2)
-  editor/                 Live Preview widget (Phases 4–5)
+  editor/                 sync, sync-lifecycle, abc-block-patch (Phase 4 ✅); widget (Phase 5)
   ui/                     Fallback + measure warning
   settings/types.ts       Vault settings types (UI in Phase 7)
 docs/
   DESIGN.md               Product design & phased implementation plan
+  manual-tests/           Phase 4.4 undo checklist (✅), 4.5 source mode (pending)
 ```
 
 ## Example block (future)
@@ -127,7 +131,7 @@ CDEF|
 | 1     | Block lifecycle in Obsidian             | ✅ Complete |
 | 2     | Read path — render ABC                  | ✅ Complete |
 | 3     | Music model + serializer                | ✅ Complete |
-| 4     | Debounced sync to markdown              | Planned (next) |
+| 4     | Debounced sync to markdown              | In progress (4.1–4.4 ✅; **4.5** next) |
 | 5     | Visual editor                           | Planned     |
 | 6     | Polish + docs                           | Planned     |
 | 7+    | Chords, multi-staff, settings, playback | Planned     |

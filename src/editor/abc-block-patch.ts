@@ -21,6 +21,15 @@ export interface AbcBlockSectionInfo {
 	readonly lineEnd: number;
 }
 
+/** Opening fence line for the Nth ```abc block in document order (0-based index). */
+export function openLineForAbcBlockIndex(
+	markdown: string,
+	blockIndex: number,
+): number | null {
+	const openLines = findAllAbcBlockFenceOpenLines(markdown);
+	return openLines[blockIndex] ?? null;
+}
+
 /** Opening fence line (0-based) for every ```abc block in document order. */
 export function findAllAbcBlockFenceOpenLines(markdown: string): number[] {
 	const lines = markdown.split(/\r?\n/);
