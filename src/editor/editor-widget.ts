@@ -21,12 +21,22 @@ export interface EditorWidgetSyncDeps {
 	readonly scheduler: AbcSyncScheduler;
 }
 
+export interface EditorWidgetMountOptions {
+	readonly blockRoot?: HTMLElement;
+}
+
+const disposeByMount = new WeakMap<HTMLElement, () => void>();
+
 export function mountEditorWidget(
 	container: HTMLElement,
 	source = '',
 	isEmpty = isEmptyAbcBlockSource(source),
 	sync?: EditorWidgetSyncDeps,
+	mountOptions: EditorWidgetMountOptions = {},
 ): EditorStateController {
+	disposeByMount.get(container)?.();
+	disposeByMount.delete(container);
+
 	container.empty();
 	container.addClass('abc-blocks-editor-widget');
 
@@ -38,6 +48,9 @@ export function mountEditorWidget(
 	let detachStaff: (() => void) | null = null;
 
 	const staffMount = container.createDiv({ cls: 'abc-blocks-staff-mount' });
+	const visualRoots = [container, mountOptions.blockRoot].filter(
+		(root): root is HTMLElement => root instanceof HTMLElement,
+	);
 
 	const renderStaff = (): void => {
 		detachStaff?.();
@@ -73,10 +86,16 @@ export function mountEditorWidget(
 				editorState,
 				getSyncContext: sync.getSyncContext,
 				scheduler: sync.scheduler,
+				visualRoots,
 			};
 			detachStaff = attachStaffInteraction(staffMount, interaction);
 		});
 	};
+
+	disposeByMount.set(container, () => {
+		detachStaff?.();
+		detachStaff = null;
+	});
 
 	renderStaff();
 

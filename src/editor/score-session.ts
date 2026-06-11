@@ -71,3 +71,42 @@ export function placeNoteInScore(
 		staves: [{ ...staff, measures }],
 	};
 }
+
+/** Remove one event by measure/event index (no-op when out of range). */
+export function deleteNoteFromScore(
+	score: Score,
+	measureIndex: number,
+	eventIndex: number,
+): Score {
+	const staff = score.staves[0];
+	if (!staff) {
+		return score;
+	}
+
+	const measure = staff.measures[measureIndex];
+	if (!measure || eventIndex < 0 || eventIndex >= measure.events.length) {
+		return score;
+	}
+
+	const measures = staff.measures.map((m, mi) => {
+		if (mi !== measureIndex) {
+			return { events: [...m.events] };
+		}
+		return {
+			events: m.events.filter((_, ei) => ei !== eventIndex),
+		};
+	});
+
+	while (measures.length > 1) {
+		const last = measures[measures.length - 1];
+		if (!last || last.events.length > 0) {
+			break;
+		}
+		measures.pop();
+	}
+
+	return {
+		...score,
+		staves: [{ ...staff, measures }],
+	};
+}

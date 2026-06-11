@@ -1,10 +1,10 @@
 # Handoff: Phase 5.2 — Snap staff interaction (place + select)
 
 **Date:** 2026-06-11  
-**Status:** ✅ **Phase 5.2 place + select complete** (v0.2.7). Snap place + Shift select verified in Live Preview. Bug-fix chain: octave mismatch (v0.2.5) → per-note calibration jump-over (v0.2.6) → geometry/coordinate drift (v0.2.7). **Next:** Phase 5.3 (delete selected note). Supersedes the v0.2.1 free-click placement approach (broken in Live Preview).
+**Status:** ✅ **Phase 5.2 place + select complete** (v0.2.7). Snap place + Shift select verified in Live Preview. Bug-fix chain: octave mismatch (v0.2.5) → per-note calibration jump-over (v0.2.6) → geometry/coordinate drift (v0.2.7). **Phase 5.3** (delete) ✅ done at v0.2.8. **Next:** Phase 5.4 (change duration on selection). Supersedes the v0.2.1 free-click placement approach (broken in Live Preview).
 
 **Prior:** Phase 5.1 (toolbar) at v0.2.0; first 5.2 attempt at v0.2.1–v0.2.3 (free-Y hit-test — **retire**).  
-**Next after 5.2:** Phase 5.3 (delete selected note), 5.4 (change duration on selection).
+**Next after 5.2:** ~~Phase 5.3~~ ✅; **5.4** (change duration on selection).
 
 > **Historical (do not re-implement):** [`docs/HANDOFF-phase-5.2-staff-placement.md`](HANDOFF-phase-5.2-staff-placement.md) — documents the abandoned free-coordinate click path.
 
@@ -203,7 +203,7 @@ Use theme variables where possible (`var(--background-modifier-border)`, etc.).
 
 ## Out of scope (5.2)
 
-- Delete key / delete gesture (5.3)
+- ~~Delete key / delete gesture~~ — **5.3** ✅ (`deleteNoteFromScore`, Delete/Backspace, v0.2.8)
 - Change duration on selected note (5.4)
 - Beat-grid rhythmic X snap (future phase after 5.2 stable)
 - Full crosshair / polished selection chrome (later polish)

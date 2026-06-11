@@ -8,8 +8,10 @@ import {
 	NoteSelectionController,
 } from './note-selection';
 import { snapPlacement } from './snap-grid';
+import type { ScoreNoteRef } from './note-selection';
 import {
 	applyToolbarAccidental,
+	deleteNoteFromScore,
 	placeNoteInScore,
 } from './score-session';
 
@@ -19,6 +21,29 @@ export interface StaffInteractionOptions {
 	readonly editorState: EditorStateController;
 	readonly getSyncContext: () => Promise<AbcBlockSyncContext>;
 	readonly scheduler: AbcSyncScheduler;
+	/** Roots searched when stripping selection/hover marks (editor widget + LP shell). */
+	readonly visualRoots?: readonly HTMLElement[];
+}
+
+function isDeleteKey(event: KeyboardEvent): boolean {
+	return event.key === 'Delete' || event.key === 'Backspace';
+}
+
+function collectVisualRoots(
+	container: HTMLElement,
+	visualRoots?: readonly HTMLElement[],
+): ParentNode[] {
+	const roots: ParentNode[] = [container];
+	for (const root of visualRoots ?? []) {
+		if (!roots.includes(root)) {
+			roots.push(root);
+		}
+	}
+	const notation = container.querySelector('.abc-blocks-notation');
+	if (notation && !roots.includes(notation)) {
+		roots.push(notation);
+	}
+	return roots;
 }
 
 /** Phase 5.2: Snap grid place + Shift select on rendered staff. */
@@ -26,8 +51,35 @@ export function attachStaffInteraction(
 	container: HTMLElement,
 	options: StaffInteractionOptions,
 ): () => void {
-	const selection = new NoteSelectionController();
+	const visualRoots = collectVisualRoots(container, options.visualRoots);
+	const selection = new NoteSelectionController(visualRoots);
+	const ownerDocument = container.ownerDocument;
 	let guideEl: HTMLElement | null = null;
+
+	container.setAttribute('tabindex', '-1');
+
+	const commitScoreChange = (updated: Score): void => {
+		options.onScoreChange(updated);
+		void options.getSyncContext().then((ctx) => {
+			if (ctx.blockIndex === null) {
+				return;
+			}
+			scheduleScoreToAbcBlock(options.scheduler, ctx, updated);
+		});
+	};
+
+	const deleteSelectedNote = (ref: ScoreNoteRef): void => {
+		const updated = deleteNoteFromScore(
+			options.getScore(),
+			ref.measureIndex,
+			ref.eventIndex,
+		);
+		if (updated === options.getScore()) {
+			return;
+		}
+		selection.clearAllVisualState();
+		commitScoreChange(updated);
+	};
 
 	const ensureGuide = (): HTMLElement => {
 		if (!guideEl) {
@@ -102,21 +154,23 @@ export function attachStaffInteraction(
 			const note = findNoteElementAt(event.clientX, event.clientY, svg);
 			if (note) {
 				selection.selectNote(note);
+				container.focus();
 			} else {
-				selection.clearSelection();
+				selection.clearAllVisualState();
 			}
 			return;
 		}
 
 		const snap = snapPlacement(svg, event.clientX, event.clientY);
 		if (!snap) {
+			selection.clearAllVisualState();
 			return;
 		}
 
 		event.preventDefault();
 		event.stopPropagation();
 
-		selection.clearSelection();
+		selection.clearAllVisualState();
 
 		const toolbar = options.editorState.getState();
 		const pitch = applyToolbarAccidental(
@@ -131,25 +185,79 @@ export function attachStaffInteraction(
 			toolbar.duration,
 		);
 
-		options.onScoreChange(updated);
+		container.focus();
+		commitScoreChange(updated);
+	};
 
-		void options.getSyncContext().then((ctx) => {
-			if (ctx.blockIndex === null) {
-				return;
-			}
-			scheduleScoreToAbcBlock(options.scheduler, ctx, updated);
-		});
+	const dismissSelection = (): void => {
+		selection.clearAllVisualState();
+	};
+
+	// abcjs attaches mousedown/mouseup on SVG and paints clicked notes fill="#ff0000".
+	const blockAbcjsNoteHighlight = (event: Event): void => {
+		const svg = container.querySelector('svg');
+		const target = event.target;
+		if (!svg || !(target instanceof Node) || !svg.contains(target)) {
+			return;
+		}
+		event.stopPropagation();
+	};
+
+	const onDocumentPointerDown = (event: PointerEvent): void => {
+		const target = event.target;
+		if (target instanceof Node && container.contains(target)) {
+			return;
+		}
+		dismissSelection();
+	};
+
+	const onFocusOut = (event: FocusEvent): void => {
+		const related = event.relatedTarget;
+		if (related instanceof Node && container.contains(related)) {
+			return;
+		}
+		dismissSelection();
+	};
+
+	const onKeyDown = (event: KeyboardEvent): void => {
+		if (!isDeleteKey(event)) {
+			return;
+		}
+
+		const ref = selection.getSelection();
+		if (!ref) {
+			return;
+		}
+
+		event.preventDefault();
+		event.stopPropagation();
+		deleteSelectedNote(ref);
 	};
 
 	container.addClass('abc-blocks-staff-interactive');
 	container.addEventListener('mousemove', onMouseMove);
 	container.addEventListener('mouseleave', onMouseLeave);
 	container.addEventListener('click', onClick);
+	container.addEventListener('keydown', onKeyDown);
+	container.addEventListener('focusout', onFocusOut);
+	container.addEventListener('mousedown', blockAbcjsNoteHighlight, true);
+	container.addEventListener('mouseup', blockAbcjsNoteHighlight, true);
+	container.addEventListener('touchstart', blockAbcjsNoteHighlight, true);
+	container.addEventListener('touchend', blockAbcjsNoteHighlight, true);
+	ownerDocument.addEventListener('pointerdown', onDocumentPointerDown, true);
 
 	return () => {
 		container.removeEventListener('mousemove', onMouseMove);
 		container.removeEventListener('mouseleave', onMouseLeave);
 		container.removeEventListener('click', onClick);
+		container.removeEventListener('keydown', onKeyDown);
+		container.removeEventListener('focusout', onFocusOut);
+		container.removeEventListener('mousedown', blockAbcjsNoteHighlight, true);
+		container.removeEventListener('mouseup', blockAbcjsNoteHighlight, true);
+		container.removeEventListener('touchstart', blockAbcjsNoteHighlight, true);
+		container.removeEventListener('touchend', blockAbcjsNoteHighlight, true);
+		ownerDocument.removeEventListener('pointerdown', onDocumentPointerDown, true);
+		container.removeAttribute('tabindex');
 		container.removeClass('abc-blocks-staff-interactive');
 		container.removeClass('abc-blocks-staff-selecting');
 		hideGuide();

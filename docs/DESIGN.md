@@ -3,7 +3,7 @@
 **Plugin id:** `abc-blocks`  
 **Repository:** [https://github.com/milestnnr-music/obsidian-music-notation](https://github.com/milestnnr-music/obsidian-music-notation)  
 **Dev vault:** `Desktop/Ideas/Obsidian Dev Vault`  
-**Current status:** Phase 5 **in progress** (v0.2.7). Step **5.1** done (toolbar). Step **5.2** ✅ **done** — snap staff interaction (place + Shift select) verified in Live Preview (v0.2.5–0.2.7 bug-fix chain). v0.2.1 free-click placement **retired**. **Canonical 5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](HANDOFF-phase-5.2-snap-interaction.md). **Next:** 5.3 (delete selected note). Phase 4 complete (4.1–4.5). Canonical 4.5 fix notes: [`docs/phase-4.5-multi-block-lp-resolution.md`](phase-4.5-multi-block-lp-resolution.md).
+**Current status:** Phase 5 **in progress** (v0.2.8). Step **5.1** done (toolbar). Step **5.2** ✅ done — snap staff interaction verified in Live Preview. Step **5.3** ✅ done — delete selected note (Delete/Backspace) verified in Live Preview. **Canonical 5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](HANDOFF-phase-5.2-snap-interaction.md). **Next:** 5.4 (change duration on selection). Phase 4 complete (4.1–4.5). Canonical 4.5 fix notes: [`docs/phase-4.5-multi-block-lp-resolution.md`](phase-4.5-multi-block-lp-resolution.md).
 
 > **For Cursor agents:** Read this document first before implementing features. See also [AGENTS.md](../AGENTS.md), [README.md](../README.md), and [LIMITATIONS.md](../LIMITATIONS.md).
 
@@ -146,7 +146,7 @@ CDEF|GABc|
 
 1. User opens note in Live Preview; block already contains ABC.
 2. Plugin parses ABC → `Score` → renders staff.
-3. User clicks to place notes (snap grid); Shift+click to select; delete and duration-on-selection in later 5.x steps.
+3. User clicks to place notes (snap grid); Shift+click to select; Delete/Backspace to remove; duration-on-selection in 5.4+.
 4. Debounced sync updates the ` ```abc ` body in markdown.
 
 ### 3. Paste ABC from elsewhere
@@ -323,7 +323,7 @@ Phases run **serially** (0 → 1 → 2 → … → 7+). Within a phase, steps ma
 | ---- | ------------------------------------------------------------ | ---------- | ---------- | ------ |
 | 5.1  | Toolbar: duration + accidentals                              | **Serial** | —          | ✅     |
 | 5.2  | Snap staff interaction (place + Shift select highlight)      | **Serial** | 5.1        | ✅ v0.2.7 — [handoff](HANDOFF-phase-5.2-snap-interaction.md); LP verified |
-| 5.3  | Delete selected note                                         | **Serial** | 5.2        |        |
+| 5.3  | Delete selected note                                         | **Serial** | 5.2        | ✅ v0.2.8 — LP verified |
 | 5.4  | Change duration on selection                                 | Parallel   | 5.3        |        |
 | 5.5  | Rests via toolbar                                            | Parallel   | 5.2        |        |
 | 5.6  | Key / time signature controls                                | Parallel   | 5.1        |        |
@@ -538,6 +538,23 @@ The v0.2.1 **free-coordinate** click path (`analyzeStaffClick` in `pitch-hit-tes
 | v0.2.7 | Mixed staff-line coordinates + global calibration — guide below staff, wrong placement | [§ geometry drift](HANDOFF-phase-5.2-snap-interaction.md#root-cause-geometry-coordinate-drift-v027-fix) |
 
 **Tests:** `npm run test:staff-placement` (octave round-trip + geometry regression). LP place/select verified v0.2.7.
+
+### Phase 5.3 — delete selected note
+
+**Status:** ✅ complete (v0.2.8). Shift+click to select; **Delete** or **Backspace** removes the note; debounced ABC sync. Selection highlight is **outline only** (accent border) — abcjs built-in red notehead fill is blocked and restored on dismiss.
+
+**Locked behavior (5.3):**
+
+| Input | Behavior |
+| ----- | -------- |
+| Shift+click note | Select (outline via `data-abc-blocks-selected`) |
+| Delete / Backspace | Remove selected note from score; clear selection + visual state |
+| Click outside staff / toolbar / elsewhere in note | Clear selection; restore note appearance |
+| Place note / delete | Clears selection |
+
+**Modules:** `deleteNoteFromScore` in `score-session.ts`; keyboard + dismiss wiring in `staff-interaction.ts`; `restoreAbcjsNoteAppearance` in `note-selection.ts` (undoes abcjs `#ff0000` click highlight).
+
+**Tests:** `npm run test:note-delete`. LP verified v0.2.8.
 
 ---
 

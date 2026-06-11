@@ -1,5 +1,9 @@
 export const NOTE_SELECTED_CLASS = 'abc-blocks-note-selected';
 export const NOTE_HOVER_CLASS = 'abc-blocks-note-hover';
+export const NOTE_SELECTED_ATTR = 'data-abc-blocks-selected';
+export const NOTE_HOVER_ATTR = 'data-abc-blocks-hovered';
+const ABCJS_SELECTED_CLASS = 'abcjs-note_selected';
+const ABCJS_HIGHLIGHT_FILL = /^#?ff0000$/i;
 
 export interface ScoreNoteRef {
 	readonly measureIndex: number;
@@ -67,18 +71,135 @@ export function readScoreNoteRef(element: Element): ScoreNoteRef | null {
 	return { measureIndex, eventIndex };
 }
 
+function setNoteMarked(
+	el: Element | null,
+	attr: string,
+	className: string,
+	on: boolean,
+): void {
+	if (!el) {
+		return;
+	}
+	if (on) {
+		el.setAttribute(attr, 'true');
+		el.classList.add(className);
+		return;
+	}
+	el.removeAttribute(attr);
+	el.classList.remove(className);
+	const raw = el.getAttribute('class');
+	if (!raw) {
+		return;
+	}
+	const next = raw
+		.split(/\s+/)
+		.filter((token) => token.length > 0 && token !== className)
+		.join(' ');
+	if (next.length > 0) {
+		el.setAttribute('class', next);
+	} else {
+		el.removeAttribute('class');
+	}
+}
+
+function restoreElementAbcjsHighlight(el: Element, defaultFill: string): void {
+	const highlightAttr = el.getAttribute('highlight') ?? 'fill';
+	const painted = el.getAttribute(highlightAttr);
+	if (painted && ABCJS_HIGHLIGHT_FILL.test(painted)) {
+		el.setAttribute(highlightAttr, defaultFill);
+	}
+
+	const fill = el.getAttribute('fill');
+	if (fill && ABCJS_HIGHLIGHT_FILL.test(fill)) {
+		el.setAttribute('fill', defaultFill);
+	}
+
+	if (el.classList.contains(ABCJS_SELECTED_CLASS)) {
+		el.classList.remove(ABCJS_SELECTED_CLASS);
+		const raw = el.getAttribute('class');
+		if (!raw) {
+			return;
+		}
+		const next = raw
+			.split(/\s+/)
+			.filter((token) => token.length > 0 && token !== ABCJS_SELECTED_CLASS)
+			.join(' ');
+		if (next.length > 0) {
+			el.setAttribute('class', next);
+		} else {
+			el.removeAttribute('class');
+		}
+	}
+}
+
+/** Undo abcjs built-in click highlight (inline fill #ff0000 on note glyphs). */
+export function restoreAbcjsNoteAppearance(note: Element): void {
+	const defaultFill =
+		note.closest('svg')?.getAttribute('fill') ?? 'currentColor';
+	const walk = [note, ...Array.from(note.querySelectorAll('*'))];
+	for (const el of walk) {
+		if (isElementNode(el)) {
+			restoreElementAbcjsHighlight(el, defaultFill);
+		}
+	}
+}
+
+/** Remove selection/hover marks from every note under the given roots. */
+export function stripAllNoteVisualState(roots: readonly ParentNode[]): void {
+	const seen = new Set<Element>();
+	for (const root of roots) {
+		for (const el of Array.from(root.querySelectorAll(`[${NOTE_SELECTED_ATTR}="true"]`))) {
+			if (!seen.has(el)) {
+				seen.add(el);
+				setNoteMarked(el, NOTE_SELECTED_ATTR, NOTE_SELECTED_CLASS, false);
+			}
+		}
+		for (const el of Array.from(root.querySelectorAll(`[${NOTE_HOVER_ATTR}="true"]`))) {
+			if (!seen.has(el)) {
+				seen.add(el);
+				setNoteMarked(el, NOTE_HOVER_ATTR, NOTE_HOVER_CLASS, false);
+			}
+		}
+		for (const el of Array.from(root.querySelectorAll(`.${NOTE_SELECTED_CLASS}`))) {
+			if (!seen.has(el)) {
+				seen.add(el);
+				setNoteMarked(el, NOTE_SELECTED_ATTR, NOTE_SELECTED_CLASS, false);
+			}
+		}
+		for (const el of Array.from(root.querySelectorAll(`.${NOTE_HOVER_CLASS}`))) {
+			if (!seen.has(el)) {
+				seen.add(el);
+				setNoteMarked(el, NOTE_HOVER_ATTR, NOTE_HOVER_CLASS, false);
+			}
+		}
+		for (const note of Array.from(root.querySelectorAll('.abcjs-note'))) {
+			restoreAbcjsNoteAppearance(note);
+		}
+		for (const el of Array.from(
+			root.querySelectorAll(`.${ABCJS_SELECTED_CLASS}`),
+		)) {
+			restoreAbcjsNoteAppearance(el);
+		}
+	}
+}
+
 /** Tracks hover preview and Shift+click selection on rendered notes. */
 export class NoteSelectionController {
 	private hoverEl: Element | null = null;
 	private selectedEl: Element | null = null;
+	private readonly visualRoots: ParentNode[];
+
+	constructor(visualRoots: readonly ParentNode[] = []) {
+		this.visualRoots = [...visualRoots];
+	}
 
 	setHoverNote(note: Element | null): void {
 		if (this.hoverEl === note) {
 			return;
 		}
-		this.hoverEl?.classList.remove(NOTE_HOVER_CLASS);
+		setNoteMarked(this.hoverEl, NOTE_HOVER_ATTR, NOTE_HOVER_CLASS, false);
 		this.hoverEl = note;
-		this.hoverEl?.classList.add(NOTE_HOVER_CLASS);
+		setNoteMarked(this.hoverEl, NOTE_HOVER_ATTR, NOTE_HOVER_CLASS, true);
 	}
 
 	clearHover(): void {
@@ -92,15 +213,24 @@ export class NoteSelectionController {
 		}
 
 		this.clearHover();
-		this.selectedEl?.classList.remove(NOTE_SELECTED_CLASS);
+		if (this.selectedEl && this.selectedEl !== note) {
+			restoreAbcjsNoteAppearance(this.selectedEl);
+		}
+		setNoteMarked(this.selectedEl, NOTE_SELECTED_ATTR, NOTE_SELECTED_CLASS, false);
 		this.selectedEl = note;
-		this.selectedEl.classList.add(NOTE_SELECTED_CLASS);
+		setNoteMarked(this.selectedEl, NOTE_SELECTED_ATTR, NOTE_SELECTED_CLASS, true);
 		return ref;
 	}
 
 	clearSelection(): void {
-		this.selectedEl?.classList.remove(NOTE_SELECTED_CLASS);
+		setNoteMarked(this.selectedEl, NOTE_SELECTED_ATTR, NOTE_SELECTED_CLASS, false);
 		this.selectedEl = null;
+		stripAllNoteVisualState(this.visualRoots);
+	}
+
+	clearAllVisualState(): void {
+		this.clearHover();
+		this.clearSelection();
 	}
 
 	getSelection(): ScoreNoteRef | null {
@@ -111,7 +241,6 @@ export class NoteSelectionController {
 	}
 
 	dispose(): void {
-		this.clearHover();
-		this.clearSelection();
+		this.clearAllVisualState();
 	}
 }

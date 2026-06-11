@@ -1,6 +1,6 @@
 # Limitations and roadmap
 
-**Current status:** Phase 5 in progress (v0.2.7). Step **5.1** done (toolbar). Step **5.2** ✅ snap staff interaction (place + Shift select) verified in Live Preview. v0.2.1 free-click placement retired. **Next:** 5.3 (delete selected note). Phase 4 complete (4.1–4.5).  
+**Current status:** Phase 5 in progress (v0.2.8). Step **5.1** done (toolbar). Step **5.2** ✅ snap staff interaction verified in Live Preview. Step **5.3** ✅ delete selected note verified in Live Preview. **Next:** 5.4. Phase 4 complete (4.1–4.5).  
 **Design reference:** [`docs/DESIGN.md`](docs/DESIGN.md) · **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md) · Multi-block LP fixes: [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md)
 
 ## What works today
@@ -14,6 +14,7 @@
 - **Empty blocks:** implicit-default staff shell (4/4, C major, treble, quarter) via in-memory ABC; file stays empty until first edit (Phase 4.3)
 - **Live Preview toolbar (Phase 5.1):** duration (whole/half/quarter/eighth) and accidental (♯/♭/♮) controls; default quarter
 - **Snap staff interaction (Phase 5.2, v0.2.7):** hover guide line + click to place (measure + append); Shift+hover/click to select; debounced ABC sync — LP verified after geometry fix (v0.2.5–0.2.7)
+- **Delete selected note (Phase 5.3, v0.2.8):** Shift+click to select (outline highlight), then Delete or Backspace — LP verified; selection clears on toolbar/outside click
 - **Debounced sync (Phase 4.1–4.2):** Score → ABC → markdown write via dev test buttons (~300ms debounce); per-block `AbcSyncScheduler`; multi-block notes target the correct fence when block index is established
 - **First edit (Phase 4.3):** empty fence receives headers + body on first scored edit (dev test button)
 - **Undo / teardown (Phase 4.4):** pending debounced writes flushed on shell unmount; manual undo/redo checklist passed (`docs/manual-tests/phase-4-undo.md`)
@@ -35,14 +36,14 @@ The v0.2.1 **free-coordinate click-to-place** path (`analyzeStaffClick`) is **re
 | Place (default) | Hover | Horizontal guide line at snapped pitch (staff + one ledger) |
 | Place | Click | Append note to end of clicked measure; toolbar duration/accidental |
 | Select | Shift+hover | Note hover preview; no guide line |
-| Select | Shift+click note | `.abc-blocks-note-selected` highlight |
+| Select | Shift+click note | Outline highlight (`data-abc-blocks-selected`) |
 | Select | Shift+click empty | Clear selection |
 | Any score edit | — | Clear selection |
+| Delete | Delete or Backspace (note selected) | Remove note from score; debounced ABC sync |
 
 **Rhythm:** measure + append (beat-grid X snap is a later phase).
 
 ## What does not work yet
-- Delete selected note (Phase 5.3)
 - Change duration on selection (Phase 5.4)
 - Rests via toolbar (Phase 5.5+)
 - No measure warning (Phase 5.7)

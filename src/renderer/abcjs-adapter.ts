@@ -34,7 +34,12 @@ export function renderAbcToElement(
 	container.appendChild(notationEl);
 
 	const staffwidth = options.staffwidth ?? resolveStaffWidth(container);
-	const renderParams = { staffwidth, add_classes: true };
+	const renderParams = {
+		staffwidth,
+		add_classes: true,
+		// Avoid abcjs default #ff0000 click highlight when a handler slips through.
+		selectionColor: 'currentColor',
+	};
 
 	try {
 		const tunes = renderAbc(notationEl, trimmed, renderParams);
