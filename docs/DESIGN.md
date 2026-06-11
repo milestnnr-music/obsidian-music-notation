@@ -3,7 +3,7 @@
 **Plugin id:** `abc-blocks`  
 **Repository:** [https://github.com/milestnnr-music/obsidian-music-notation](https://github.com/milestnnr-music/obsidian-music-notation)  
 **Dev vault:** `Desktop/Ideas/Obsidian Dev Vault`  
-**Current status:** Phase 2.1 complete (v0.1.1). Live Preview abcjs render works. Steps 2.2–2.4 not started.
+**Current status:** Phase 3 complete (v0.1.1). Phases 0–3 done: read path (abcjs, fallback, empty staff shell) and unit-testable ABC ↔ `Score` round-trip for the v1 subset. **Next:** Phase 4 (debounced sync to markdown).
 
 > **For Cursor agents:** Read this document first before implementing features. See also [AGENTS.md](../AGENTS.md), [README.md](../README.md), and [LIMITATIONS.md](../LIMITATIONS.md).
 
@@ -220,17 +220,17 @@ Phases run **serially** (0 → 1 → 2 → … → 7+). Within a phase, steps ma
 
 ---
 
-### Phase 2 — Read path
+### Phase 2 — Read path ✅ DONE
 
 **Goal:** Valid ABC renders; invalid uses fallback; empty uses implicit defaults.
 
 
 | Step | Task                                        | Kind       | Blocked by |
 | ---- | ------------------------------------------- | ---------- | ---------- |
-| 2.1  | Integrate abcjs render path                 | **Serial** | —          |
-| 2.2  | Graceful fallback UI                        | Parallel   | 2.1        |
-| 2.3  | Empty block implicit defaults (staff shell) | Parallel   | 2.1        |
-| 2.4  | Reading view static render                  | Parallel   | 2.1        |
+| 2.1  | Integrate abcjs render path ✅               | **Serial** | —          |
+| 2.2  | Graceful fallback UI ✅                      | Parallel   | 2.1        |
+| 2.3  | Empty block implicit defaults (staff shell) ✅ | Parallel   | 2.1        |
+| 2.4  | Reading view static render ✅                | Parallel   | 2.1        |
 
 
 **Recommended order:** 2.1 → (2.2 ∥ 2.3 ∥ 2.4)
@@ -239,22 +239,22 @@ Phases run **serially** (0 → 1 → 2 → … → 7+). Within a phase, steps ma
 
 ---
 
-### Phase 3 — Music model + serializer
+### Phase 3 — Music model + serializer ✅ DONE
 
 **Goal:** Unit-testable `Score` ↔ ABC round-trip for v1 subset.
 
 
 | Step | Task                                         | Kind       | Blocked by |
 | ---- | -------------------------------------------- | ---------- | ---------- |
-| 3.1  | Define `ScoreModel` types (v1 subset)        | **Serial** | —          |
-| 3.2  | `abc-writer`: model → ABC                    | Parallel   | 3.1        |
-| 3.3  | `abc-parser`: ABC → model                    | Parallel   | 3.1        |
-| 3.4  | Map key, time, durations, rests, accidentals | **Serial** | 3.2, 3.3   |
-| 3.5  | Default note duration = quarter              | Parallel   | 3.1        |
-| 3.6  | Defer chords / multi-staff in parser         | **Serial** | 3.3        |
+| 3.1  | Define `ScoreModel` types (v1 subset) ✅      | **Serial** | —          |
+| 3.2  | `abc-writer`: model → ABC ✅                    | Parallel   | 3.1        |
+| 3.3  | `abc-parser`: ABC → model ✅                    | Parallel   | 3.1        |
+| 3.4  | Map key, time, durations, rests, accidentals ✅ | **Serial** | 3.2, 3.3   |
+| 3.5  | Default note duration = quarter ✅              | Parallel   | 3.1        |
+| 3.6  | Defer chords / multi-staff in parser ✅         | **Serial** | 3.3        |
 
 
-**Phase exit:** Round-trip tests pass for v1 elements; parser rejects/ignores chords and second staff gracefully.
+**Phase exit:** Round-trip tests pass for v1 elements; parser rejects/ignores chords and second staff gracefully. Verified via `npm run test:roundtrip`.
 
 ---
 
@@ -377,7 +377,7 @@ Read docs/DESIGN.md and AGENTS.md, then implement Phase 1.
 ```
 
 ```
-Continue Phase 3 — implement step 3.2 (abc-writer) per DESIGN.md.
+Continue Phase 4 — implement step 4.1 (model → writer → document update) per DESIGN.md.
 ```
 
 ```
@@ -421,8 +421,8 @@ Notes from implementation sessions for future agents. **These do not change the 
 
 | View | Module | Root classes | Phase 2+ work |
 | ---- | ------ | ------------ | ------------- |
-| Reading | `render-reading.ts` | `abc-blocks-reading`, `abc-blocks-static` | Replace ABC `<pre>` placeholder with abcjs SVG (step 2.4) |
-| Live Preview | `render-live-preview.ts` | `abc-blocks-live-preview`, `abc-blocks-interactive`, `abc-blocks-editor-mount` | Wire abcjs + editor into mount point (Phases 2–5) |
+| Reading | `render-reading.ts` | `abc-blocks-reading`, `abc-blocks-static` | abcjs SVG + empty staff shell (2.3–2.4 ✅) |
+| Live Preview | `render-live-preview.ts` | `abc-blocks-live-preview`, `abc-blocks-interactive`, `abc-blocks-editor-mount` | abcjs + fallback + empty shell (2.1–2.3 ✅); editor UI in Phases 5+ |
 | Source | *(processor not invoked)* | — | Edits visible when toggling to LP; sync in Phase 4 |
 
 Live Preview shell registers a `MarkdownRenderChild` that mounts `mountEditorWidget()` from `editor/editor-widget.ts` (stub until Phase 5).
@@ -432,7 +432,7 @@ Live Preview shell registers a `MarkdownRenderChild` that mounts `mountEditorWid
 In dev vault, use a note with a sample ` ```abc ` block. **Reload app without saving** after code changes.
 
 - **Live Preview:** click outside the fence → dashed accent border, “Live Preview” badge, editor widget stub
-- **Reading view:** book icon → solid border, “Reading view” badge, monospace ABC placeholder (no editor stub)
+- **Reading view:** book icon → solid border, “Reading view” badge, static abcjs SVG (invalid ABC → fallback; no editor stub)
 - **Source mode:** raw fence only; no `abc-blocks-*` DOM
 
 Phase 5.9 (“strip editor chrome in Reading view”) should keep using the separate Reading render path — do not mount toolbar/editor UI from `render-reading.ts`.

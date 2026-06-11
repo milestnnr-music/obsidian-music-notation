@@ -4,7 +4,7 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 
 **Repository:** https://github.com/milestnnr-music/obsidian-music-notation  
 **Plugin id:** `abc-blocks`  
-**Current status:** Phase 2.1 complete (v0.1.1). Steps 2.2–2.4 not started.
+**Current status:** Phase 3 complete (v0.1.1). **Next:** Phase 4 (debounced sync).
 
 ---
 
@@ -14,9 +14,9 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 |-------|--------|-----------|
 | 0 — Project shell | ✅ Done | — |
 | **1 — Block lifecycle** | ✅ **Done** | — |
-| **2 — Read path (abcjs)** | In progress | **2.1** ✅ done; **2.2** / **2.3** / **2.4** pending |
-| 3 — Score model + serializer | Pending | After Phase 2 |
-| 4 — Debounced sync | Pending | After Phase 3 |
+| **2 — Read path (abcjs)** | ✅ **Done** | — |
+| **3 — Score model + serializer** | ✅ **Done** | — |
+| 4 — Debounced sync | Pending | **4.1** next |
 | 5 — Visual editor | Pending | After Phase 4 |
 | 6 — Polish + docs | Pending | After Phase 5 |
 | 7+ — v2 (chords, 2 staves, settings, playback) | Pending | After Phase 6 |
@@ -34,14 +34,15 @@ src/
     code-block.ts              Phase 1: ```abc processor registration & view routing
     block-source.ts            Phase 1.5: empty / whitespace-only fence detection
     view-mode.ts               Phase 1: Reading vs Live Preview DOM detection
-    render-reading.ts          Phase 1.2: static Reading view shell
+    render-reading.ts          Phase 1.2 / 2.4: static Reading view abcjs render
     render-live-preview.ts     Phase 1.3: interactive Live Preview shell
   model/
     types.ts                   Score, Staff, Measure, NoteEvent, RestEvent, Pitch types
     score.ts                   Phase 3: createEmptyScore(), immutable updates
   serializer/
     abc-defaults.ts            Implicit defaults (4/4, C, quarter, measure threshold)
-    abc-parser.ts              Phase 3: ABC text → Score
+    abc-mapping.ts             Phase 3: pitch, duration, accidental ABC ↔ model helpers
+    abc-parser.ts              Phase 3: ABC text → Score (+ chord/multi-staff warnings)
     abc-writer.ts              Phase 3: Score → ABC text
   renderer/
     abcjs-adapter.ts           Phase 2: Score or ABC → SVG via abcjs
@@ -51,7 +52,8 @@ src/
     staff-interaction.ts       Phase 5: Click place / select / delete
     sync.ts                    Phase 4: Debounced model → ABC → document write-back
   ui/
-    fallback.ts                Phase 2: Invalid ABC fallback UI
+    empty-staff-shell.ts       Phase 2.3: Empty block implicit-default staff shell
+    fallback.ts                Phase 2.2: Invalid ABC fallback UI + mountAbcOrFallback
     measure-warning.ts         Phase 5: Soft warning past measure threshold
   settings/
     types.ts                   AbcBlocksSettings + DEFAULT_SETTINGS (UI in Phase 7)
@@ -154,6 +156,9 @@ In Obsidian (dev vault): **Settings → Community plugins →** enable **ABC Blo
 ```bash
 npm run build   # production bundle
 npm run lint    # ESLint
+npm run test:abc-normalize
+npm run test:abc-empty-shell
+npm run test:roundtrip
 ```
 
 ---
@@ -207,7 +212,7 @@ No prior chat context is available. Load project state from files:
 ```
 
 ```
-@docs/DESIGN.md Continue Phase 2 — step 2.1 abcjs integration.
+@docs/DESIGN.md Continue Phase 4 — step 4.1 wire model → writer → document update.
 ```
 
 ```

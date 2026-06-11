@@ -58,6 +58,7 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 		if (
 			abcHasMusicLines(this.lastSource) &&
 			!abcHasMusicLines(source) &&
+			!isEmptyAbcBlockSource(source) &&
 			this.containerEl.dataset.abcRendered === 'true'
 		) {
 			return;
@@ -111,7 +112,7 @@ export function renderLivePreview(
 	container.createDiv({
 		cls: 'abc-blocks-interactive-label',
 		text: isEmpty
-			? 'Empty block — click inside to edit; staff shell in Phase 2'
+			? 'New example — 4/4, C major, treble. Toolbar in Phase 5.'
 			: 'Interactive editor shell (toolbar and staff in Phase 5)',
 	});
 

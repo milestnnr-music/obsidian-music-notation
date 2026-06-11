@@ -4,6 +4,7 @@
  */
 import { isEmptyAbcBlockSource } from '../plugin/block-source';
 import { mountAbcOrFallback } from '../ui/fallback';
+import { mountEmptyStaffShell } from '../ui/empty-staff-shell';
 
 export function mountEditorWidget(
 	container: HTMLElement,
@@ -11,11 +12,7 @@ export function mountEditorWidget(
 	isEmpty = isEmptyAbcBlockSource(source),
 ): void {
 	if (isEmpty) {
-		const stub = container.createDiv({
-			cls: 'abc-blocks-editor-widget-stub',
-			attr: { 'data-abc-empty': 'true' },
-		});
-		stub.createSpan({ text: 'Empty block — editor widget placeholder' });
+		mountEmptyStaffShell(container);
 		return;
 	}
 

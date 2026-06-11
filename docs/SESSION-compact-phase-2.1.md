@@ -27,11 +27,13 @@ Extra blank lines inside ` ```abc ` fences caused abcjs to render headers only (
 - `src/renderer/abcjs-adapter.ts` — abcjs render
 - `scripts/check-abc-normalize.mjs` — smoke test
 
-## Not started
+## Phase 2 follow-ups
 
-- 2.2 fallback UI
-- 2.3 empty staff shell
-- 2.4 Reading view abcjs
+| Step | Status |
+|------|--------|
+| 2.2 fallback UI | ✅ Done |
+| 2.3 empty staff shell | ✅ Done |
+| 2.4 Reading view abcjs | ✅ Done |
 
 ## Reference
 

@@ -10,6 +10,7 @@
 		"version": "node version-bump.mjs && git add manifest.json versions.json",
 		"lint": "eslint .",
 		"test:abc-normalize": "node scripts/check-abc-normalize.mjs",
+		"test:abc-empty-shell": "node scripts/check-abc-empty-shell.mjs",
 		"test:roundtrip": "node scripts/check-abc-roundtrip.mjs"
 	},
 	"keywords": [

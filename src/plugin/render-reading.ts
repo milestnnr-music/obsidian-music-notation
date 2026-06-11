@@ -1,8 +1,9 @@
 import { getAbcBlockContentState } from './block-source';
 import { mountAbcOrFallback } from '../ui/fallback';
+import { mountEmptyStaffShell } from '../ui/empty-staff-shell';
 
 /**
- * Phase 1.2 / 2.4: Reading view — static abcjs SVG (no toolbar, no click-to-edit).
+ * Phase 1.2 / 2.4 / 2.3: Reading view — static abcjs SVG (no toolbar, no click-to-edit).
  */
 export function renderReadingView(root: HTMLElement, source: string): void {
 	const contentState = getAbcBlockContentState(source);
@@ -23,10 +24,8 @@ export function renderReadingView(root: HTMLElement, source: string): void {
 	});
 
 	if (isEmpty) {
-		container.createDiv({
-			cls: 'abc-blocks-empty-message',
-			text: 'No ABC in this block yet',
-		});
+		const mount = container.createDiv({ cls: 'abc-blocks-reading-mount' });
+		mountEmptyStaffShell(mount);
 		return;
 	}
 

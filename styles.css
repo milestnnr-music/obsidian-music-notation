@@ -77,9 +77,9 @@
 	font-style: italic;
 }
 
-.abc-blocks-editor-widget-stub[data-abc-empty='true'] {
-	font-style: italic;
-	color: var(--text-faint);
+.abc-blocks-reading-mount[data-abc-empty-shell='true'],
+.abc-blocks-editor-mount[data-abc-empty-shell='true'] {
+	opacity: 0.95;
 }
 
 /* Phase 1.3 — Live Preview (interactive shell) */

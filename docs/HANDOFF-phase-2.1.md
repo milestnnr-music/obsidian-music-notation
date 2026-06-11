@@ -11,7 +11,7 @@
 
 Integrate **abcjs** so valid ` ```abc ` fence bodies render notation SVG in Live Preview.
 
-Steps 2.2 (fallback UI), 2.3 (empty staff shell), and 2.4 (Reading view SVG) are **not started**.
+Steps 2.2–2.4 and Phase 3 are **complete**. See `docs/DESIGN.md` for current status.
 
 ---
 
@@ -55,13 +55,11 @@ Extra blank lines inside ` ```abc ` fences can break ABC notation. The plugin au
 
 ## Next session (when ready)
 
-Do **not** assume 2.2–2.4 are in progress unless explicitly requested:
-
-| Step | Task |
-|------|------|
-| 2.2 | Graceful fallback UI |
-| 2.3 | Empty block staff shell |
-| 2.4 | Reading view static abcjs render |
+| Step | Task | Status |
+|------|------|--------|
+| 2.2 | Graceful fallback UI | ✅ Done |
+| 2.3 | Empty block staff shell | ✅ Done |
+| 2.4 | Reading view static abcjs render | ✅ Done |
 
 ---
 

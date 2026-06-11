@@ -2,7 +2,7 @@
 
 Editable ABC notation blocks for [Obsidian](https://obsidian.md). Write short musical examples directly in your notes using ` ```abc ` fences, with a lightweight visual editor in Live Preview and ABC stored in the markdown file.
 
-**Status:** Phase 2.1 complete (v0.1.1) — valid ABC renders as SVG in **Live Preview**. Steps 2.2–2.4 are not started.
+**Status:** Phase 3 complete (v0.1.1) — read path (abcjs render, fallback, empty staff shell) plus ABC ↔ `Score` round-trip for the v1 subset. **Next:** Phase 4 (debounced sync to markdown).
 
 📐 **Full product design & phased plan:** [`docs/DESIGN.md`](docs/DESIGN.md)  
 🤖 **Cursor agents:** read [`AGENTS.md`](AGENTS.md) before implementing.
@@ -87,6 +87,8 @@ Optional: install the [Hot-Reload](https://github.com/pjeby/hot-reload) plugin t
 npm run build
 npm run lint
 npm run test:abc-normalize
+npm run test:abc-empty-shell
+npm run test:roundtrip
 ```
 
 ## Project layout
@@ -95,8 +97,8 @@ npm run test:abc-normalize
 src/
   main.ts                 Plugin entry
   plugin/code-block.ts    ```abc block registration (Phase 1)
-  model/                  Score model types (Phase 3)
-  serializer/             ABC ↔ model (Phase 3)
+  model/                  Score types + createEmptyScore() (Phase 3 ✅)
+  serializer/             ABC ↔ Score parser/writer + mapping (Phase 3 ✅)
   renderer/               abcjs adapter (Phase 2)
   editor/                 Live Preview widget (Phases 4–5)
   ui/                     Fallback + measure warning
@@ -123,9 +125,9 @@ CDEF|
 | ----- | --------------------------------------- | ----------- |
 | 0     | Project shell                           | ✅ Complete |
 | 1     | Block lifecycle in Obsidian             | ✅ Complete |
-| 2     | Read path — render ABC                  | In progress (2.1 ✅) |
-| 3     | Music model + serializer                | Planned     |
-| 4     | Debounced sync to markdown              | Planned     |
+| 2     | Read path — render ABC                  | ✅ Complete |
+| 3     | Music model + serializer                | ✅ Complete |
+| 4     | Debounced sync to markdown              | Planned (next) |
 | 5     | Visual editor                           | Planned     |
 | 6     | Polish + docs                           | Planned     |
 | 7+    | Chords, multi-staff, settings, playback | Planned     |
