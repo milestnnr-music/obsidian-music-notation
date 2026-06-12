@@ -7,7 +7,9 @@ import { EditorStateController } from './editor-state';
 import { mountKeyTimeControls } from './key-time-controls';
 import { mountToolbar } from './toolbar';
 import { isEmptyAbcBlockSource } from '../plugin/block-source';
+import { ABC_FALLBACK_MESSAGE, friendlyAbcRenderError } from './error-copy';
 import { renderAbcToElementWhenReady } from '../renderer/abcjs-adapter';
+import { abcSourceHasUnsupportedSymbols } from '../renderer/abc-render-validity';
 import { mountFallbackUi } from '../ui/fallback';
 import { getScoreMeasureCount } from '../ui/measure-warning';
 import { mountMeasureWarning } from '../ui/measure-warning-ui';
@@ -104,6 +106,16 @@ export function mountEditorWidget(
 		detachStaff?.();
 		detachStaff = null;
 		staffMount.empty();
+
+		if (!isEmpty && abcSourceHasUnsupportedSymbols(source)) {
+			mountFallbackUi(staffMount, source);
+			staffMount.removeAttribute('data-abc-rendered');
+			staffMount.setAttribute(
+				'data-abc-render-error',
+				friendlyAbcRenderError(ABC_FALLBACK_MESSAGE),
+			);
+			return;
+		}
 
 		const abc = scoreToDisplayAbc(currentScore);
 		void renderAbcToElementWhenReady(staffMount, abc).then((result) => {

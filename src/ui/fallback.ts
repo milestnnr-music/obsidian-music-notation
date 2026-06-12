@@ -1,7 +1,7 @@
+import { ABC_FALLBACK_MESSAGE, friendlyAbcRenderError } from '../editor/error-copy';
 import { renderAbcToElementWhenReady } from '../renderer/abcjs-adapter';
 
-/** User-facing copy when abcjs cannot parse or render the fence body. */
-export const ABC_FALLBACK_MESSAGE = "Couldn't render this ABC.";
+export { ABC_FALLBACK_MESSAGE };
 
 /** Phase 2.2: Graceful fallback when ABC cannot be parsed or rendered. */
 export function mountFallbackUi(
@@ -27,6 +27,6 @@ export function mountAbcOrFallback(container: HTMLElement, source: string): void
 
 		mountFallbackUi(container, source);
 		container.removeAttribute('data-abc-rendered');
-		container.setAttribute('data-abc-render-error', result.error);
+		container.setAttribute('data-abc-render-error', friendlyAbcRenderError(result.error));
 	});
 }

@@ -4,7 +4,7 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 
 **Repository:** https://github.com/milestnnr-music/obsidian-music-notation  
 **Plugin id:** `abc-blocks`  
-**Current status:** **v1.0.0** — v1 personal ship. Phase 5 **complete** (steps **5.1–5.8** ✅). **Next:** Phase 6 (polish + docs). **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md). Phase 4 complete (4.1–4.5). Before changing multi-block LP identity, read [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md).
+**Current status:** **v1.1.0** — v1 personal ship. Phase 6 **complete** (steps **6.1–6.5** ✅). Phase 5 complete (5.1–5.8). **Next:** Phase 7+ (v2 foundations). **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md). Phase 4 complete (4.1–4.5). Before changing multi-block LP identity, read [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md).
 
 ---
 
@@ -18,8 +18,8 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 | **3 — Score model + serializer** | ✅ **Done** | — |
 | 4 — Debounced sync | ✅ Done | — |
 | 5 — Visual editor | ✅ **Done** (shipped in **1.0.0**) | — |
-| 6 — Polish + docs | **Next** | README, LIMITATIONS, manual checklist, error copy |
-| 7+ — v2 (chords, 2 staves, settings, playback) | Pending | After Phase 6 |
+| 6 — Polish + docs | ✅ **Done** (shipped in **1.1.0**) | — |
+| 7+ — v2 (chords, 2 staves, settings, playback) | **Next** | 7.1 chords |
 
 **Phase 1 order:** 1.1 (serial) → 1.2 ∥ 1.3 ∥ 1.4 (parallel) → 1.5 (serial) ✅. See `docs/DESIGN.md` for full step tables.
 
@@ -215,7 +215,7 @@ Phase 4 manual checklists: `docs/manual-tests/phase-4-undo.md` (4.4), `docs/manu
 ## Manifest (`manifest.json`)
 
 - `id`: `abc-blocks` — stable; never change after release
-- `version`: SemVer — **currently `1.0.0`** (see `manifest.json`; keep in sync with `package.json`)
+- `version`: SemVer — **currently `1.1.0`** (see `manifest.json`; keep in sync with `package.json`)
 - `minAppVersion`: keep accurate when using newer APIs
 - `isDesktopOnly`: `false` (editing is desktop-first; mobile loads safely)
 

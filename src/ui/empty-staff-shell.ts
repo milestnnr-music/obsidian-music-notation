@@ -1,15 +1,18 @@
+import {
+	EMPTY_STAFF_FALLBACK_MESSAGE,
+	EMPTY_STAFF_LOADING_MESSAGE,
+	friendlyAbcRenderError,
+} from '../editor/error-copy';
 import { getImplicitDefaultAbcShell } from '../serializer/abc-defaults';
 import { renderAbcToElementWhenReady } from '../renderer/abcjs-adapter';
 import { mountFallbackUi } from './fallback';
-
-const EMPTY_SHELL_FALLBACK_MESSAGE = "Couldn't render the default staff.";
 
 /** Phase 2.3: Render an empty treble staff using implicit defaults (4/4, C, quarter). */
 export function mountEmptyStaffShell(container: HTMLElement): void {
 	container.empty();
 	container.createDiv({
 		cls: 'abc-blocks-empty-staff-loading',
-		text: 'Empty staff…',
+		text: EMPTY_STAFF_LOADING_MESSAGE,
 	});
 	const abc = getImplicitDefaultAbcShell();
 
@@ -22,9 +25,9 @@ export function mountEmptyStaffShell(container: HTMLElement): void {
 			return;
 		}
 
-		mountFallbackUi(container, abc, EMPTY_SHELL_FALLBACK_MESSAGE);
+		mountFallbackUi(container, abc, EMPTY_STAFF_FALLBACK_MESSAGE);
 		container.removeAttribute('data-abc-rendered');
 		container.removeAttribute('data-abc-empty-shell');
-		container.setAttribute('data-abc-render-error', result.error);
+		container.setAttribute('data-abc-render-error', friendlyAbcRenderError(result.error));
 	});
 }

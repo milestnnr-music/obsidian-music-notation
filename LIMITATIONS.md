@@ -1,9 +1,9 @@
 # Limitations and roadmap
 
-**Current status:** **v1.0.0** — v1 personal ship. Phase 5 complete (5.1–5.8). **Next:** Phase 6 (polish + docs). Phase 4 complete (4.1–4.5).  
+**Current status:** **v1.1.0** — v1 personal ship. Phase 6 complete (6.1–6.5). Phase 5 complete (5.1–5.8). **Next:** Phase 7+ (v2 foundations). Phase 4 complete (4.1–4.5).  
 **Design reference:** [`docs/DESIGN.md`](docs/DESIGN.md) · **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md) · Multi-block LP fixes: [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md)
 
-## What works in v1.0.0
+## What works in v1.1.0
 
 ### Block lifecycle and views
 

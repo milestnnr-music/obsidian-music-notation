@@ -6,6 +6,12 @@ import {
 	type Editor,
 	type EditorPosition,
 } from 'obsidian';
+import {
+	devNotice,
+	formatDevSyncFailureNotice,
+	SYNC_FAILURE_BLOCK_NOT_FOUND,
+	SYNC_FAILURE_NOTE_NOT_FOUND,
+} from './error-copy';
 import type { Score } from '../model/types';
 import { writeAbc } from '../serializer/abc-writer';
 import { parseAbc } from '../serializer/abc-parser';
@@ -209,7 +215,7 @@ export async function applyAbcBodyToDocument(
 ): Promise<AbcSyncResult> {
 	const file = ctx.app.vault.getAbstractFileByPath(ctx.sourcePath);
 	if (!(file instanceof TFile)) {
-		return { ok: false, reason: 'Note file not found' };
+		return { ok: false, reason: SYNC_FAILURE_NOTE_NOT_FOUND };
 	}
 
 	const editor = findMarkdownEditorForPath(
@@ -220,7 +226,7 @@ export async function applyAbcBodyToDocument(
 	if (editor) {
 		const blockOpenLine = resolveSyncBlockOpenLine(editor.getValue(), ctx);
 		if (blockOpenLine === null) {
-			return { ok: false, reason: 'Abc block identity not resolved' };
+			return { ok: false, reason: SYNC_FAILURE_BLOCK_NOT_FOUND };
 		}
 		return applyAbcBodyViaEditor(editor, blockOpenLine, abcBody);
 	}
@@ -228,7 +234,7 @@ export async function applyAbcBodyToDocument(
 	const markdown = await ctx.app.vault.read(file);
 	const blockOpenLine = resolveSyncBlockOpenLine(markdown, ctx);
 	if (blockOpenLine === null) {
-		return { ok: false, reason: 'Abc block identity not resolved' };
+		return { ok: false, reason: SYNC_FAILURE_BLOCK_NOT_FOUND };
 	}
 	const updated = replaceAbcBlockBodyInMarkdown(
 		markdown,
@@ -236,7 +242,7 @@ export async function applyAbcBodyToDocument(
 		abcBody,
 	);
 	if (updated === null) {
-		return { ok: false, reason: 'ABC block not found in note' };
+		return { ok: false, reason: SYNC_FAILURE_BLOCK_NOT_FOUND };
 	}
 
 	await ctx.app.vault.modify(file, updated);
@@ -251,7 +257,7 @@ function applyAbcBodyViaEditor(
 	const markdown = editor.getValue();
 	const range = findAbcBlockFenceRange(markdown, blockOpenLine);
 	if (!range) {
-		return { ok: false, reason: 'ABC block not found in note' };
+		return { ok: false, reason: SYNC_FAILURE_BLOCK_NOT_FOUND };
 	}
 
 	const editRange = getAbcBlockBodyEditRange(editor, range);
@@ -340,9 +346,9 @@ export function runPhase41SyncTest(
 		createPhase41TestScore(),
 		(result) => {
 			if (result.ok) {
-				new Notice('ABC block updated (phase 4.2 test)');
+				new Notice(devNotice('ABC block updated (phase 4.2 test)'));
 			} else {
-				new Notice(`ABC sync failed: ${result.reason}`);
+				new Notice(formatDevSyncFailureNotice(result.reason));
 			}
 		},
 	);
@@ -359,11 +365,13 @@ export function runPhase43FirstEditTest(
 		createFirstEditScore(),
 		(result) => {
 			if (result.ok && result.abcBody.length > 0) {
-				new Notice('First edit saved (phase 4.3 test)');
+				new Notice(devNotice('First edit saved (phase 4.3 test)'));
 			} else if (result.ok) {
-				new Notice('No change — fence already has abc or score is empty');
+				new Notice(
+					devNotice('No change — fence already has ABC or the score is empty'),
+				);
 			} else {
-				new Notice(`ABC sync failed: ${result.reason}`);
+				new Notice(formatDevSyncFailureNotice(result.reason));
 			}
 		},
 	);

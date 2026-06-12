@@ -31,6 +31,7 @@ import {
 } from './lp-embed-snapshot';
 import { mountEditorWidget } from '../editor/editor-widget';
 import { flushAbcSyncScheduler } from '../editor/sync-lifecycle';
+import { SYNC_FAILURE_BLOCK_NOT_FOUND } from '../editor/error-copy';
 import {
 	ABC_SYNC_DEBOUNCE_MS,
 	AbcSyncScheduler,
@@ -238,7 +239,7 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 	private async syncContext(): Promise<AbcBlockSyncContext> {
 		const ctx = this.buildSyncContext();
 		if (ctx.blockIndex === null) {
-			new Notice('Abc block identity not resolved');
+			new Notice(SYNC_FAILURE_BLOCK_NOT_FOUND);
 		}
 		return ctx;
 	}

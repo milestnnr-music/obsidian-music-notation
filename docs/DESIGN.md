@@ -3,7 +3,7 @@
 **Plugin id:** `abc-blocks`  
 **Repository:** [https://github.com/milestnnr-music/obsidian-music-notation](https://github.com/milestnnr-music/obsidian-music-notation)  
 **Dev vault:** `Desktop/Ideas/Obsidian Dev Vault`  
-**Current status:** **v1.0.0** — v1 personal ship. Phase 5 **complete** (all steps **5.1–5.8** ✅): visual editor loop (toolbar, snap place/select, delete, duration-on-selection, rests, key/time, measure warning, Reading chrome strip). **Next:** Phase 6 (polish + docs). **Canonical 5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](HANDOFF-phase-5.2-snap-interaction.md). Phase 4 complete (4.1–4.5). Canonical 4.5 fix notes: [`docs/phase-4.5-multi-block-lp-resolution.md`](phase-4.5-multi-block-lp-resolution.md).
+**Current status:** **v1.1.0** — v1 personal ship. Phase 6 **complete** (all steps **6.1–6.5** ✅): README, LIMITATIONS, manual checklist, error copy pass, settings hook points. Phase 5 complete (5.1–5.8). **Next:** Phase 7+ (v2 foundations). **Canonical 5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](HANDOFF-phase-5.2-snap-interaction.md). Phase 4 complete (4.1–4.5). Canonical 4.5 fix notes: [`docs/phase-4.5-multi-block-lp-resolution.md`](phase-4.5-multi-block-lp-resolution.md).
 
 > **For Cursor agents:** Read this document first before implementing features. See also [AGENTS.md](../AGENTS.md), [README.md](../README.md), and [LIMITATIONS.md](../LIMITATIONS.md).
 
@@ -335,18 +335,18 @@ Phases run **serially** (0 → 1 → 2 → … → 7+). Within a phase, steps ma
 
 ---
 
-### Phase 6 — Polish + docs
+### Phase 6 — Polish + docs ✅ DONE
 
 **Goal:** Polish and document the **v1.0.0** feature set for sustained personal use.
 
 
-| Step | Task                                 | Kind     |
-| ---- | ------------------------------------ | -------- |
-| 6.1  | README: quick start + examples       | Parallel |
-| 6.2  | LIMITATIONS section                  | Parallel |
-| 6.3  | Manual test checklist                | Parallel |
-| 6.4  | Error copy pass                      | Parallel |
-| 6.5  | Settings types + hook points (no UI) | Parallel |
+| Step | Task                                 | Kind     | Status |
+| ---- | ------------------------------------ | -------- | ------ |
+| 6.1  | README: quick start + examples       | Parallel | ✅     |
+| 6.2  | LIMITATIONS section                  | Parallel | ✅     |
+| 6.3  | Manual test checklist                | Parallel | ✅     |
+| 6.4  | Error copy pass                      | Parallel | ✅     |
+| 6.5  | Settings types + hook points (no UI) | Parallel | ✅     |
 
 
 **Phase exit:** Docs complete; manual checklist executed; friendly error strings throughout.
@@ -589,7 +589,7 @@ The v0.2.1 **free-coordinate** click path (`analyzeStaffClick` in `pitch-hit-tes
 
 ## Versioning (agents must keep in sync)
 
-**Current release:** **`1.0.0`** (v1 personal ship — Phase 5 complete). Pre-1.0 history used **`0.MINOR.PATCH`**. Post-1.0, use normal SemVer: **PATCH** for fixes, **MINOR** for additive features, **MAJOR** for breaking changes.
+**Current release:** **`1.1.0`** (Phase 6 polish + docs — no new editor features). Pre-1.0 history used **`0.MINOR.PATCH`**. Post-1.0, use normal SemVer: **PATCH** for fixes, **MINOR** for additive features, **MAJOR** for breaking changes.
 
 | Change type | Bump | Example |
 | ----------- | ---- | ------- |
@@ -612,11 +612,15 @@ Use judgment: a one-line typo fix may skip a bump; landing a phase step (e.g. 4.
 
 ## Version & release notes
 
+### v1.1.0 — Phase 6 polish + docs
+
+Phase 6 complete (steps 6.1–6.5). README quick start and examples; LIMITATIONS scope doc; v1 release manual checklist; friendly error and notice copy pass; vault settings types and `resolveBlockDefaults` hook points (no settings UI). **No new editor features** — same v1 visual editor loop as 1.0.0.
+
+**Next:** Phase 7+ (v2 foundations).
+
 ### v1.0.0 — v1 personal ship
 
 Phase 5 complete (steps 5.1–5.8). Visual editor loop: toolbar (abcjs duration/rest glyphs), snap place/select, delete, duration-on-selection, rests (place + select/edit), key/time, measure warning, Reading chrome strip. Debounced ABC sync and multi-block Live Preview from Phase 4.
-
-**Next:** Phase 6 (polish + docs).
 
 ### Future
 

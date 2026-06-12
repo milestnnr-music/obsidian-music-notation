@@ -2,7 +2,7 @@
 
 Editable ABC notation blocks for [Obsidian](https://obsidian.md). Write short musical examples directly in your notes using ` ```abc ` fences, with a lightweight visual editor in Live Preview and ABC stored in the markdown file.
 
-**Status:** **v1.0.0** — v1 personal ship. Phase 5 complete (5.1–5.8). **Next:** Phase 6 (polish + docs).
+**Status:** **v1.1.0** — v1 personal ship. Phase 6 complete (6.1–6.5): docs, manual checklist, error copy, settings hooks. Phase 5 complete (5.1–5.8). **Next:** Phase 7+ (v2 foundations).
 
 📐 **Full product design & phased plan:** [`docs/DESIGN.md`](docs/DESIGN.md)  
 🤖 **Cursor agents:** read [`AGENTS.md`](AGENTS.md) before implementing.

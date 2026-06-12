@@ -28,7 +28,7 @@ export function mountMeasureWarning(container: HTMLElement, measureCount: number
 
 		const dismiss = banner.createEl('button', {
 			cls: 'abc-blocks-measure-warning-dismiss',
-			attr: { type: 'button', 'aria-label': 'Dismiss measure length hint' },
+			attr: { type: 'button', 'aria-label': 'Dismiss' },
 			text: '×',
 		});
 		dismiss.addEventListener('click', (event) => {

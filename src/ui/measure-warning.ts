@@ -1,3 +1,4 @@
+import { measureWarningMessage } from '../editor/error-copy';
 import type { Score } from '../model/types';
 import { ABC_DEFAULTS } from '../serializer/abc-defaults';
 
@@ -14,5 +15,5 @@ export function getMeasureWarning(
 	if (measureCount <= threshold) {
 		return null;
 	}
-	return `Examples work best at ${threshold} measures or fewer.`;
+	return measureWarningMessage(threshold);
 }

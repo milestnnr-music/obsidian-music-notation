@@ -1,5 +1,7 @@
 import { renderAbc, type TuneObject } from 'abcjs';
+import { ABC_FALLBACK_MESSAGE } from '../editor/error-copy';
 import { abcHasMusicLines, normalizeAbcBlockBody } from '../plugin/block-source';
+import { abcjsTuneHasMusicParseErrors } from './abc-render-validity';
 
 export type AbcRenderResult =
 	| { ok: true; tune: TuneObject }
@@ -24,7 +26,7 @@ export function renderAbcToElement(
 ): AbcRenderResult {
 	const trimmed = normalizeAbcBlockBody(abc);
 	if (!trimmed) {
-		return { ok: false, error: 'Empty ABC source' };
+		return { ok: false, error: ABC_FALLBACK_MESSAGE };
 	}
 
 	container.empty();
@@ -45,30 +47,17 @@ export function renderAbcToElement(
 		const tunes = renderAbc(notationEl, trimmed, renderParams);
 		const tune = tunes[0];
 		if (!tune) {
-			return { ok: false, error: 'No tune produced from ABC' };
+			return { ok: false, error: ABC_FALLBACK_MESSAGE };
 		}
 
 		const svg = notationEl.querySelector('svg');
-		if (!svg) {
-			const warning = tune.warnings?.[0];
-			return {
-				ok: false,
-				error: warning ?? 'ABC did not produce an SVG element',
-			};
-		}
-
-		if (!svgHasNotation(svg)) {
-			const warning = tune.warnings?.[0];
-			return {
-				ok: false,
-				error: warning ?? 'ABC SVG was empty after rendering',
-			};
+		if (!svg || !svgHasNotation(svg) || abcjsTuneHasMusicParseErrors(tune)) {
+			return { ok: false, error: ABC_FALLBACK_MESSAGE };
 		}
 
 		return { ok: true, tune };
-	} catch (err) {
-		const message = err instanceof Error ? err.message : String(err);
-		return { ok: false, error: message };
+	} catch {
+		return { ok: false, error: ABC_FALLBACK_MESSAGE };
 	}
 }
 
@@ -80,7 +69,7 @@ export function renderAbcToElementWhenReady(
 ): Promise<AbcRenderResult> {
 	const trimmed = normalizeAbcBlockBody(abc);
 	if (!trimmed) {
-		return Promise.resolve({ ok: false, error: 'Empty ABC source' });
+		return Promise.resolve({ ok: false, error: ABC_FALLBACK_MESSAGE });
 	}
 
 	const delays = [0, 0, 50, 150];
