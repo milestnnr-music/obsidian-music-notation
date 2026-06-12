@@ -1,7 +1,7 @@
 # Handoff: Phase 5.2 — Snap staff interaction (place + select)
 
 **Date:** 2026-06-11  
-**Status:** ✅ **Phase 5.2 place + select complete** (v0.2.7). Snap place + Shift select verified in Live Preview. Bug-fix chain: octave mismatch (v0.2.5) → per-note calibration jump-over (v0.2.6) → geometry/coordinate drift (v0.2.7). **Phase 5.3** (delete) ✅ done at v0.2.8. **Phase 5.4** (duration on selection) ✅ v0.3.4 (LP verified). **Phase 5.5** (rests via toolbar) ✅ v0.3.3. **Phase 5 complete** at v0.3.4. Supersedes the v0.2.1 free-click placement approach (broken in Live Preview).
+**Status:** ✅ **Phase 5.2 place + select complete** (v0.2.7). Snap place + Shift select verified in Live Preview. Bug-fix chain: octave mismatch (v0.2.5) → per-note calibration jump-over (v0.2.6) → geometry/coordinate drift (v0.2.7). **Phase 5.3** (delete) ✅ done at v0.2.8. **Phase 5.4** (duration on selection) ✅ v0.3.4 (LP verified). **Phase 5.5** (rests via toolbar) ✅ v0.3.3. **Phase 5 complete** — shipped in **v1.0.0**. Supersedes the v0.2.1 free-click placement approach (broken in Live Preview).
 
 **Prior:** Phase 5.1 (toolbar) at v0.2.0; first 5.2 attempt at v0.2.1–v0.2.3 (free-Y hit-test — **retire**).  
 **Next after 5.2:** ~~Phase 5.3~~ ✅; ~~5.4~~ ✅; ~~5.5~~ ✅.

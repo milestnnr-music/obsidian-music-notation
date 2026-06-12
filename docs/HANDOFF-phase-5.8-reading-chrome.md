@@ -12,7 +12,7 @@ Reading view shows **static abcjs notation only** — no toolbar, no sync test b
 
 **Blocked by:** 5.1 ✅ (toolbar exists in LP only).
 
-**Not in scope (at 5.8 ship):** 5.4–5.7 — all ✅ complete by v0.3.4.
+**Not in scope (at 5.8 ship):** 5.4–5.7 — all ✅ complete (v1 loop shipped in **1.0.0**).
 
 ---
 
@@ -69,6 +69,6 @@ npm run lint
 
 ## Next session
 
-Phase 5 **complete** (v0.3.4). **Next:** Phase 6 — polish + docs (README, LIMITATIONS, manual checklist, error copy).
+Phase 5 **complete** — **v1.0.0**. **Next:** Phase 6 — polish + docs (README, LIMITATIONS, manual checklist, error copy).
 
 **Files to @-mention:** `docs/DESIGN.md`, `AGENTS.md`, `LIMITATIONS.md`.

@@ -4,7 +4,7 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 
 **Repository:** https://github.com/milestnnr-music/obsidian-music-notation  
 **Plugin id:** `abc-blocks`  
-**Current status:** Phase 5 **complete** (v0.3.4). All visual-editor steps **5.1–5.8** ✅ (including 5.4 duration-on-selection and 5.5 rests). **Next:** Phase 6 (polish + docs). **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md). Phase 4 complete (4.1–4.5). Before changing multi-block LP identity, read [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md).
+**Current status:** **v1.0.0** — v1 personal ship. Phase 5 **complete** (steps **5.1–5.8** ✅). **Next:** Phase 6 (polish + docs). **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md). Phase 4 complete (4.1–4.5). Before changing multi-block LP identity, read [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md).
 
 ---
 
@@ -17,7 +17,7 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 | **2 — Read path (abcjs)** | ✅ **Done** | — |
 | **3 — Score model + serializer** | ✅ **Done** | — |
 | 4 — Debounced sync | ✅ Done | — |
-| 5 — Visual editor | ✅ **Done** (v0.3.4) | — |
+| 5 — Visual editor | ✅ **Done** (shipped in **1.0.0**) | — |
 | 6 — Polish + docs | **Next** | README, LIMITATIONS, manual checklist, error copy |
 | 7+ — v2 (chords, 2 staves, settings, playback) | Pending | After Phase 6 |
 
@@ -215,7 +215,7 @@ Phase 4 manual checklists: `docs/manual-tests/phase-4-undo.md` (4.4), `docs/manu
 ## Manifest (`manifest.json`)
 
 - `id`: `abc-blocks` — stable; never change after release
-- `version`: SemVer — **currently `0.3.1`** (see `manifest.json`; keep in sync with `package.json`)
+- `version`: SemVer — **currently `1.0.0`** (see `manifest.json`; keep in sync with `package.json`)
 - `minAppVersion`: keep accurate when using newer APIs
 - `isDesktopOnly`: `false` (editing is desktop-first; mobile loads safely)
 
@@ -225,9 +225,9 @@ When you land a phase step, bug fix, or other shippable change, update version i
 
 | Change | Bump | Example |
 |--------|------|---------|
-| Small edit / bug fix | PATCH (third digit) | `0.1.5` → `0.1.6` |
-| Larger change (e.g. phase step or phase done) | MINOR (second digit, patch → `0`) | `0.1.6` → `0.2.0` |
-| **Phase 5 complete** (v1 ready) | MAJOR | → **`1.0.0`** |
+| Bug fix, doc-only fix | PATCH | `1.0.0` → `1.0.1` |
+| Additive feature | MINOR | `1.0.0` → `1.1.0` |
+| Breaking change | MAJOR | `1.x.y` → `2.0.0` |
 
 Full policy: [`docs/DESIGN.md` → Versioning](docs/DESIGN.md#versioning-agents-must-keep-in-sync).
 

@@ -4,7 +4,7 @@
 **Status:** ✅ **Phase 5.6 complete** (v0.3.0). Toolbar key/time pickers update per-block `Score` headers, re-render staff, and debounced-sync ABC via existing Phase 4 path.
 
 **Prior:** Phase 5.1 (toolbar) at v0.2.0; 5.2 snap interaction at v0.2.7; 5.3 delete at v0.2.8; 5.8 Reading chrome at v0.2.9.  
-**Next:** ~~Phase 5.4~~ ✅; Phase 5 complete at v0.3.4 — **Phase 6** (polish + docs).
+**Next:** Phase 5 complete — **v1.0.0**. **Phase 6** (polish + docs).
 
 ---
 

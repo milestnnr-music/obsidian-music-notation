@@ -2,12 +2,12 @@
 
 Editable ABC notation blocks for [Obsidian](https://obsidian.md). Write short musical examples directly in your notes using ` ```abc ` fences, with a lightweight visual editor in Live Preview and ABC stored in the markdown file.
 
-**Status:** Phase 5 **complete** (v0.3.4). Visual editor v1 loop done (5.1–5.8): toolbar, snap place/select, delete, duration-on-selection, rests, key/time, measure warning, Reading chrome strip. **Next:** Phase 6 (polish + docs). **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md). Phase 4 complete (4.1–4.5). Multi-block LP fix notes: [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md).
+**Status:** **v1.0.0** — v1 personal ship. Phase 5 complete (5.1–5.8): toolbar, snap place/select, delete, duration-on-selection, rests, key/time, measure warning, Reading chrome strip. **Next:** Phase 6 (polish + docs). **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md). Phase 4 complete (4.1–4.5). Multi-block LP fix notes: [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md).
 
 📐 **Full product design & phased plan:** [`docs/DESIGN.md`](docs/DESIGN.md)  
 🤖 **Cursor agents:** read [`AGENTS.md`](AGENTS.md) before implementing.
 
-## What it will do (v1)
+## What it does (v1)
 
 - Hybrid editing: snap-to-place on staff in **Live Preview** (Shift+click to select); ABC syncs to the file (debounced ~300ms)
 - ` ```abc ` code blocks in markdown

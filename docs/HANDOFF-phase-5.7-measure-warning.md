@@ -4,7 +4,7 @@
 **Status:** ✅ **Phase 5.7 complete** (v0.3.1). Live Preview shows a dismissible informational banner when a block’s score has more than four measures. Editing and rendering are not blocked.
 
 **Prior:** Phase 5.6 key/time at v0.3.0.  
-**Next:** Phase 5 complete at v0.3.4 — **Phase 6** (polish + docs).
+**Next:** Phase 5 complete — **v1.0.0**. **Phase 6** (polish + docs).
 
 ---
 

@@ -3,7 +3,7 @@
 **Plugin id:** `abc-blocks`  
 **Repository:** [https://github.com/milestnnr-music/obsidian-music-notation](https://github.com/milestnnr-music/obsidian-music-notation)  
 **Dev vault:** `Desktop/Ideas/Obsidian Dev Vault`  
-**Current status:** Phase 5 **complete** (v0.3.4). All steps **5.1–5.8** ✅ — visual editor v1 loop shipped (toolbar, snap place/select, delete, duration-on-selection, rests, key/time, measure warning, Reading chrome strip). **Next:** Phase 6 (polish + docs). **Canonical 5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](HANDOFF-phase-5.2-snap-interaction.md). Phase 4 complete (4.1–4.5). Canonical 4.5 fix notes: [`docs/phase-4.5-multi-block-lp-resolution.md`](phase-4.5-multi-block-lp-resolution.md).
+**Current status:** **v1.0.0** — v1 personal ship. Phase 5 **complete** (all steps **5.1–5.8** ✅): visual editor loop (toolbar, snap place/select, delete, duration-on-selection, rests, key/time, measure warning, Reading chrome strip). **Next:** Phase 6 (polish + docs). **Canonical 5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](HANDOFF-phase-5.2-snap-interaction.md). Phase 4 complete (4.1–4.5). Canonical 4.5 fix notes: [`docs/phase-4.5-multi-block-lp-resolution.md`](phase-4.5-multi-block-lp-resolution.md).
 
 > **For Cursor agents:** Read this document first before implementing features. See also [AGENTS.md](../AGENTS.md), [README.md](../README.md), and [LIMITATIONS.md](../LIMITATIONS.md).
 
@@ -316,16 +316,16 @@ Phases run **serially** (0 → 1 → 2 → … → 7+). Within a phase, steps ma
 
 ### Phase 5 — Visual editor ✅ DONE
 
-**Goal:** Lightweight composer for v1. **Exit met** at v0.3.4 (all steps 5.1–5.8 complete).
+**Goal:** Lightweight composer for v1. **Exit met** at **v1.0.0** (all steps 5.1–5.8 complete).
 
 
 | Step | Task                                                         | Kind       | Blocked by | Status |
 | ---- | ------------------------------------------------------------ | ---------- | ---------- | ------ |
-| 5.1  | Toolbar: duration + accidentals                              | **Serial** | —          | ✅     |
+| 5.1  | Toolbar: duration + accidentals                              | **Serial** | —          | ✅ v0.3.8 — abcjs duration/rest glyphs |
 | 5.2  | Snap staff interaction (place + Shift select highlight)      | **Serial** | 5.1        | ✅ v0.2.7 — [handoff](HANDOFF-phase-5.2-snap-interaction.md); LP verified |
 | 5.3  | Delete selected note                                         | **Serial** | 5.2        | ✅ v0.2.8 — LP verified |
 | 5.4  | Change duration on selection                                 | Parallel   | 5.3        | ✅ v0.3.4 — LP verified (selection preserve fix) |
-| 5.5  | Rests via toolbar                                            | Parallel   | 5.2        | ✅ v0.3.3 |
+| 5.5  | Rests via toolbar                                            | Parallel   | 5.2        | ✅ v0.3.3 — rest select/edit v0.3.5 |
 | 5.6  | Key / time signature controls                                | Parallel   | 5.1        | ✅ v0.3.0 — [handoff](HANDOFF-phase-5.6-key-time.md) |
 | 5.7  | Soft 4-measure warning                                       | Parallel   | 5.2        | ✅ v0.3.1 — [handoff](HANDOFF-phase-5.7-measure-warning.md) |
 | 5.8  | Strip editor chrome in Reading view                          | **Serial** | 5.1        | ✅ v0.2.9 — [handoff](HANDOFF-phase-5.8-reading-chrome.md) |
@@ -337,7 +337,7 @@ Phases run **serially** (0 → 1 → 2 → … → 7+). Within a phase, steps ma
 
 ### Phase 6 — Polish + docs
 
-**Goal:** v1 shippable for personal use.
+**Goal:** Polish and document the **v1.0.0** feature set for sustained personal use.
 
 
 | Step | Task                                 | Kind     |
@@ -383,8 +383,8 @@ Full interactive board: `.cursor/projects/.../canvases/obsidian-music-plugin-kan
 | Phase 2 | Phase 3  | Render spike de-risks abcjs before model work |
 | Phase 3 | Phase 4  | Serializer must exist before document sync    |
 | Phase 4 | Phase 5  | Sync must work before visual editing          |
-| Phase 5 | Phase 6  | Feature-complete before polish ship           |
-| Phase 6 | Phase 7+ | v1 personal-ship before v2 expansion          |
+| Phase 5 | Phase 6  | **v1.0.0** shipped — polish + docs          |
+| Phase 6 | Phase 7+ | v1 personal-use stable before v2 expansion    |
 
 
 **Critical path (serial spine):**  
@@ -422,7 +422,7 @@ Read docs/phase-4.5-multi-block-lp-resolution.md before changing multi-block LP 
 ```
 
 ```
-Start Phase 5 — visual editor per DESIGN.md (Phase 4 complete at v0.1.5).
+Start Phase 6 — polish + docs per DESIGN.md (v1.0.0 shipped; Phase 5 complete).
 ```
 
 ```
@@ -508,6 +508,10 @@ npm run compare:phase-4.5-probe   # after reload + open Test.md in LP
 
 Manual: `docs/manual-tests/phase-4-undo.md`, `docs/manual-tests/phase-4-source-mode.md` §1–4 (dev vault; reload without saving after `npm run build`).
 
+### Phase 5.1 — toolbar icons (v0.3.8)
+
+Duration buttons use abcjs-rendered note glyphs (`mountDurationIcon` in `toolbar-duration-icons.ts`); Rest uses a cropped abcjs quarter rest (`mountRestIcon`). Headless tests use SVG fallbacks when `getBBox` is unavailable.
+
 ### Phase 5 — snap staff interaction (5.2 redesign)
 
 **Canonical spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](HANDOFF-phase-5.2-snap-interaction.md)
@@ -566,11 +570,11 @@ The v0.2.1 **free-coordinate** click path (`analyzeStaffClick` in `pitch-hit-tes
 
 ### Phase 5.5 — rests via toolbar
 
-**Status:** ✅ complete (v0.3.3). Toolbar **𝄽 Rest** toggles rest placement mode; staff click appends a rest to the clicked measure (same snap guide + bar-line measure detection as notes). Duration buttons set rest length; accidentals disabled in rest mode. Shift+select and delete (5.3) unchanged for notes.
+**Status:** ✅ complete (v0.3.3; rest glyph + select/edit through v0.3.8). Toolbar **Rest** toggles rest placement mode (abcjs quarter-rest icon); staff click appends a rest to the clicked measure (same snap guide + bar-line measure detection as notes). Duration buttons set rest length; accidentals disabled in rest mode. Shift+select and delete work for rests (v0.3.5+).
 
-**Modules:** `placeRestInScore` in `score-session.ts`; `EditorPlacementMode` in `editor-state.ts`; rest branch in `staff-interaction.ts`.
+**Modules:** `placeRestInScore` in `score-session.ts`; `EditorPlacementMode` in `editor-state.ts`; rest branch in `staff-interaction.ts`; `mountRestIcon` in `toolbar-duration-icons.ts`.
 
-**Tests:** `npm run test:rest-placement`. LP verified v0.3.3.
+**Tests:** `npm run test:rest-placement`. LP verified v0.3.3+.
 
 ---
 
@@ -585,13 +589,15 @@ The v0.2.1 **free-coordinate** click path (`analyzeStaffClick` in `pitch-hit-tes
 
 ## Versioning (agents must keep in sync)
 
-Pre-1.0 versions use **`0.MINOR.PATCH`**. **Agents: bump the version when you complete meaningful work** — do not leave `manifest.json` stale while docs claim a new phase step is done.
+**Current release:** **`1.0.0`** (v1 personal ship — Phase 5 complete). Pre-1.0 history used **`0.MINOR.PATCH`**. Post-1.0, use normal SemVer: **PATCH** for fixes, **MINOR** for additive features, **MAJOR** for breaking changes.
 
 | Change type | Bump | Example |
 | ----------- | ---- | ------- |
-| Small edit, bug fix, doc-only fix within a phase | **PATCH** (+1 on third number) | `0.1.5` → `0.1.6` |
-| Larger slice — typically **phase step or phase complete** | **MINOR** (+1 on second, reset patch to `0`) | `0.1.6` → `0.2.0` |
-| **Phase 5 complete** (v1 feature-complete per this plan) | **MAJOR** → **`1.0.0`** | `0.x.y` → `1.0.0` |
+| Bug fix, doc-only fix | **PATCH** | `1.0.0` → `1.0.1` |
+| Additive feature (Phase 6 polish, v2 prep) | **MINOR** | `1.0.1` → `1.1.0` |
+| Breaking change | **MAJOR** | `1.x.y` → `2.0.0` |
+| *(historical)* Phase step during 0.x | MINOR or PATCH | `0.1.5` → `0.2.0` |
+| *(historical)* **Phase 5 complete** | MAJOR → **`1.0.0`** | `0.3.8` → `1.0.0` |
 
 **After any version bump, update all of:**
 
@@ -604,7 +610,15 @@ Use judgment: a one-line typo fix may skip a bump; landing a phase step (e.g. 4.
 
 ---
 
-## Version & release notes (future)
+## Version & release notes
+
+### v1.0.0 — v1 personal ship
+
+Phase 5 complete (steps 5.1–5.8). Visual editor loop: toolbar (abcjs duration/rest glyphs), snap place/select, delete, duration-on-selection, rests (place + select/edit), key/time, measure warning, Reading chrome strip. Debounced ABC sync and multi-block Live Preview from Phase 4.
+
+**Next:** Phase 6 (polish + docs).
+
+### Future
 
 - Community release (Phase 7.7): follow [Obsidian plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines)
 
