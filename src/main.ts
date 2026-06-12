@@ -4,12 +4,13 @@ import { registerAbcCodeBlockProcessor } from './plugin/code-block';
 import {
 	DEFAULT_SETTINGS,
 	type AbcBlocksSettings,
-} from './settings/types';
+} from './settings';
 
 export default class AbcBlocksPlugin extends Plugin {
 	settings!: AbcBlocksSettings;
 
 	async onload(): Promise<void> {
+		// Phase 7.4: addPluginSettingsTab(new AbcBlocksSettingTab(this)) — see settings/index.ts
 		await this.loadSettings();
 		registerAbcCodeBlockProcessor(this);
 		await writeStartupProbeMarker(this);
