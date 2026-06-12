@@ -4,18 +4,18 @@ import {
 	type EditorAccidentalMode,
 	type EditorStateController,
 } from './editor-state';
+import { mountDurationIcon, mountRestIcon } from './toolbar-duration-icons';
 
 export const DEFAULT_TOOLBAR_DURATION: NoteDuration = 'quarter';
 
 const DURATION_CONTROLS: ReadonlyArray<{
 	readonly duration: NoteDuration;
-	readonly label: string;
 	readonly title: string;
 }> = [
-	{ duration: 'whole', label: '𝅝', title: 'Whole note' },
-	{ duration: 'half', label: '𝅗𝅥', title: 'Half note' },
-	{ duration: 'quarter', label: '♩', title: 'Quarter note' },
-	{ duration: 'eighth', label: '♪', title: 'Eighth note' },
+	{ duration: 'whole', title: 'Whole note' },
+	{ duration: 'half', title: 'Half note' },
+	{ duration: 'quarter', title: 'Quarter note' },
+	{ duration: 'eighth', title: 'Eighth note' },
 ];
 
 const ACCIDENTAL_CONTROLS: ReadonlyArray<{
@@ -56,10 +56,9 @@ export function mountToolbar(
 	});
 
 	const durationButtons = new Map<NoteDuration, HTMLButtonElement>();
-	for (const { duration, label, title } of DURATION_CONTROLS) {
+	for (const { duration, title } of DURATION_CONTROLS) {
 		const button = durationGroup.createEl('button', {
 			cls: 'abc-blocks-toolbar-btn abc-blocks-toolbar-duration',
-			text: label,
 			attr: {
 				type: 'button',
 				title,
@@ -67,6 +66,7 @@ export function mountToolbar(
 				'data-duration': duration,
 			},
 		});
+		mountDurationIcon(button, duration);
 		button.addEventListener('click', (event) => {
 			event.preventDefault();
 			event.stopPropagation();
@@ -90,7 +90,6 @@ export function mountToolbar(
 
 	const restButton = placementGroup.createEl('button', {
 		cls: 'abc-blocks-toolbar-btn abc-blocks-toolbar-rest',
-		text: '𝄽',
 		attr: {
 			type: 'button',
 			title: 'Rest mode — click staff to place rests',
@@ -98,6 +97,7 @@ export function mountToolbar(
 			'data-placement-mode': 'rest',
 		},
 	});
+	mountRestIcon(restButton);
 	restButton.addEventListener('click', (event) => {
 		event.preventDefault();
 		event.stopPropagation();

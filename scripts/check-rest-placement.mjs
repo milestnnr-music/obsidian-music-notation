@@ -162,6 +162,10 @@ mountToolbar(toolbarMount, toolbarState);
 
 const restBtn = toolbarMount.querySelector('.abc-blocks-toolbar-rest');
 assert(restBtn !== null, 'toolbar renders rest mode button');
+const restGlyph = restBtn?.querySelector(
+	'.abc-blocks-toolbar-glyph-icon .abcjs-rest, .abc-blocks-toolbar-glyph-icon .abc-blocks-toolbar-abcjs-glyph',
+);
+assert(restGlyph !== null, 'rest button renders abcjs quarter-rest glyph');
 
 restBtn?.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
 assert(toolbarState.getState().placementMode === 'rest', 'rest button toggles rest mode');

@@ -130,6 +130,51 @@
 	cursor: pointer;
 }
 
+.abc-blocks-toolbar-duration,
+.abc-blocks-toolbar-rest {
+	min-width: 2.35rem;
+	padding: 0.1rem 0.3rem;
+}
+
+.abc-blocks-toolbar-glyph-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 1.5rem;
+	height: 1.45rem;
+	pointer-events: none;
+}
+
+/* abcjs-extracted glyph (matches score engraving) */
+.abc-blocks-toolbar-abcjs-glyph,
+.abc-blocks-toolbar-glyph-fallback {
+	display: block;
+	width: 1.45rem;
+	height: 1.35rem;
+}
+
+/* Fallback crop when SVG layout metrics are unavailable */
+.abc-blocks-toolbar-glyph-preview-live {
+	width: 1.55rem;
+	overflow: hidden;
+}
+
+.abc-blocks-toolbar-glyph-preview-live .abc-blocks-toolbar-glyph-preview-mount {
+	width: 72px;
+	height: 40px;
+	margin: 0;
+	overflow: hidden;
+	transform: scale(0.52);
+	transform-origin: 12px 26px;
+}
+
+.abc-blocks-toolbar-glyph-preview-live .abcjs-staff,
+.abc-blocks-toolbar-glyph-preview-live .abcjs-clef,
+.abc-blocks-toolbar-glyph-preview-live .abcjs-time-signature,
+.abc-blocks-toolbar-glyph-preview-live .abcjs-bar {
+	display: none;
+}
+
 .abc-blocks-toolbar-btn:hover {
 	background: var(--background-modifier-hover);
 	border-color: var(--background-modifier-border-hover);

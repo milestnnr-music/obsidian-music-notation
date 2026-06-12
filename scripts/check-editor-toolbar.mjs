@@ -75,6 +75,16 @@ function patchObsidianElement(el) {
 	el.toggleClass = function toggleClass(cls, active) {
 		this.classList.toggle(cls, active);
 	};
+	el.removeClass = function removeClass(...classes) {
+		for (const cls of classes) {
+			this.classList.remove(cls);
+		}
+	};
+	el.setCssProps = function setCssProps(props) {
+		for (const [key, value] of Object.entries(props)) {
+			this.style[key] = value;
+		}
+	};
 	el.setAttr = function setAttr(name, value) {
 		this.setAttribute(name, value);
 	};
@@ -148,6 +158,15 @@ if (durationButtons.length !== 4) {
 const quarterBtn = toolbar.querySelector('[data-duration="quarter"]');
 if (!quarterBtn?.classList.contains('abc-blocks-toolbar-btn-active')) {
 	console.error('FAIL: quarter duration should be active by default');
+	process.exit(1);
+}
+
+const wholeBtn = toolbar.querySelector('[data-duration="whole"]');
+const wholeIcon = wholeBtn?.querySelector(
+	'.abc-blocks-toolbar-glyph-icon .abcjs-note, .abc-blocks-toolbar-glyph-icon .abc-blocks-toolbar-abcjs-glyph',
+);
+if (!wholeIcon) {
+	console.error('FAIL: whole duration button should render abcjs or extracted glyph');
 	process.exit(1);
 }
 
