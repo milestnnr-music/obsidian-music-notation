@@ -1,6 +1,6 @@
 # Limitations and roadmap
 
-**Current status:** Phase 5 in progress (v0.3.1). Step **5.1** done (toolbar). Step **5.2** ✅ snap staff interaction verified in Live Preview. Step **5.3** ✅ delete selected note verified in Live Preview. Step **5.6** ✅ key/time signature controls per block. Step **5.7** ✅ soft 4-measure warning in Live Preview. Step **5.8** ✅ Reading view static notation only. **Next:** 5.4. Phase 4 complete (4.1–4.5).  
+**Current status:** Phase 5 in progress (v0.3.3). Step **5.1** done (toolbar). Step **5.2** ✅ snap staff interaction verified in Live Preview. Step **5.3** ✅ delete selected note verified in Live Preview. Step **5.4** ✅ change duration on selection (v0.3.2). Step **5.5** ✅ rests via toolbar rest mode (v0.3.3). Step **5.6** ✅ key/time signature controls per block. Step **5.7** ✅ soft 4-measure warning in Live Preview. Step **5.8** ✅ Reading view static notation only. Phase 4 complete (4.1–4.5).  
 **Design reference:** [`docs/DESIGN.md`](docs/DESIGN.md) · **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md) · Multi-block LP fixes: [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md)
 
 ## What works today
@@ -16,7 +16,9 @@
 - **Key / time signature (Phase 5.6, v0.3.0):** per-block key (C, G, F, D, Bb) and time (4/4, 3/4, 2/4) pickers; debounced ABC sync for `K:` / `M:` headers
 - **Measure-length hint (Phase 5.7, v0.3.1):** dismissible informational banner in Live Preview when a block has more than 4 measures; editing is not blocked
 - **Snap staff interaction (Phase 5.2, v0.2.7):** hover guide line + click to place (measure + append); Shift+hover/click to select; debounced ABC sync — LP verified after geometry fix (v0.2.5–0.2.7)
-- **Delete selected note (Phase 5.3, v0.2.8):** Shift+click to select (outline highlight), then Delete or Backspace — LP verified; selection clears on toolbar/outside click
+- **Delete selected note (Phase 5.3, v0.2.8):** Shift+click to select (outline highlight), then Delete or Backspace — LP verified; selection clears on click outside the block (toolbar clicks keep selection so duration-on-selection works — v0.3.4)
+- **Change duration on selection (Phase 5.4, v0.3.2):** Shift+click a note, then click a toolbar duration — updates that note, debounced ABC sync + re-render
+- **Rest placement (Phase 5.5, v0.3.3):** toolbar **𝄽 Rest** toggles rest mode; staff click appends rest to clicked measure (same snap guide + measure detection as notes); accidentals disabled in rest mode
 - **Debounced sync (Phase 4.1–4.2):** Score → ABC → markdown write via dev test buttons (~300ms debounce); per-block `AbcSyncScheduler`; multi-block notes target the correct fence when block index is established
 - **First edit (Phase 4.3):** empty fence receives headers + body on first scored edit (dev test button)
 - **Undo / teardown (Phase 4.4):** pending debounced writes flushed on shell unmount; manual undo/redo checklist passed (`docs/manual-tests/phase-4-undo.md`)
@@ -36,7 +38,9 @@ The v0.2.1 **free-coordinate click-to-place** path (`analyzeStaffClick`) is **re
 | Mode | Input | Behavior |
 | ---- | ----- | ---------- |
 | Place (default) | Hover | Horizontal guide line at snapped pitch (staff + one ledger) |
-| Place | Click | Append note to end of clicked measure; toolbar duration/accidental |
+| Place (note) | Click | Append note to end of clicked measure; toolbar duration/accidental |
+| Place (rest mode) | Click | Append rest to end of clicked measure; toolbar duration |
+| Duration (note selected) | Toolbar duration | Change selected note’s duration; debounced sync |
 | Select | Shift+hover | Note hover preview; no guide line |
 | Select | Shift+click note | Outline highlight (`data-abc-blocks-selected`) |
 | Select | Shift+click empty | Clear selection |
@@ -46,9 +50,7 @@ The v0.2.1 **free-coordinate click-to-place** path (`analyzeStaffClick`) is **re
 **Rhythm:** measure + append (beat-grid X snap is a later phase).
 
 ## What does not work yet
-- Change duration on selection (Phase 5.4)
-- Rests via toolbar (Phase 5.5+)
-- No measure warning (Phase 5.7)
+- Shift+select / delete for rests (notes only; rests are not DOM-annotated)
 - Serializer not yet driving Live Preview render path (still abcjs-on-ABC text directly for display)
 
 ## v1 scope (planned)

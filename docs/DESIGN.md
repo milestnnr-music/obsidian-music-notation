@@ -3,7 +3,7 @@
 **Plugin id:** `abc-blocks`  
 **Repository:** [https://github.com/milestnnr-music/obsidian-music-notation](https://github.com/milestnnr-music/obsidian-music-notation)  
 **Dev vault:** `Desktop/Ideas/Obsidian Dev Vault`  
-**Current status:** Phase 5 **in progress** (v0.3.1). Step **5.1** done (toolbar). Step **5.2** ✅ done — snap staff interaction verified in Live Preview. Step **5.3** ✅ done — delete selected note (Delete/Backspace) verified in Live Preview. Step **5.6** ✅ done — key/time signature controls per block. Step **5.7** ✅ done — soft 4-measure warning in Live Preview. Step **5.8** ✅ done — Reading view static notation only (no LP chrome). **Canonical 5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](HANDOFF-phase-5.2-snap-interaction.md). **Next:** 5.4 (change duration on selection). Phase 4 complete (4.1–4.5). Canonical 4.5 fix notes: [`docs/phase-4.5-multi-block-lp-resolution.md`](phase-4.5-multi-block-lp-resolution.md).
+**Current status:** Phase 5 **in progress** (v0.3.3). Step **5.1** done (toolbar). Step **5.2** ✅ done — snap staff interaction verified in Live Preview. Step **5.3** ✅ done — delete selected note (Delete/Backspace) verified in Live Preview. Step **5.4** ✅ done — change duration on selection (v0.3.2). Step **5.5** ✅ done — rests via toolbar rest mode (v0.3.3). Step **5.6** ✅ done — key/time signature controls per block. Step **5.7** ✅ done — soft 4-measure warning in Live Preview. Step **5.8** ✅ done — Reading view static notation only (no LP chrome). **Canonical 5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](HANDOFF-phase-5.2-snap-interaction.md). Phase 4 complete (4.1–4.5). Canonical 4.5 fix notes: [`docs/phase-4.5-multi-block-lp-resolution.md`](phase-4.5-multi-block-lp-resolution.md).
 
 > **For Cursor agents:** Read this document first before implementing features. See also [AGENTS.md](../AGENTS.md), [README.md](../README.md), and [LIMITATIONS.md](../LIMITATIONS.md).
 
@@ -324,8 +324,8 @@ Phases run **serially** (0 → 1 → 2 → … → 7+). Within a phase, steps ma
 | 5.1  | Toolbar: duration + accidentals                              | **Serial** | —          | ✅     |
 | 5.2  | Snap staff interaction (place + Shift select highlight)      | **Serial** | 5.1        | ✅ v0.2.7 — [handoff](HANDOFF-phase-5.2-snap-interaction.md); LP verified |
 | 5.3  | Delete selected note                                         | **Serial** | 5.2        | ✅ v0.2.8 — LP verified |
-| 5.4  | Change duration on selection                                 | Parallel   | 5.3        |        |
-| 5.5  | Rests via toolbar                                            | Parallel   | 5.2        |        |
+| 5.4  | Change duration on selection                                 | Parallel   | 5.3        | ✅ v0.3.2 |
+| 5.5  | Rests via toolbar                                            | Parallel   | 5.2        | ✅ v0.3.3 |
 | 5.6  | Key / time signature controls                                | Parallel   | 5.1        | ✅ v0.3.0 — [handoff](HANDOFF-phase-5.6-key-time.md) |
 | 5.7  | Soft 4-measure warning                                       | Parallel   | 5.2        | ✅ v0.3.1 — [handoff](HANDOFF-phase-5.7-measure-warning.md) |
 | 5.8  | Strip editor chrome in Reading view                          | **Serial** | 5.1        | ✅ v0.2.9 — [handoff](HANDOFF-phase-5.8-reading-chrome.md) |
@@ -542,6 +542,22 @@ The v0.2.1 **free-coordinate** click path (`analyzeStaffClick` in `pitch-hit-tes
 ### Phase 5.3 — delete selected note
 
 **Status:** ✅ complete (v0.2.8). Shift+click to select; **Delete** or **Backspace** removes the note; debounced ABC sync. Selection highlight is **outline only** (accent border) — abcjs built-in red notehead fill is blocked and restored on dismiss.
+
+### Phase 5.4 — change duration on selection
+
+**Status:** ✅ complete (v0.3.2). With a note selected (Shift+click), toolbar duration buttons change that note’s duration; debounced ABC sync + re-render. Toolbar duration state updates for the next placement. Selection clears on score change (same as 5.3).
+
+**Modules:** `changeEventDurationInScore` in `score-session.ts`; `ToolbarSelectionDeps` + selection bridge in `toolbar.ts` / `editor-widget.ts`.
+
+**Tests:** `npm run test:duration-on-selection`.
+
+### Phase 5.5 — rests via toolbar
+
+**Status:** ✅ complete (v0.3.3). Toolbar **𝄽 Rest** toggles rest placement mode; staff click appends a rest to the clicked measure (same snap guide + bar-line measure detection as notes). Duration buttons set rest length; accidentals disabled in rest mode. Shift+select and delete (5.3) unchanged for notes.
+
+**Modules:** `placeRestInScore` in `score-session.ts`; `EditorPlacementMode` in `editor-state.ts`; rest branch in `staff-interaction.ts`.
+
+**Tests:** `npm run test:rest-placement`.
 
 **Locked behavior (5.3):**
 

@@ -4,9 +4,12 @@ import { ABC_DEFAULTS } from '../serializer/abc-defaults';
 /** No accidental override — pitch follows the key signature. */
 export type EditorAccidentalMode = Accidental | 'none';
 
+export type EditorPlacementMode = 'note' | 'rest';
+
 export interface ScoreEditorState {
 	readonly duration: NoteDuration;
 	readonly accidental: EditorAccidentalMode;
+	readonly placementMode: EditorPlacementMode;
 }
 
 export type EditorStateChangeListener = (state: ScoreEditorState) => void;
@@ -15,6 +18,7 @@ export function createDefaultEditorState(): ScoreEditorState {
 	return {
 		duration: ABC_DEFAULTS.defaultNoteDuration,
 		accidental: 'none',
+		placementMode: 'note',
 	};
 }
 
@@ -50,6 +54,21 @@ export class EditorStateController {
 		}
 		this.state = { ...this.state, accidental: next };
 		this.notify();
+	}
+
+	/** Toggle note vs rest placement on the staff. */
+	setPlacementMode(placementMode: EditorPlacementMode): void {
+		if (this.state.placementMode === placementMode) {
+			return;
+		}
+		this.state = { ...this.state, placementMode };
+		this.notify();
+	}
+
+	toggleRestMode(): void {
+		const next: EditorPlacementMode =
+			this.state.placementMode === 'rest' ? 'note' : 'rest';
+		this.setPlacementMode(next);
 	}
 
 	subscribe(listener: EditorStateChangeListener): () => void {

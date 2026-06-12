@@ -21,6 +21,10 @@ if (defaults.accidental !== 'none') {
 	console.error(`FAIL: default accidental expected none, got ${defaults.accidental}`);
 	process.exit(1);
 }
+if (defaults.placementMode !== 'note') {
+	console.error(`FAIL: default placementMode expected note, got ${defaults.placementMode}`);
+	process.exit(1);
+}
 
 const controller = new EditorStateController();
 const changes = [];

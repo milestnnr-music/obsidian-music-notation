@@ -135,10 +135,28 @@
 	border-color: var(--background-modifier-border-hover);
 }
 
+.abc-blocks-toolbar-group-disabled {
+	opacity: 0.45;
+	pointer-events: none;
+}
+
 .abc-blocks-toolbar-btn-active {
 	border-color: var(--interactive-accent);
 	background: var(--interactive-accent-hover);
 	color: var(--text-on-accent);
+}
+
+.abc-blocks-toolbar-group-disabled {
+	opacity: 0.55;
+	pointer-events: none;
+}
+
+.abc-blocks-toolbar-btn-disabled {
+	cursor: not-allowed;
+}
+
+.abc-blocks-staff-rest-mode svg {
+	cursor: cell;
 }
 
 .abc-blocks-toolbar-select {

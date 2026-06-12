@@ -73,6 +73,81 @@ export function placeNoteInScore(
 	};
 }
 
+/** Update duration on one event (no-op when out of range or unchanged). */
+export function changeEventDurationInScore(
+	score: Score,
+	measureIndex: number,
+	eventIndex: number,
+	duration: NoteDuration,
+): Score {
+	const staff = score.staves[0];
+	if (!staff) {
+		return score;
+	}
+
+	const measure = staff.measures[measureIndex];
+	if (!measure || eventIndex < 0 || eventIndex >= measure.events.length) {
+		return score;
+	}
+
+	const event = measure.events[eventIndex];
+	if (!event || event.kind !== 'note' || event.duration === duration) {
+		return score;
+	}
+
+	const measures = staff.measures.map((m, mi) => {
+		if (mi !== measureIndex) {
+			return { events: [...m.events] };
+		}
+		return {
+			events: m.events.map((e, ei) =>
+				ei === eventIndex ? { ...e, duration } : e,
+			),
+		};
+	});
+
+	return {
+		...score,
+		staves: [{ ...staff, measures }],
+	};
+}
+
+/** Append a rest to the given measure (extends with empty measures when needed). */
+export function placeRestInScore(
+	score: Score,
+	measureIndex: number,
+	duration: NoteDuration,
+): Score {
+	const staff = score.staves[0];
+	if (!staff) {
+		return score;
+	}
+
+	const measures = staff.measures.map((measure) => ({
+		events: [...measure.events],
+	}));
+
+	while (measures.length <= measureIndex) {
+		measures.push({ events: [] });
+	}
+
+	const measure = measures[measureIndex] ?? { events: [] };
+	measures[measureIndex] = {
+		events: [
+			...measure.events,
+			{
+				kind: 'rest',
+				duration,
+			},
+		],
+	};
+
+	return {
+		...score,
+		staves: [{ ...staff, measures }],
+	};
+}
+
 /** Remove one event by measure/event index (no-op when out of range). */
 export function deleteNoteFromScore(
 	score: Score,

@@ -13,6 +13,7 @@ import {
 	applyToolbarAccidental,
 	deleteNoteFromScore,
 	placeNoteInScore,
+	placeRestInScore,
 } from './score-session';
 
 export interface StaffInteractionOptions {
@@ -46,11 +47,33 @@ function collectVisualRoots(
 	return roots;
 }
 
+/** Staff + editor chrome (toolbar) — do not dismiss selection on pointer/focus here (5.4). */
+export function isInsideSelectionPreserveArea(
+	node: Node,
+	staffContainer: HTMLElement,
+	visualRoots?: readonly HTMLElement[],
+): boolean {
+	if (staffContainer.contains(node)) {
+		return true;
+	}
+	for (const root of visualRoots ?? []) {
+		if (root.contains(node)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+export interface StaffInteractionHandle {
+	readonly detach: () => void;
+	readonly getSelection: () => ScoreNoteRef | null;
+}
+
 /** Phase 5.2: Snap grid place + Shift select on rendered staff. */
 export function attachStaffInteraction(
 	container: HTMLElement,
 	options: StaffInteractionOptions,
-): () => void {
+): StaffInteractionHandle {
 	const visualRoots = collectVisualRoots(container, options.visualRoots);
 	const selection = new NoteSelectionController(visualRoots);
 	const ownerDocument = container.ownerDocument;
@@ -173,17 +196,23 @@ export function attachStaffInteraction(
 		selection.clearAllVisualState();
 
 		const toolbar = options.editorState.getState();
-		const pitch = applyToolbarAccidental(
-			verticalPosToPitch(snap.verticalPos),
-			toolbar.accidental,
-		);
 
-		const updated = placeNoteInScore(
-			options.getScore(),
-			snap.measureIndex,
-			pitch,
-			toolbar.duration,
-		);
+		const updated =
+			toolbar.placementMode === 'rest'
+				? placeRestInScore(
+						options.getScore(),
+						snap.measureIndex,
+						toolbar.duration,
+					)
+				: placeNoteInScore(
+						options.getScore(),
+						snap.measureIndex,
+						applyToolbarAccidental(
+							verticalPosToPitch(snap.verticalPos),
+							toolbar.accidental,
+						),
+						toolbar.duration,
+					);
 
 		container.focus();
 		commitScoreChange(updated);
@@ -205,7 +234,10 @@ export function attachStaffInteraction(
 
 	const onDocumentPointerDown = (event: PointerEvent): void => {
 		const target = event.target;
-		if (target instanceof Node && container.contains(target)) {
+		if (
+			target instanceof Node &&
+			isInsideSelectionPreserveArea(target, container, options.visualRoots)
+		) {
 			return;
 		}
 		dismissSelection();
@@ -213,7 +245,10 @@ export function attachStaffInteraction(
 
 	const onFocusOut = (event: FocusEvent): void => {
 		const related = event.relatedTarget;
-		if (related instanceof Node && container.contains(related)) {
+		if (
+			related instanceof Node &&
+			isInsideSelectionPreserveArea(related, container, options.visualRoots)
+		) {
 			return;
 		}
 		dismissSelection();
@@ -234,6 +269,13 @@ export function attachStaffInteraction(
 		deleteSelectedNote(ref);
 	};
 
+	const syncPlacementModeClass = (): void => {
+		const restMode = options.editorState.getState().placementMode === 'rest';
+		container.toggleClass('abc-blocks-staff-rest-mode', restMode);
+	};
+	syncPlacementModeClass();
+	const unsubscribePlacement = options.editorState.subscribe(syncPlacementModeClass);
+
 	container.addClass('abc-blocks-staff-interactive');
 	container.addEventListener('mousemove', onMouseMove);
 	container.addEventListener('mouseleave', onMouseLeave);
@@ -246,7 +288,8 @@ export function attachStaffInteraction(
 	container.addEventListener('touchend', blockAbcjsNoteHighlight, true);
 	ownerDocument.addEventListener('pointerdown', onDocumentPointerDown, true);
 
-	return () => {
+	const detach = (): void => {
+		unsubscribePlacement();
 		container.removeEventListener('mousemove', onMouseMove);
 		container.removeEventListener('mouseleave', onMouseLeave);
 		container.removeEventListener('click', onClick);
@@ -260,9 +303,15 @@ export function attachStaffInteraction(
 		container.removeAttribute('tabindex');
 		container.removeClass('abc-blocks-staff-interactive');
 		container.removeClass('abc-blocks-staff-selecting');
+		container.removeClass('abc-blocks-staff-rest-mode');
 		hideGuide();
 		guideEl?.remove();
 		guideEl = null;
 		selection.dispose();
+	};
+
+	return {
+		detach,
+		getSelection: () => selection.getSelection(),
 	};
 }

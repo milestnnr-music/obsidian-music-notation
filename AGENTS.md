@@ -4,7 +4,7 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 
 **Repository:** https://github.com/milestnnr-music/obsidian-music-notation  
 **Plugin id:** `abc-blocks`  
-**Current status:** Phase 5 in progress (v0.3.1). Step **5.1** done (toolbar). Step **5.2** ✅ done. Step **5.3** ✅ delete selected note verified in Live Preview. Step **5.6** ✅ key/time signature controls per block. Step **5.7** ✅ soft 4-measure warning in Live Preview. Step **5.8** ✅ Reading view chrome stripped. **Next:** 5.4 (change duration on selection). **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md). Phase 4 complete (4.1–4.5). Before changing multi-block LP identity, read [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md).
+**Current status:** Phase 5 in progress (v0.3.3). Step **5.1** done (toolbar). Step **5.2** ✅ done. Step **5.3** ✅ delete selected note verified in Live Preview. Step **5.4** ✅ duration on selection (v0.3.2). Step **5.5** ✅ rests via toolbar (v0.3.3). Step **5.6** ✅ key/time signature controls per block. Step **5.7** ✅ soft 4-measure warning in Live Preview. Step **5.8** ✅ Reading view chrome stripped. **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md). Phase 4 complete (4.1–4.5). Before changing multi-block LP identity, read [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md).
 
 ---
 
@@ -17,7 +17,7 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 | **2 — Read path (abcjs)** | ✅ **Done** | — |
 | **3 — Score model + serializer** | ✅ **Done** | — |
 | 4 — Debounced sync | ✅ Done | — |
-| 5 — Visual editor | **In progress** | 5.1 ✅; 5.2 ✅; 5.3 ✅ delete; 5.6 ✅ key/time; 5.7 ✅ measure warning; 5.8 ✅ Reading chrome; **5.4** duration on selection |
+| 5 — Visual editor | **In progress** | 5.1 ✅; 5.2 ✅; 5.3 ✅ delete; 5.4 ✅ duration on selection; 5.5 ✅ rests; 5.6 ✅ key/time; 5.7 ✅ measure warning; 5.8 ✅ Reading chrome — Phase 5 feature-complete |
 | 6 — Polish + docs | Pending | After Phase 5 |
 | 7+ — v2 (chords, 2 staves, settings, playback) | Pending | After Phase 6 |
 

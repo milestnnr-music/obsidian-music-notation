@@ -2,7 +2,7 @@
  * Phase 5: Live Preview root widget for ```abc blocks.
  * Phase 1.3 mounts this inside the interactive shell; Phase 2.1 renders ABC via abcjs.
  */
-import type { Score } from '../model/types';
+import type { NoteDuration, Score } from '../model/types';
 import { EditorStateController } from './editor-state';
 import { mountKeyTimeControls } from './key-time-controls';
 import { mountToolbar } from './toolbar';
@@ -11,13 +11,15 @@ import { renderAbcToElementWhenReady } from '../renderer/abcjs-adapter';
 import { mountFallbackUi } from '../ui/fallback';
 import { getScoreMeasureCount } from '../ui/measure-warning';
 import { mountMeasureWarning } from '../ui/measure-warning-ui';
+import type { ScoreNoteRef } from './note-selection';
 import {
+	changeEventDurationInScore,
 	parseSourceToScore,
 	scoreToDisplayAbc,
 } from './score-session';
 import { annotateRenderedNotes } from './note-annotate';
 import { attachStaffInteraction, type StaffInteractionOptions } from './staff-interaction';
-import type { AbcSyncScheduler, AbcBlockSyncContext } from './sync';
+import { scheduleScoreToAbcBlock, type AbcSyncScheduler, type AbcBlockSyncContext } from './sync';
 
 export interface EditorWidgetSyncDeps {
 	readonly getSyncContext: () => Promise<AbcBlockSyncContext>;
@@ -45,7 +47,10 @@ export function mountEditorWidget(
 
 	const editorState = new EditorStateController();
 	const toolbarMount = container.createDiv({ cls: 'abc-blocks-toolbar-mount' });
-	mountToolbar(toolbarMount, editorState);
+
+	const selectionBridge = {
+		getSelection: (): ScoreNoteRef | null => null,
+	};
 
 	const measureWarningMount = container.createDiv({
 		cls: 'abc-blocks-measure-warning-mount',
@@ -53,6 +58,37 @@ export function mountEditorWidget(
 
 	let currentScore = parseSourceToScore(source);
 	let detachStaff: (() => void) | null = null;
+
+	const commitScoreChange = (updated: Score): void => {
+		if (updated === currentScore) {
+			return;
+		}
+		currentScore = updated;
+		renderStaff();
+		if (!sync) {
+			return;
+		}
+		void sync.getSyncContext().then((ctx) => {
+			if (ctx.blockIndex === null) {
+				return;
+			}
+			scheduleScoreToAbcBlock(sync.scheduler, ctx, updated);
+		});
+	};
+
+	mountToolbar(toolbarMount, editorState, {
+		getSelectedNoteRef: () => selectionBridge.getSelection(),
+		onSelectedNoteDurationChange: (ref, duration: NoteDuration) => {
+			commitScoreChange(
+				changeEventDurationInScore(
+					currentScore,
+					ref.measureIndex,
+					ref.eventIndex,
+					duration,
+				),
+			);
+		},
+	});
 
 	const refreshMeasureWarning = (): void => {
 		mountMeasureWarning(measureWarningMount, getScoreMeasureCount(currentScore));
@@ -91,16 +127,18 @@ export function mountEditorWidget(
 
 			const interaction: StaffInteractionOptions = {
 				getScore: () => currentScore,
-				onScoreChange: (score: Score) => {
-					currentScore = score;
-					renderStaff();
-				},
+				onScoreChange: commitScoreChange,
 				editorState,
 				getSyncContext: sync.getSyncContext,
 				scheduler: sync.scheduler,
 				visualRoots,
 			};
-			detachStaff = attachStaffInteraction(staffMount, interaction);
+			const staffHandle = attachStaffInteraction(staffMount, interaction);
+			selectionBridge.getSelection = () => staffHandle.getSelection();
+			detachStaff = () => {
+				staffHandle.detach();
+				selectionBridge.getSelection = () => null;
+			};
 		});
 	};
 
