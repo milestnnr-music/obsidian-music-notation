@@ -4,7 +4,7 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 
 **Repository:** https://github.com/milestnnr-music/obsidian-music-notation  
 **Plugin id:** `abc-blocks`  
-**Current status:** Phase 5 in progress (v0.3.3). Step **5.1** done (toolbar). Step **5.2** ✅ done. Step **5.3** ✅ delete selected note verified in Live Preview. Step **5.4** ✅ duration on selection (v0.3.2). Step **5.5** ✅ rests via toolbar (v0.3.3). Step **5.6** ✅ key/time signature controls per block. Step **5.7** ✅ soft 4-measure warning in Live Preview. Step **5.8** ✅ Reading view chrome stripped. **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md). Phase 4 complete (4.1–4.5). Before changing multi-block LP identity, read [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md).
+**Current status:** Phase 5 **complete** (v0.3.4). All visual-editor steps **5.1–5.8** ✅ (including 5.4 duration-on-selection and 5.5 rests). **Next:** Phase 6 (polish + docs). **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md). Phase 4 complete (4.1–4.5). Before changing multi-block LP identity, read [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md).
 
 ---
 
@@ -17,8 +17,8 @@ Obsidian community plugin for editable ` ```abc ` notation blocks. **Read [`docs
 | **2 — Read path (abcjs)** | ✅ **Done** | — |
 | **3 — Score model + serializer** | ✅ **Done** | — |
 | 4 — Debounced sync | ✅ Done | — |
-| 5 — Visual editor | **In progress** | 5.1 ✅; 5.2 ✅; 5.3 ✅ delete; 5.4 ✅ duration on selection; 5.5 ✅ rests; 5.6 ✅ key/time; 5.7 ✅ measure warning; 5.8 ✅ Reading chrome — Phase 5 feature-complete |
-| 6 — Polish + docs | Pending | After Phase 5 |
+| 5 — Visual editor | ✅ **Done** (v0.3.4) | — |
+| 6 — Polish + docs | **Next** | README, LIMITATIONS, manual checklist, error copy |
 | 7+ — v2 (chords, 2 staves, settings, playback) | Pending | After Phase 6 |
 
 **Phase 1 order:** 1.1 (serial) → 1.2 ∥ 1.3 ∥ 1.4 (parallel) → 1.5 (serial) ✅. See `docs/DESIGN.md` for full step tables.

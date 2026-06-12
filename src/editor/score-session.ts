@@ -73,7 +73,7 @@ export function placeNoteInScore(
 	};
 }
 
-/** Update duration on one event (no-op when out of range or unchanged). */
+/** Update duration on one note or rest event (no-op when out of range or unchanged). */
 export function changeEventDurationInScore(
 	score: Score,
 	measureIndex: number,
@@ -91,7 +91,7 @@ export function changeEventDurationInScore(
 	}
 
 	const event = measure.events[eventIndex];
-	if (!event || event.kind !== 'note' || event.duration === duration) {
+	if (!event || event.duration === duration) {
 		return score;
 	}
 

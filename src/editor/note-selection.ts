@@ -10,7 +10,17 @@ export interface ScoreNoteRef {
 	readonly eventIndex: number;
 }
 
-/** DOM hit-test: find the topmost abcjs note group under the cursor. */
+const SCORE_EVENT_SELECTOR = '.abcjs-note, .abcjs-rest';
+
+function findScoreEventGroup(element: Element, svg: SVGSVGElement): Element | null {
+	const group = element.closest(SCORE_EVENT_SELECTOR);
+	if (group && svg.contains(group)) {
+		return group;
+	}
+	return null;
+}
+
+/** DOM hit-test: find the topmost abcjs note or rest group under the cursor. */
 export function findNoteElementAt(
 	clientX: number,
 	clientY: number,
@@ -23,23 +33,23 @@ export function findNoteElementAt(
 			if (!isElementNode(candidate) || !svg.contains(candidate)) {
 				continue;
 			}
-			const note = candidate.closest('.abcjs-note');
-			if (note && svg.contains(note)) {
-				return note;
+			const eventEl = findScoreEventGroup(candidate, svg);
+			if (eventEl) {
+				return eventEl;
 			}
 		}
 		return null;
 	}
 
-	for (const note of Array.from(svg.querySelectorAll('.abcjs-note'))) {
-		const rect = note.getBoundingClientRect();
+	for (const eventEl of Array.from(svg.querySelectorAll(SCORE_EVENT_SELECTOR))) {
+		const rect = eventEl.getBoundingClientRect();
 		if (
 			clientX >= rect.left &&
 			clientX <= rect.right &&
 			clientY >= rect.top &&
 			clientY <= rect.bottom
 		) {
-			return note;
+			return eventEl;
 		}
 	}
 
@@ -172,7 +182,7 @@ export function stripAllNoteVisualState(roots: readonly ParentNode[]): void {
 				setNoteMarked(el, NOTE_HOVER_ATTR, NOTE_HOVER_CLASS, false);
 			}
 		}
-		for (const note of Array.from(root.querySelectorAll('.abcjs-note'))) {
+		for (const note of Array.from(root.querySelectorAll(SCORE_EVENT_SELECTOR))) {
 			restoreAbcjsNoteAppearance(note);
 		}
 		for (const el of Array.from(

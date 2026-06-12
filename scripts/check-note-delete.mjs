@@ -5,7 +5,7 @@
 import { createJiti } from 'jiti';
 
 const jiti = createJiti(import.meta.url);
-const { deleteNoteFromScore, placeNoteInScore } = await jiti.import(
+const { deleteNoteFromScore, placeNoteInScore, placeRestInScore } = await jiti.import(
 	'../src/editor/score-session.ts',
 );
 const { createEmptyScore, scoreHasEvents } = await jiti.import('../src/model/score.ts');
@@ -65,6 +65,10 @@ const lone = placeNoteInScore(createEmptyScore(), 0, { step: 'A', octave: 3 }, '
 const cleared = deleteNoteFromScore(lone, 0, 0);
 assert(!scoreHasEvents(cleared), 'deleting only note yields score with no events');
 assert(cleared.staves[0]?.measures.length === 1, 'one empty measure remains');
+
+const withRest = placeRestInScore(createEmptyScore(), 0, 'quarter');
+const afterRestDelete = deleteNoteFromScore(withRest, 0, 0);
+assert(!scoreHasEvents(afterRestDelete), 'deleting only rest yields score with no events');
 
 const abc = writeAbc(cleared);
 assert(!abc.includes('a'), 'cleared score ABC has no note body');

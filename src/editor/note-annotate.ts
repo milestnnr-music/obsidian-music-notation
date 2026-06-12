@@ -1,8 +1,10 @@
 import type { Score } from '../model/types';
 
-/** After abcjs render, tag note groups so DOM selection maps to Score events. */
+const SCORE_EVENT_SELECTOR = '.abcjs-note, .abcjs-rest';
+
+/** After abcjs render, tag note and rest groups so DOM selection maps to Score events. */
 export function annotateRenderedNotes(svg: SVGSVGElement, score: Score): void {
-	const noteElements = Array.from(svg.querySelectorAll('.abcjs-note'));
+	const eventElements = Array.from(svg.querySelectorAll(SCORE_EVENT_SELECTOR));
 	const staff = score.staves[0];
 	if (!staff) {
 		return;
@@ -17,11 +19,11 @@ export function annotateRenderedNotes(svg: SVGSVGElement, score: Score): void {
 
 		for (let eventIndex = 0; eventIndex < measure.events.length; eventIndex++) {
 			const event = measure.events[eventIndex];
-			if (event?.kind !== 'note') {
+			if (event?.kind !== 'note' && event?.kind !== 'rest') {
 				continue;
 			}
 
-			const el = noteElements[domIndex];
+			const el = eventElements[domIndex];
 			if (!el) {
 				return;
 			}

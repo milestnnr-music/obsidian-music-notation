@@ -248,12 +248,14 @@
 }
 
 .abcjs-note[data-abc-blocks-hovered="true"],
+.abcjs-rest[data-abc-blocks-hovered="true"],
 .abc-blocks-note-hover {
 	outline: 1px dashed var(--interactive-accent);
 	outline-offset: 2px;
 }
 
 .abcjs-note[data-abc-blocks-selected="true"],
+.abcjs-rest[data-abc-blocks-selected="true"],
 .abc-blocks-note-selected {
 	outline: 2px solid var(--interactive-accent);
 	outline-offset: 2px;

@@ -12,7 +12,7 @@ Reading view shows **static abcjs notation only** — no toolbar, no sync test b
 
 **Blocked by:** 5.1 ✅ (toolbar exists in LP only).
 
-**Not in scope:** 5.4–5.7 (duration on selection, rests, key/time controls, measure warning).
+**Not in scope (at 5.8 ship):** 5.4–5.7 — all ✅ complete by v0.3.4.
 
 ---
 
@@ -69,11 +69,6 @@ npm run lint
 
 ## Next session
 
-| Step | Task | Status |
-|------|------|--------|
-| 5.4 | Change duration on selection | Pending |
-| 5.5 | Rests via toolbar | Pending |
-| 5.6 | Key / time signature controls | Pending |
-| 5.7 | Soft 4-measure warning | Pending |
+Phase 5 **complete** (v0.3.4). **Next:** Phase 6 — polish + docs (README, LIMITATIONS, manual checklist, error copy).
 
-**Files to @-mention:** `docs/DESIGN.md`, `AGENTS.md`, `docs/HANDOFF-phase-5.2-snap-interaction.md` (staff interaction spec).
+**Files to @-mention:** `docs/DESIGN.md`, `AGENTS.md`, `LIMITATIONS.md`.

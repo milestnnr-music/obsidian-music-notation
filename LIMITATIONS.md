@@ -1,6 +1,6 @@
 # Limitations and roadmap
 
-**Current status:** Phase 5 in progress (v0.3.3). Step **5.1** done (toolbar). Step **5.2** ✅ snap staff interaction verified in Live Preview. Step **5.3** ✅ delete selected note verified in Live Preview. Step **5.4** ✅ change duration on selection (v0.3.2). Step **5.5** ✅ rests via toolbar rest mode (v0.3.3). Step **5.6** ✅ key/time signature controls per block. Step **5.7** ✅ soft 4-measure warning in Live Preview. Step **5.8** ✅ Reading view static notation only. Phase 4 complete (4.1–4.5).  
+**Current status:** Phase 5 **complete** (v0.3.4). Visual editor v1 loop done (5.1–5.8). **Next:** Phase 6 (polish + docs). Phase 4 complete (4.1–4.5).  
 **Design reference:** [`docs/DESIGN.md`](docs/DESIGN.md) · **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md) · Multi-block LP fixes: [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md)
 
 ## What works today
@@ -17,8 +17,9 @@
 - **Measure-length hint (Phase 5.7, v0.3.1):** dismissible informational banner in Live Preview when a block has more than 4 measures; editing is not blocked
 - **Snap staff interaction (Phase 5.2, v0.2.7):** hover guide line + click to place (measure + append); Shift+hover/click to select; debounced ABC sync — LP verified after geometry fix (v0.2.5–0.2.7)
 - **Delete selected note (Phase 5.3, v0.2.8):** Shift+click to select (outline highlight), then Delete or Backspace — LP verified; selection clears on click outside the block (toolbar clicks keep selection so duration-on-selection works — v0.3.4)
-- **Change duration on selection (Phase 5.4, v0.3.2):** Shift+click a note, then click a toolbar duration — updates that note, debounced ABC sync + re-render
+- **Change duration on selection (Phase 5.4, v0.3.4):** Shift+click a note, then click a toolbar duration — updates that note, debounced ABC sync + re-render (LP verified)
 - **Rest placement (Phase 5.5, v0.3.3):** toolbar **𝄽 Rest** toggles rest mode; staff click appends rest to clicked measure (same snap guide + measure detection as notes); accidentals disabled in rest mode
+- **Rest select/edit (v0.3.5):** Shift+click rests to select; toolbar duration changes rest length; Delete/Backspace removes selected rest
 - **Debounced sync (Phase 4.1–4.2):** Score → ABC → markdown write via dev test buttons (~300ms debounce); per-block `AbcSyncScheduler`; multi-block notes target the correct fence when block index is established
 - **First edit (Phase 4.3):** empty fence receives headers + body on first scored edit (dev test button)
 - **Undo / teardown (Phase 4.4):** pending debounced writes flushed on shell unmount; manual undo/redo checklist passed (`docs/manual-tests/phase-4-undo.md`)
@@ -50,7 +51,6 @@ The v0.2.1 **free-coordinate click-to-place** path (`analyzeStaffClick`) is **re
 **Rhythm:** measure + append (beat-grid X snap is a later phase).
 
 ## What does not work yet
-- Shift+select / delete for rests (notes only; rests are not DOM-annotated)
 - Serializer not yet driving Live Preview render path (still abcjs-on-ABC text directly for display)
 
 ## v1 scope (planned)

@@ -55,8 +55,12 @@ score = {
 		},
 	],
 };
-const restUnchanged = changeEventDurationInScore(score, 0, 0, 'half');
-assert(restUnchanged === score, 'rest events are not changed (notes only)');
+const restChanged = changeEventDurationInScore(score, 0, 0, 'half');
+const restEvent = restChanged.staves[0]?.measures[0]?.events[0];
+assert(
+	restEvent?.kind === 'rest' && restEvent.duration === 'half',
+	'rest duration can be changed on selection',
+);
 
 const { isInsideSelectionPreserveArea } = await jiti.import(
 	'../src/editor/staff-interaction.ts',

@@ -9,6 +9,8 @@ const jiti = createJiti(import.meta.url);
 const { placeRestInScore, placeNoteInScore } = await jiti.import(
 	'../src/editor/score-session.ts',
 );
+const { annotateRenderedNotes } = await jiti.import('../src/editor/note-annotate.ts');
+const { renderAbcToElement } = await jiti.import('../src/renderer/abcjs-adapter.ts');
 const { createEmptyScore, scoreHasEvents } = await jiti.import('../src/model/score.ts');
 const { writeAbc } = await jiti.import('../src/serializer/abc-writer.ts');
 const { createDefaultEditorState, EditorStateController } = await jiti.import(
@@ -59,6 +61,23 @@ assert(events[1]?.kind === 'rest' && events[1].duration === 'eighth', 'rest appe
 
 const abc = writeAbc(score);
 assert(/z/.test(abc), 'ABC contains rest symbol');
+
+const annotateWindow = new Window();
+globalThis.window = annotateWindow;
+globalThis.document = annotateWindow.document;
+globalThis.HTMLElement = annotateWindow.HTMLElement;
+const annotateMount = annotateWindow.document.createElement('div');
+annotateMount.empty = () => {
+	annotateMount.innerHTML = '';
+};
+annotateWindow.document.body.appendChild(annotateMount);
+renderAbcToElement(annotateMount, abc);
+const annotateSvg = annotateMount.querySelector('svg');
+assert(annotateSvg !== null, 'mixed score renders svg for annotation');
+annotateRenderedNotes(annotateSvg, score);
+const restEl = annotateSvg.querySelector('.abcjs-rest');
+assert(restEl?.getAttribute('data-measure-index') === '0', 'rest gets data-measure-index');
+assert(restEl?.getAttribute('data-event-index') === '1', 'rest gets data-event-index in mixed measure');
 
 const window = new Window();
 globalThis.window = window;
