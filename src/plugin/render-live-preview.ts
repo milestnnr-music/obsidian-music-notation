@@ -35,8 +35,6 @@ import { SYNC_FAILURE_BLOCK_NOT_FOUND } from '../editor/error-copy';
 import {
 	ABC_SYNC_DEBOUNCE_MS,
 	AbcSyncScheduler,
-	runPhase41SyncTest,
-	runPhase43FirstEditTest,
 	type AbcBlockSyncContext,
 } from '../editor/sync';
 
@@ -160,7 +158,6 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 		const initial =
 			fromIndex !== null ? fromIndex : this.resolvedSource;
 		this.mount(initial, 'bootstrap');
-		this.mountSyncTestButton(initial);
 
 		afterPreviewLayout(() => {
 			void this.reconcileFromEditorByIndex('after-layout');
@@ -204,7 +201,6 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 		}
 
 		this.mount(resolved, event);
-		this.updateSyncTestButton(resolved);
 	}
 
 	/** Sync target: DOM embed index when reliable, else shell attrs (inline edit). */
@@ -242,78 +238,6 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 			new Notice(SYNC_FAILURE_BLOCK_NOT_FOUND);
 		}
 		return ctx;
-	}
-
-	private mountSyncTestButton(sourceForEmptyCheck: string): void {
-		const existing = this.shellRoot.querySelector('.abc-blocks-sync-test');
-		if (existing) {
-			existing.remove();
-		}
-
-		const row = this.shellRoot.createDiv({ cls: 'abc-blocks-sync-test' });
-		const isEmpty = isEmptyAbcBlockSource(sourceForEmptyCheck);
-
-		if (isEmpty) {
-			const firstEditButton = row.createEl('button', {
-				cls: 'abc-blocks-sync-test-btn',
-				text: 'Place first note (phase 4.3)',
-			});
-			firstEditButton.setAttr('type', 'button');
-			this.registerDomEvent(firstEditButton, 'click', (event) => {
-				event.preventDefault();
-				event.stopPropagation();
-				void this.handleFirstEditTestClick();
-			});
-			return;
-		}
-
-		const button = row.createEl('button', {
-			cls: 'abc-blocks-sync-test-btn',
-			text: 'Write test note (phase 4.2)',
-		});
-		button.setAttr('type', 'button');
-
-		this.registerDomEvent(button, 'click', (event) => {
-			event.preventDefault();
-			event.stopPropagation();
-			void this.handleSyncTestClick();
-		});
-	}
-
-	private updateSyncTestButton(source: string): void {
-		const row = this.shellRoot.querySelector('.abc-blocks-sync-test');
-		if (!row) {
-			this.mountSyncTestButton(source);
-			return;
-		}
-
-		const isEmpty = isEmptyAbcBlockSource(source);
-		const hasFirstEdit = row.querySelector('.abc-blocks-sync-test-btn')?.textContent?.includes(
-			'4.3',
-		);
-		const hasWrite = row.querySelector('.abc-blocks-sync-test-btn')?.textContent?.includes('4.2');
-
-		if ((isEmpty && hasFirstEdit) || (!isEmpty && hasWrite)) {
-			return;
-		}
-
-		this.mountSyncTestButton(source);
-	}
-
-	private async handleSyncTestClick(): Promise<void> {
-		const ctx = await this.syncContext();
-		if (ctx.blockIndex === null) {
-			return;
-		}
-		runPhase41SyncTest(ctx, this.syncScheduler);
-	}
-
-	private async handleFirstEditTestClick(): Promise<void> {
-		const ctx = await this.syncContext();
-		if (ctx.blockIndex === null) {
-			return;
-		}
-		runPhase43FirstEditTest(ctx, this.syncScheduler);
 	}
 
 	private hasExpectedWidget(isEmpty: boolean): boolean {
@@ -416,18 +340,6 @@ export function renderLivePreview(
 	if (isEmpty) {
 		container.addClass('abc-blocks-empty');
 	}
-
-	container.createDiv({
-		cls: 'abc-blocks-view-badge',
-		text: 'Live Preview',
-	});
-
-	container.createDiv({
-		cls: 'abc-blocks-interactive-label',
-		text: isEmpty
-			? 'New example — 4/4, C major, treble. Choose duration and accidental, then click the staff to place notes. Shift+click to select; Delete or Backspace to remove.'
-			: 'Choose duration and accidental, then click the staff to add notes. Shift+click to select; Delete or Backspace to remove.',
-	});
 
 	const mountPoint = container.createDiv({ cls: 'abc-blocks-editor-mount' });
 	ctx.addChild(

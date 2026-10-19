@@ -1,6 +1,3 @@
-# vscode
-.vscode 
-
 # Intellij
 *.iml
 .idea
@@ -22,5 +19,10 @@ test-results/
 # Exclude macOS Finder (System Explorer) View States
 .DS_Store
 
-# Local manual test checklist (dev vault notes)
-docs/manual-tests/phase-4-undo.md
+# Editor and agent config
+.cursor/
+.vscode/
+
+# Development notes kept locally; not part of a plugin release
+AGENTS.md
+docs/

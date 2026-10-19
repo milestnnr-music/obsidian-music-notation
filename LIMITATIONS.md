@@ -1,7 +1,6 @@
 # Limitations and roadmap
 
-**Current status:** **v1.1.0** — v1 personal ship. Phase 6 complete (6.1–6.5). Phase 5 complete (5.1–5.8). **Next:** Phase 7+ (v2 foundations). Phase 4 complete (4.1–4.5).  
-**Design reference:** [`docs/DESIGN.md`](docs/DESIGN.md) · **5.2 spec:** [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md) · Multi-block LP fixes: [`docs/phase-4.5-multi-block-lp-resolution.md`](docs/phase-4.5-multi-block-lp-resolution.md)
+**Current status:** **v1.1.0** — v1 personal ship. Phase 6 complete (6.1–6.5). Phase 5 complete (5.1–5.8). **Next:** Phase 7+ (v2 foundations). Phase 4 complete (4.1–4.5).
 
 ## What works in v1.1.0
 
@@ -30,22 +29,22 @@
 
 - **Debounced sync (Phase 4.1–4.2):** toolbar and staff edits → Score → ABC → markdown write (~300ms debounce); per-block `AbcSyncScheduler`; multi-block notes target the correct fence when block index is established
 - **First edit (Phase 4.3):** empty fence receives headers + body on first scored toolbar/staff edit
-- **Undo / teardown (Phase 4.4):** pending debounced writes flushed on shell unmount; manual undo/redo checklist passed (`docs/manual-tests/phase-4-undo.md`)
-- **Multi-block Live Preview (Phase 4.5):** each fence renders and syncs independently — initial open, inline source edit in LP, both-empty fences, and staff/toolbar edits (see resolution doc)
-- **Source reflects LP sync (Phase 4.5):** after debounced sync write, Source mode shows the updated fence body (`docs/manual-tests/phase-4-source-mode.md` §1–4 passed)
+- **Undo / teardown (Phase 4.4):** pending debounced writes flushed on shell unmount; manual undo/redo checklist passed
+- **Multi-block Live Preview (Phase 4.5):** each fence renders and syncs independently — initial open, inline source edit in LP, both-empty fences, and staff/toolbar edits
+- **Source reflects LP sync (Phase 4.5):** after debounced sync write, Source mode shows the updated fence body
 
-*Dev note:* Live Preview may still expose internal sync test buttons for agent/manual verification; the user-facing write path is toolbar + staff interaction.
+The user-facing write path is toolbar + staff interaction.
 
 ### Model, render, and tooling
 
 - **Score model + serializer (Phase 3):** `parseAbc` / `writeAbc` round-trip for v1 — treble staff, key/time sig, whole/half/quarter/eighth notes, rests, accidentals, quarter default; chords and multi-staff parse with warnings and use first pitch/voice only
 - **ABC normalization:** interior blank lines inside a fence are stripped before render (extra line breaks can break abcjs; the file on disk is not rewritten)
 - Build pipeline (`npm run dev`, `npm run build`, `npm run lint`, `npm run test:all`, `npm run test:phase-4.5`, `npm run compare:phase-4.5-probe` with Obsidian + dev vault)
-- View mode routing via `src/plugin/view-mode.ts` (see `docs/DESIGN.md` → Agent development notes if LP and Reading look identical)
+- View mode routing via `src/plugin/view-mode.ts`
 
 ## Retired (do not restore)
 
-The v0.2.1 **free-coordinate click-to-place** path (`analyzeStaffClick`) is **removed** — pitch was unreliable in Live Preview. Replaced by geometry-only snap grid (v0.2.4+; coordinate bugs fixed v0.2.5–0.2.7). See [`docs/HANDOFF-phase-5.2-snap-interaction.md`](docs/HANDOFF-phase-5.2-snap-interaction.md).
+The v0.2.1 **free-coordinate click-to-place** path (`analyzeStaffClick`) is **removed** — pitch was unreliable in Live Preview. Replaced by geometry-only snap grid (v0.2.4+; coordinate bugs fixed v0.2.5–0.2.7).
 
 **5.2 interaction (Shift modifier only; no Place/Select toolbar buttons):**
 

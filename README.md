@@ -4,9 +4,6 @@ Editable ABC notation blocks for [Obsidian](https://obsidian.md). Write short mu
 
 **Status:** **v1.1.0** — v1 personal ship. Phase 6 complete (6.1–6.5): docs, manual checklist, error copy, settings hooks. Phase 5 complete (5.1–5.8). **Next:** Phase 7+ (v2 foundations).
 
-📐 **Full product design & phased plan:** [`docs/DESIGN.md`](docs/DESIGN.md)  
-🤖 **Cursor agents:** read [`AGENTS.md`](AGENTS.md) before implementing.
-
 ## What it does (v1)
 
 - Hybrid editing: snap-to-place on staff in **Live Preview** (Shift+click to select); ABC syncs to the file (debounced ~300ms)
@@ -15,7 +12,7 @@ Editable ABC notation blocks for [Obsidian](https://obsidian.md). Write short mu
 - Graceful fallback when ABC is invalid
 - Static render in **Reading view**; raw ABC in **Source mode**
 
-See [LIMITATIONS.md](./LIMITATIONS.md) for current scope, known gaps, and roadmap. Manual release checklist (Phase 6.3): [`docs/manual-tests/v1-release-checklist.md`](docs/manual-tests/v1-release-checklist.md).
+See [LIMITATIONS.md](./LIMITATIONS.md) for current scope, known gaps, and roadmap.
 
 ---
 
@@ -184,7 +181,7 @@ npm run lint
 npm run test:all
 ```
 
-Agent-oriented LP probes: `npm run sync:test-note`, `npm run compare:phase-4.5-probe` (requires dev vault open). See [`AGENTS.md`](AGENTS.md).
+Local Live Preview probes (dev vault open): `npm run sync:test-note`, `npm run compare:phase-4.5-probe`.
 
 ---
 
@@ -199,9 +196,6 @@ src/
   renderer/               abcjs adapter
   editor/                 sync, widget, toolbar, staff interaction
   ui/                     Fallback + measure warning
-docs/
-  DESIGN.md               Product design & phased plan
-  manual-tests/           Manual test checklists
 ```
 
 ## Roadmap
@@ -212,8 +206,6 @@ docs/
 | 5 | Visual editor (toolbar, snap, delete, rests, key/time, warnings) | ✅ Complete |
 | 6 | Polish + docs | In progress |
 | 7+ | Chords, multi-staff, settings, playback | Planned |
-
-Details: [`docs/DESIGN.md`](docs/DESIGN.md)
 
 ## Repository
 

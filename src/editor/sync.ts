@@ -1,21 +1,18 @@
 import {
 	MarkdownView,
-	Notice,
 	TFile,
 	type App,
 	type Editor,
 	type EditorPosition,
 } from 'obsidian';
 import {
-	devNotice,
-	formatDevSyncFailureNotice,
 	SYNC_FAILURE_BLOCK_NOT_FOUND,
 	SYNC_FAILURE_NOTE_NOT_FOUND,
 } from './error-copy';
 import type { Score } from '../model/types';
 import { writeAbc } from '../serializer/abc-writer';
 import { parseAbc } from '../serializer/abc-parser';
-import { createEmptyScore, createFirstEditScore, scoreHasEvents } from '../model/score';
+import { createEmptyScore, scoreHasEvents } from '../model/score';
 import {
 	findMarkdownViewContaining,
 	isEmptyAbcBlockSource,
@@ -333,46 +330,4 @@ K:C
 CDEF|GABc|`;
 	const parsed = parseAbc(sample);
 	return parsed.score ?? createEmptyScore();
-}
-
-/** Dev-only: debounced write of the sample score into the current block. */
-export function runPhase41SyncTest(
-	ctx: AbcBlockSyncContext,
-	scheduler: AbcSyncScheduler,
-): void {
-	scheduleScoreToAbcBlock(
-		scheduler,
-		ctx,
-		createPhase41TestScore(),
-		(result) => {
-			if (result.ok) {
-				new Notice(devNotice('ABC block updated (phase 4.2 test)'));
-			} else {
-				new Notice(formatDevSyncFailureNotice(result.reason));
-			}
-		},
-	);
-}
-
-/** Dev-only: first edit on an empty fence — one quarter note + default headers. */
-export function runPhase43FirstEditTest(
-	ctx: AbcBlockSyncContext,
-	scheduler: AbcSyncScheduler,
-): void {
-	scheduleScoreToAbcBlock(
-		scheduler,
-		ctx,
-		createFirstEditScore(),
-		(result) => {
-			if (result.ok && result.abcBody.length > 0) {
-				new Notice(devNotice('First edit saved (phase 4.3 test)'));
-			} else if (result.ok) {
-				new Notice(
-					devNotice('No change — fence already has ABC or the score is empty'),
-				);
-			} else {
-				new Notice(formatDevSyncFailureNotice(result.reason));
-			}
-		},
-	);
 }

@@ -1,10 +1,3 @@
-/** Prefix for dev-only Obsidian Notices (phase 4.2/4.3 test buttons). */
-export const DEV_NOTICE_PREFIX = '[dev] ';
-
-export function devNotice(message: string): string {
-	return `${DEV_NOTICE_PREFIX}${message}`;
-}
-
 /** User-facing fallback when abcjs cannot parse or render fence ABC. */
 export const ABC_FALLBACK_MESSAGE = "Couldn't render this ABC.";
 
@@ -23,11 +16,6 @@ export function measureWarningMessage(threshold: number): string {
 export const SYNC_FAILURE_NOTE_NOT_FOUND = "Couldn't find the note file.";
 export const SYNC_FAILURE_BLOCK_NOT_FOUND =
 	"Couldn't find this ABC block in the note.";
-
-/** Dev-only Notice when a phase 4.2/4.3 test write fails. */
-export function formatDevSyncFailureNotice(reason: string): string {
-	return devNotice(`Couldn't save ABC block: ${reason}`);
-}
 
 /**
  * Short friendly text for render failures stored on `data-abc-render-error`.
