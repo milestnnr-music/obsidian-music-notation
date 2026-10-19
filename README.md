@@ -20,11 +20,28 @@ See [LIMITATIONS.md](./LIMITATIONS.md) for current scope, known gaps, and roadma
 
 ### Install
 
-1. Copy the plugin folder into your vault: `.obsidian/plugins/abc-blocks/`  
-   The folder must contain `manifest.json` and `main.js` at its root (build from source with `npm run build`, or use a release artifact).
-2. In Obsidian: **Settings → Community plugins → Turn on community plugins**.
-3. Under **Installed plugins**, enable **ABC Blocks**.
-4. Reload the app if the plugin does not appear immediately.
+You do not need to clone this repository or build from source.
+
+Repository: https://github.com/milestnnr-music/obsidian-music-notation
+
+**There is no published GitHub release yet.** Install from the release zip `abc-blocks-1.1.0.zip`. In a local copy of this project that zip is at `dist/abc-blocks-1.1.0.zip` (that folder is not in git, because the zip contains the built `main.js`). When a release is published on the repository above, download the same zip from that release and follow these steps.
+
+The zip has exactly three files at the archive root (not inside an extra folder):
+
+- `manifest.json`
+- `main.js`
+- `styles.css`
+
+1. In your vault, create the folder `.obsidian/plugins/abc-blocks/` if it does not exist.
+2. Copy those three files into that folder so they sit directly inside it:
+
+   `<vault>/.obsidian/plugins/abc-blocks/manifest.json`  
+   `<vault>/.obsidian/plugins/abc-blocks/main.js`  
+   `<vault>/.obsidian/plugins/abc-blocks/styles.css`
+
+3. In Obsidian: **Settings → Community plugins → Turn on community plugins**.
+4. Under **Installed plugins**, enable **ABC Blocks**.
+5. Reload the app if the plugin does not appear immediately (**Command palette → Reload app without saving**).
 
 ### Create a block
 
@@ -141,11 +158,22 @@ The plugin shows a short friendly message (“Couldn't render this ABC.”) and 
 
 ## Development setup
 
-Use a **separate dev vault** — never develop plugins in your main vault.
+For changing the plugin. Use a separate dev vault, not the vault where you take notes.
 
-**Dev vault path:** `Desktop/Ideas/Obsidian Dev Vault`
+```bash
+cd obsidian-abc-blocks
+npm install
+npm run build
+```
 
-### Symlink the plugin
+`npm run build` writes `main.js`. `npm run dev` watches `src/` and rebuilds it. Enable **ABC Blocks** under **Settings → Community plugins**, then reload after changes (**Command palette → Reload app without saving**). Optional: [Hot-Reload](https://github.com/pjeby/hot-reload).
+
+```bash
+npm run lint
+npm run test:all
+```
+
+**Developer note:** one local dev vault is `Desktop/Ideas/Obsidian Dev Vault`, symlinked at the repo root so `plugins/abc-blocks/manifest.json` is not nested:
 
 ```bash
 mkdir -p "/Users/milestanner/Desktop/Ideas/Obsidian Dev Vault/.obsidian/plugins"
@@ -154,34 +182,7 @@ ln -s "/Users/milestanner/Desktop/Ideas/Obsidian Extention Idea/obsidian-abc-blo
   "/Users/milestanner/Desktop/Ideas/Obsidian Dev Vault/.obsidian/plugins/abc-blocks"
 ```
 
-Verify `.../plugins/abc-blocks/manifest.json` exists (not nested `abc-blocks/obsidian-abc-blocks/`). The folder name must match plugin id `abc-blocks`.
-
-### Build and enable
-
-```bash
-cd obsidian-abc-blocks
-npm install
-npm run dev    # watch src/ → main.js
-```
-
-In the dev vault: **Settings → Community plugins** → enable **ABC Blocks** → reload after changes (**Command palette → Reload app without saving**). Optional: [Hot-Reload](https://github.com/pjeby/hot-reload) plugin.
-
-| Symptom | Fix |
-| ------- | --- |
-| Plugin not listed | Turn on community plugins; confirm `main.js` and `manifest.json` are directly inside `plugins/abc-blocks/` |
-| Nested `abc-blocks/obsidian-abc-blocks/` | Recreate symlink so `abc-blocks` points at the repo root |
-| Won't enable | Run `npm run build` or `npm run dev`; reload Obsidian |
-| Changes not appearing | Keep `npm run dev` running; reload the app |
-
-### Production build & tests
-
-```bash
-npm run build
-npm run lint
-npm run test:all
-```
-
-Local Live Preview probes (dev vault open): `npm run sync:test-note`, `npm run compare:phase-4.5-probe`.
+The folder name must match the plugin id `abc-blocks`. That symlink is only a development shortcut. Other people should use the manual install above.
 
 ---
 
@@ -213,4 +214,4 @@ https://github.com/milestnnr-music/obsidian-music-notation
 
 ## License
 
-MIT
+[MIT](./LICENSE) — Copyright (c) 2026 Miles Tanner.

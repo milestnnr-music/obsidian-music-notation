@@ -23,6 +23,8 @@ test-results/
 .cursor/
 .vscode/
 
-# Development notes kept locally; not part of a plugin release
+# Local agent instructions, not part of the plugin release
 AGENTS.md
-docs/
+
+# Release zip includes main.js. Publish the zip with a GitHub release, not git.
+dist/
