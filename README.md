@@ -173,13 +173,13 @@ npm run lint
 npm run test:all
 ```
 
-**Developer note:** one local dev vault is `Desktop/Ideas/Obsidian Dev Vault`, symlinked at the repo root so `plugins/abc-blocks/manifest.json` is not nested:
+**Developer note:** symlink this repo into a separate dev vault so `plugins/abc-blocks/manifest.json` sits at the folder root and is not nested:
 
 ```bash
-mkdir -p "/Users/milestanner/Desktop/Ideas/Obsidian Dev Vault/.obsidian/plugins"
+mkdir -p "/path/to/dev-vault/.obsidian/plugins"
 
-ln -s "/Users/milestanner/Desktop/Ideas/Obsidian Extention Idea/obsidian-abc-blocks" \
-  "/Users/milestanner/Desktop/Ideas/Obsidian Dev Vault/.obsidian/plugins/abc-blocks"
+ln -s "/path/to/obsidian-abc-blocks" \
+  "/path/to/dev-vault/.obsidian/plugins/abc-blocks"
 ```
 
 The folder name must match the plugin id `abc-blocks`. That symlink is only a development shortcut. Other people should use the manual install above.

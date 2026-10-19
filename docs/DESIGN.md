@@ -434,13 +434,12 @@ Phase 1 is done. Start Phase 2.1: integrate abcjs render path.
 1. Confirm **current phase** in this file’s status line and `README.md`.
 2. Identify the **step id** (e.g. 1.1) and its blockers from the phase tables above.
 3. Touch only modules listed for that phase; keep stubs until their phase.
-4. Run `npm run dev` and test in the **dev vault** (`Desktop/Ideas/Obsidian Dev Vault`).
+4. Run `npm run dev` and test in a separate **dev vault**.
 5. When you finish a step or fix, **bump `version`** per [Versioning](#versioning-agents-must-keep-in-sync) and sync all listed files.
 
 ### Repository
 
 - **GitHub:** [https://github.com/milestnnr-music/obsidian-music-notation](https://github.com/milestnnr-music/obsidian-music-notation)
-- **Local path:** `/Users/milestanner/Desktop/Ideas/Obsidian Extention Idea/obsidian-abc-blocks`
 - **Plugin folder in vault:** `.obsidian/plugins/abc-blocks/` (symlink to repo root)
 
 ---
