@@ -28,6 +28,7 @@ export interface AbcBlockIdentity {
 	readonly blockIndex: number;
 }
 
+/** Pair a fence's opening line with its index among all ```abc fences in the note. */
 function identityFromOpenLine(
 	openLines: number[],
 	openLine: number,
@@ -191,6 +192,7 @@ export function extractAbcBlockBodyAtOpenLine(
 	return bodies[index] ?? '';
 }
 
+/** Find the fence whose body matches this text, but only when exactly one fence matches. */
 function matchOpenLineByBody(
 	markdown: string,
 	openLines: number[],

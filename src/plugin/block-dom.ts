@@ -13,6 +13,7 @@ export function findAbcBlockEmbedHost(element: HTMLElement): HTMLElement | null 
 	return null;
 }
 
+/** True when a CodeMirror embed is the host for an ```abc fence, not some other language. */
 function isAbcLanguageEmbed(element: HTMLElement): boolean {
 	return Array.from(element.classList).some(
 		(className) =>

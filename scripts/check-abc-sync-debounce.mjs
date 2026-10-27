@@ -12,6 +12,7 @@ const { AbcSyncScheduler, ABC_SYNC_DEBOUNCE_MS } = await jiti.import(
 let passed = 0;
 let failed = 0;
 
+/** Record a pass or fail for one debounce check without stopping the rest of the script. */
 function assert(condition, message) {
 	if (!condition) {
 		console.error(`FAIL: ${message}`);
@@ -22,6 +23,7 @@ function assert(condition, message) {
 	passed++;
 }
 
+/** A clock the test moves by hand, so debounce timing does not depend on real setTimeout. */
 function createFakeTimer(deps = {}) {
 	const delayMs = deps.delayMs ?? ABC_SYNC_DEBOUNCE_MS;
 	const timers = new Map();
@@ -30,7 +32,9 @@ function createFakeTimer(deps = {}) {
 
 	return {
 		delayMs,
+		/** Current fake time in milliseconds, so a test can see how far the clock has moved. */
 		now: () => now,
+		/** Move the fake clock forward and run any callbacks that are now due. */
 		advance(ms) {
 			now += ms;
 			const due = [...timers.entries()]
@@ -43,11 +47,13 @@ function createFakeTimer(deps = {}) {
 		},
 		scheduler: new AbcSyncScheduler({
 			delayMs,
+			/** Record a callback to run when the fake clock reaches this delay. */
 			setTimer: (fn, ms) => {
 				const id = nextId++;
 				timers.set(id, { at: now + ms, fn });
 				return id;
 			},
+			/** Drop a scheduled callback when the scheduler is cancelled or rescheduled. */
 			clearTimer: (id) => {
 				timers.delete(id);
 			},

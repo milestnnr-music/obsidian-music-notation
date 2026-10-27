@@ -62,6 +62,7 @@ export function registerAbcCodeBlockProcessor(plugin: Plugin): void {
 	);
 }
 
+/** Identify which fence this processor belongs to, then mount Live Preview or Reading view. */
 async function handleAbcCodeBlock(
 	plugin: Plugin,
 	source: string,

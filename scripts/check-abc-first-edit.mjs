@@ -22,6 +22,7 @@ const { replaceAbcBlockBodyInMarkdown } = await jiti.import(
 let passed = 0;
 let failed = 0;
 
+/** Record a pass or fail for one first-edit check without stopping the rest of the script. */
 function assert(condition, message) {
 	if (!condition) {
 		console.error(`FAIL: ${message}`);

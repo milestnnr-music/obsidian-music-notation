@@ -2,6 +2,7 @@
 export const ABC_BLOCK_INDEX_ATTR = 'data-abc-block-index';
 export const ABC_OPEN_LINE_ATTR = 'data-abc-open-line';
 
+/** Parse `data-abc-block-index` into a 0-based index, or null when the attribute is missing or invalid. */
 export function parseBlockIndexAttr(raw: string | null | undefined): number | null {
 	if (!raw) {
 		return null;
@@ -10,6 +11,7 @@ export function parseBlockIndexAttr(raw: string | null | undefined): number | nu
 	return Number.isFinite(index) && index >= 0 ? index : null;
 }
 
+/** Parse `data-abc-open-line` into a line number, or null when it is not a finite number. */
 export function parseBlockOpenLineAttr(raw: string | null | undefined): number | null {
 	if (!raw) {
 		return null;
@@ -59,6 +61,7 @@ export function writePersistedBlockIdentityToShellAndProcessor(
 	}
 }
 
+/** Store this block's index and opening line on the processor element so a re-render can find it again. */
 export function writePersistedBlockIdentity(
 	processorEl: HTMLElement,
 	blockIndex: number,

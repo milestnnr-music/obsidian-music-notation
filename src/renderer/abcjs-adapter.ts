@@ -75,6 +75,7 @@ export function renderAbcToElementWhenReady(
 	const delays = [0, 0, 50, 150];
 	let attempt = 0;
 
+	/** Render once, then retry on the next frames when Live Preview has not laid the block out yet. */
 	const tryRender = (): Promise<AbcRenderResult> => {
 		const result = renderAbcToElement(container, trimmed, options);
 		if (result.ok) {
@@ -92,6 +93,7 @@ export function renderAbcToElementWhenReady(
 
 		const delay = delays[attempt] ?? 0;
 		return new Promise((resolve) => {
+			/** Continue the retry after the next frame or the scheduled delay. */
 			const run = () => {
 				void tryRender().then(resolve);
 			};
@@ -106,10 +108,12 @@ export function renderAbcToElementWhenReady(
 	return tryRender();
 }
 
+/** True when abcjs actually drew glyphs, not an empty SVG from a headers-only tune. */
 function svgHasNotation(svg: Element): boolean {
 	return svg.querySelectorAll('path, line, text, rect').length > 0;
 }
 
+/** Staff width from the nearest laid-out parent, so Live Preview does not render at 0px. */
 function resolveStaffWidth(container: HTMLElement): number {
 	const paddingAllowance = 32;
 	let el: HTMLElement | null = container;

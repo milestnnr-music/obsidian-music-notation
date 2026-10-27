@@ -90,6 +90,7 @@ export function abcSuffixToDuration(
 	return null;
 }
 
+/** True for A–G in either case, used while scanning an ABC music line for notes. */
 export function isAbcPitchLetter(char: string): boolean {
 	return ABC_STEPS.has(char.toUpperCase());
 }
@@ -201,6 +202,7 @@ export function parseAbcDurationSuffix(source: string, index: number): {
 	return { suffix: '', consumed: 0 };
 }
 
+/** Read a run of digits starting at `index`, used when a duration suffix is a number. */
 function readDigits(source: string, index: number): string {
 	let i = index;
 	while (i < source.length) {

@@ -46,6 +46,7 @@ export function getAmbiguousSectionLineStarts(sourcePath: string): ReadonlySet<n
 	return ambiguous;
 }
 
+/** Forget this file's render-pass counters after the current batch of processors finishes. */
 function queueRenderPassReset(sourcePath: string): void {
 	if (resetQueued.has(sourcePath)) {
 		return;
@@ -61,6 +62,7 @@ function queueRenderPassReset(sourcePath: string): void {
 	});
 }
 
+/** Run after the current turn so every block in the pass can still see shared line-start data. */
 function deferAfterRenderPass(callback: () => void): void {
 	if (typeof window !== 'undefined') {
 		window.setTimeout(callback, 0);

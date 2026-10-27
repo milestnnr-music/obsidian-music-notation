@@ -90,6 +90,7 @@ export function recordPhase45ProbeShell(
 	shellsByPath.set(sourcePath, list);
 }
 
+/** Assemble the probe JSON for one note: fence previews plus the latest shell records. */
 export function buildPhase45ProbeSnapshot(
 	sourcePath: string,
 	markdown: string,
@@ -111,10 +112,12 @@ export function buildPhase45ProbeSnapshot(
 let flushTimer: number | null = null;
 let lastMarkdownByPath = new Map<string, string>();
 
+/** Cache the markdown a shell just read so the probe does not have to re-read the vault. */
 export function noteMarkdownForProbe(sourcePath: string, markdown: string): void {
 	lastMarkdownByPath.set(sourcePath, markdown);
 }
 
+/** Markdown for the probe: the cache, then an open editor, then the file on disk. */
 async function readMarkdownForProbe(app: App, sourcePath: string): Promise<string> {
 	const cached = lastMarkdownByPath.get(sourcePath);
 	if (cached !== undefined && cached.length > 0) {
@@ -140,6 +143,7 @@ async function readMarkdownForProbe(app: App, sourcePath: string): Promise<strin
 	return '';
 }
 
+/** Create the folder that will hold the probe file when it does not exist yet. */
 async function ensureParentDir(adapter: DataAdapter, filePath: string): Promise<void> {
 	const parts = filePath.split('/');
 	parts.pop();
@@ -163,6 +167,7 @@ async function ensureParentDir(adapter: DataAdapter, filePath: string): Promise<
 
 type DataAdapter = App['vault']['adapter'];
 
+/** Write the probe into the plugin folder and a visible vault copy; one success is enough. */
 async function writeProbePayload(app: App, payload: string): Promise<void> {
 	const adapter = app.vault.adapter;
 	const targets = [PHASE_45_PROBE_PLUGIN_PATH, PHASE_45_PROBE_VAULT_PATH];
@@ -214,6 +219,7 @@ export function schedulePhase45ProbeFlush(
 	}, 50);
 }
 
+/** Write the latest probe to disk and into a script tag the compare tool can read. */
 export async function flushPhase45Probe(
 	app: App,
 	sourcePath: string,
@@ -226,6 +232,7 @@ export async function flushPhase45Probe(
 	await writeProbePayload(app, payload);
 }
 
+/** Put the probe JSON in a script tag so a headless check can read it from the document. */
 export function writePhase45ProbeToDocument(
 	document: Document,
 	snapshot: Phase45ProbeSnapshot,

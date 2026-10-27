@@ -26,6 +26,7 @@ export function detectAbcBlockViewMode(app: App, el: HTMLElement): AbcBlockViewM
 	return 'live-preview';
 }
 
+/** Find the markdown leaf that contains this element, so view mode is not guessed from the active tab alone. */
 function findMarkdownViewContaining(app: App, el: HTMLElement): MarkdownView | null {
 	let found: MarkdownView | null = null;
 

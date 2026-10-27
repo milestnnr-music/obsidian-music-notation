@@ -22,7 +22,7 @@ export const KEY_SIGNATURE_OPTIONS: readonly string[] = [
 /** v1 time signatures — ABC `M:` values. */
 export const TIME_SIGNATURE_OPTIONS: readonly string[] = ['4/4', '3/4', '2/4'];
 
-/** Phase 5.6: Key and time signature pickers for the current block. */
+/** Add key and time dropdowns that update this block and write the new headers back to the note. */
 export function mountKeyTimeControls(
 	container: HTMLElement,
 	deps: KeyTimeControlsDeps,
@@ -61,6 +61,7 @@ export function mountKeyTimeControls(
 		timeSelect.createEl('option', { text: time, attr: { value: time } });
 	}
 
+	/** Show the score's key and time, falling back when the value is outside the v1 lists. */
 	const syncFromScore = (): void => {
 		const score = deps.getScore();
 		keySelect.value = normalizeSelectValue(
@@ -75,6 +76,7 @@ export function mountKeyTimeControls(
 		);
 	};
 
+	/** Redraw after a header change and debounce the markdown write. */
 	const commitHeaderChange = (updated: Score): void => {
 		if (updated === deps.getScore()) {
 			return;
@@ -88,11 +90,13 @@ export function mountKeyTimeControls(
 		});
 	};
 
+	/** Apply the key dropdown to the score. */
 	const onKeyChange = (): void => {
 		const updated = setKeySignature(deps.getScore(), keySelect.value);
 		commitHeaderChange(updated);
 	};
 
+	/** Apply the time dropdown to the score. */
 	const onTimeChange = (): void => {
 		const updated = setTimeSignature(deps.getScore(), timeSelect.value);
 		commitHeaderChange(updated);
@@ -110,6 +114,7 @@ export function mountKeyTimeControls(
 	syncFromScore();
 }
 
+/** Use the score's value when it is in the dropdown; otherwise show the first allowed option. */
 function normalizeSelectValue(
 	value: string,
 	options: readonly string[],

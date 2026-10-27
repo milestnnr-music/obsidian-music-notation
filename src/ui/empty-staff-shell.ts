@@ -7,7 +7,7 @@ import { getImplicitDefaultAbcShell } from '../serializer/abc-defaults';
 import { renderAbcToElementWhenReady } from '../renderer/abcjs-adapter';
 import { mountFallbackUi } from './fallback';
 
-/** Phase 2.3: Render an empty treble staff using implicit defaults (4/4, C, quarter). */
+/** Draw the default empty treble staff for a blank fence, falling back to a message if abcjs fails. */
 export function mountEmptyStaffShell(container: HTMLElement): void {
 	container.empty();
 	container.createDiv({

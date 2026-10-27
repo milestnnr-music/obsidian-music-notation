@@ -17,6 +17,7 @@ const vault =
 	join(home, 'Desktop/Ideas/Obsidian Dev Vault');
 const probeFile = join(repoRoot, 'test-results', 'phase-45-probe.json');
 
+/** Run one step of the phase 4.5 cycle and stop the script if that step fails. */
 function run(cmd, args, opts = {}) {
 	const result = spawnSync(cmd, args, {
 		cwd: repoRoot,

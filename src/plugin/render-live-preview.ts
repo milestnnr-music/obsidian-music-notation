@@ -38,6 +38,7 @@ import {
 	type AbcBlockSyncContext,
 } from '../editor/sync';
 
+/** Live Preview child that keeps one ```abc block's staff in sync with the note. */
 class AbcLivePreviewShell extends MarkdownRenderChild {
 	private lastSource = '';
 	private refreshTimer: number | null = null;
@@ -45,6 +46,7 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 	private resolvedBlockOpenLine: number | null;
 	private resolvedBlockIndex: number | null;
 
+	/** Remember which fence this shell belongs to and the source it was first given. */
 	constructor(
 		containerEl: HTMLElement,
 		private readonly shellRoot: HTMLElement,
@@ -64,6 +66,7 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 		this.resolvedBlockIndex = blockIndex;
 	}
 
+	/** Draw the staff and refresh it when the user edits this note's markdown. */
 	onload(): void {
 		void this.bootstrapShell();
 		this.registerEvent(
@@ -79,6 +82,7 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 		);
 	}
 
+	/** Flush a pending ABC write and cancel the refresh timer before the shell is removed. */
 	onunload(): void {
 		flushAbcSyncScheduler(this.syncScheduler);
 		if (this.refreshTimer !== null) {
@@ -87,6 +91,7 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 		}
 	}
 
+	/** Remember this fence's line and index on the shell so later refreshes hit the same block. */
 	private persistBlockIdentity(openLine: number, blockIndex: number): void {
 		this.resolvedBlockOpenLine = openLine;
 		this.resolvedBlockIndex = blockIndex;
@@ -97,6 +102,7 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 		);
 	}
 
+	/** Look up the opening fence line from the stored block index after the note text moves. */
 	private async resolveBlockOpenLineFromStableIndex(
 		markdown: string,
 	): Promise<number | null> {
@@ -116,6 +122,7 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 		return openLine;
 	}
 
+	/** Block index from the DOM attribute, falling back to the index captured at mount. */
 	private currentBlockIndex(): number | null {
 		return (
 			parseBlockIndexAttr(this.shellRoot.getAttribute(ABC_BLOCK_INDEX_ATTR)) ??
@@ -145,6 +152,7 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 		return readAbcBodyAtBlockIndex(markdown, blockIndex);
 	}
 
+	/** Version string written into the dev probe so a stale Obsidian session can be detected. */
 	private pluginVersion(): string {
 		return '0.2.8';
 	}
@@ -174,6 +182,7 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 	 * Re-read fence body from the editor by `data-abc-block-index`.
 	 * Runs even when DOM embed mapping is unreliable (inline sibling source edit).
 	 */
+	/** Adopt the visual embed index when it disagrees with the stored index and the mapping is trustworthy. */
 	private applyDomIndexFromSnapshot(snapshot: LpEmbedSnapshot): void {
 		const domIndex = domBlockIndexWhenReliable(snapshot);
 		if (domIndex === null || domIndex === this.currentBlockIndex()) {
@@ -185,6 +194,7 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 		}
 	}
 
+	/** Re-read this fence from the editor and redraw if the markdown changed under us. */
 	private async reconcileFromEditorByIndex(event: string): Promise<void> {
 		const snapshot = buildLpEmbedSnapshot(
 			this.app,
@@ -232,6 +242,7 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 		};
 	}
 
+	/** Sync target for writes, with a notice when this shell cannot tell which fence it is. */
 	private async syncContext(): Promise<AbcBlockSyncContext> {
 		const ctx = this.buildSyncContext();
 		if (ctx.blockIndex === null) {
@@ -240,6 +251,7 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 		return ctx;
 	}
 
+	/** True when the mount already shows the empty shell or a rendered staff, so we can skip a redraw. */
 	private hasExpectedWidget(isEmpty: boolean): boolean {
 		if (isEmpty) {
 			return (
@@ -253,6 +265,7 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 		);
 	}
 
+	/** Replace the staff when the fence text changed, and record a probe sample for tests. */
 	private mount(source: string, event: string): void {
 		const isEmpty = isEmptyAbcBlockSource(source);
 
@@ -282,6 +295,7 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 		this.recordProbe(source, event);
 	}
 
+	/** Snapshot this shell for the multi-block dev probe and schedule a debounced write. */
 	private recordProbe(source: string, event: string): void {
 		recordPhase45ProbeShell(
 			this.ctx.sourcePath,
@@ -303,10 +317,7 @@ class AbcLivePreviewShell extends MarkdownRenderChild {
 	}
 }
 
-/**
- * Phase 1.3: Live Preview — interactive editing shell (widget in Phase 5).
- * Runs only when the block is rendered inside the source editor preview layer.
- */
+/** Mount the interactive editor for one ```abc fence inside Live Preview. */
 export function renderLivePreview(
 	root: HTMLElement,
 	resolvedSource: string,

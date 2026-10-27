@@ -9,6 +9,7 @@ interface SvgIntrinsicBox {
 	readonly y: number;
 }
 
+/** SVG user-space box from the viewBox, or from width/height when viewBox is missing. */
 function readSvgIntrinsicBox(svg: SVGSVGElement, rect: DOMRect): SvgIntrinsicBox {
 	const viewBox = svg.viewBox?.baseVal;
 	if (viewBox && viewBox.width > 0 && viewBox.height > 0) {
@@ -37,6 +38,7 @@ function readSvgIntrinsicBox(svg: SVGSVGElement, rect: DOMRect): SvgIntrinsicBox
 	};
 }
 
+/** True when the element can report a bounding box, which text and some wrappers cannot. */
 function isSvgGraphicsElement(el: Element): el is SVGGraphicsElement {
 	return typeof (el as SVGGraphicsElement).getBBox === 'function';
 }
@@ -84,6 +86,7 @@ export function elementClientCenterY(el: Element): number | null {
 	return null;
 }
 
+/** Y of a horizontal staff-line path when layout boxes are empty, as in some headless tests. */
 function horizontalCenterFromPathD(d: string | null): number | null {
 	if (!d) {
 		return null;

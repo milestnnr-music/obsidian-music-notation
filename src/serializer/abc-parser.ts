@@ -16,7 +16,7 @@ import {
 	parseAbcPitch,
 } from './abc-mapping';
 
-/** Phase 3: Parse ABC text into a Score model. */
+/** Parse fence ABC into a score plus warnings, used when loading a block into the editor. */
 export function parseAbc(abc: string): AbcParseResult {
 	const warnings: AbcParseWarning[] = [];
 	const lines = abc
@@ -94,6 +94,7 @@ export function parseAbc(abc: string): AbcParseResult {
 	};
 }
 
+/** Assemble the v1 score: one treble staff, keeping an empty measure when the body has no bars. */
 function createScore(
 	timeSignature: string,
 	keySignature: string,
@@ -113,6 +114,7 @@ function createScore(
 	};
 }
 
+/** Split a music line on bar lines and parse each measure's notes and rests. */
 function parseMeasures(
 	body: string,
 	defaultNoteDuration: Score['defaultNoteDuration'],
@@ -124,6 +126,7 @@ function parseMeasures(
 	}));
 }
 
+/** Walk one measure left to right, skipping whitespace and recording unsupported symbols as warnings. */
 function parseMeasureEvents(
 	segment: string,
 	defaultNoteDuration: Score['defaultNoteDuration'],
@@ -178,6 +181,7 @@ function parseMeasureEvents(
 	return events;
 }
 
+/** Read one pitch and its duration suffix, used for ordinary notes (not chords or rests). */
 function parseNote(
 	source: string,
 	index: number,
@@ -204,6 +208,7 @@ function parseNote(
 	};
 }
 
+/** Read a `z` rest and its duration suffix from the current index in a measure. */
 function parseRest(
 	source: string,
 	index: number,
@@ -225,6 +230,7 @@ function parseRest(
 	};
 }
 
+/** Read a `[...]` chord and keep only the first pitch, which is all v1 can store. */
 function parseChord(
 	source: string,
 	index: number,
@@ -263,6 +269,7 @@ function parseChord(
 	};
 }
 
+/** Add a parse warning once; repeated identical messages are dropped so the UI is not spammed. */
 function pushWarning(
 	warnings: AbcParseWarning[],
 	kind: AbcParseWarning['kind'],
@@ -317,6 +324,7 @@ export function scoresEqual(a: Score, b: Score): boolean {
 	return true;
 }
 
+/** Compare one note or rest, including the first pitch's step, octave, and accidental. */
 function eventsEqual(a: MeasureEvent | undefined, b: MeasureEvent | undefined): boolean {
 	if (!a || !b) {
 		return false;

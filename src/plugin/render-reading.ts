@@ -2,9 +2,7 @@ import { getAbcBlockContentState } from './block-source';
 import { mountAbcOrFallback } from '../ui/fallback';
 import { mountEmptyStaffShell } from '../ui/empty-staff-shell';
 
-/**
- * Phase 1.2 / 2.4 / 2.3 / 5.8: Reading view — static abcjs SVG only (no toolbar, badge, or interaction).
- */
+/** Draw a static staff in Reading view: an empty shell for blank fences, otherwise the ABC or a fallback message. */
 export function renderReadingView(root: HTMLElement, source: string): void {
 	const contentState = getAbcBlockContentState(source);
 	const isEmpty = contentState === 'empty';

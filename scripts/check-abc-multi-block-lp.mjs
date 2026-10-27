@@ -64,6 +64,7 @@ const {
 let passed = 0;
 let failed = 0;
 
+/** Record a pass or fail for one multi-block check without stopping the rest of the script. */
 function assert(condition, message) {
 	if (!condition) {
 		console.error(`FAIL: ${message}`);
@@ -110,6 +111,7 @@ function resolveDomBlockIdentity(previewRoot, processorEl, markdown) {
 	return null;
 }
 
+/** Build two ```abc embed hosts so tests can map processors to fences without Obsidian. */
 function buildTwoBlockPreviewDom(window) {
 	const previewRoot = window.document.createElement('div');
 	previewRoot.className = 'markdown-source-view';
@@ -128,6 +130,7 @@ function buildTwoBlockPreviewDom(window) {
 	return { previewRoot, hosts };
 }
 
+/** Resolve a processor the way Live Preview does: text identity first, then the embed's DOM index. */
 function resolveProcessorPass(markdown, previewRoot, processorEl, processorSource, renderOrdinal) {
 	return (
 		resolveAbcBlockIdentity(markdown, null, processorSource, renderOrdinal) ??
@@ -222,6 +225,7 @@ const window = new Window();
 globalThis.HTMLElement = window.HTMLElement;
 // Obsidian DOM nodes expose instanceOf(); happy-dom does not — polyfill for LP DOM tests.
 if (typeof window.HTMLElement.prototype.instanceOf !== 'function') {
+	/** Obsidian's element type check, stubbed because happy-dom does not provide it. */
 	window.HTMLElement.prototype.instanceOf = function (type) {
 		return this instanceof type;
 	};

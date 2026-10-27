@@ -7,7 +7,7 @@ export function getScoreMeasureCount(score: Score): number {
 	return score.staves[0]?.measures.length ?? 0;
 }
 
-/** Phase 5: Soft warning when a score exceeds the measure threshold. */
+/** Banner text when a score is longer than the teaching threshold; null when it is still short enough. */
 export function getMeasureWarning(
 	measureCount: number,
 	threshold = ABC_DEFAULTS.measureWarningThreshold,

@@ -3,7 +3,7 @@ import { renderAbcToElementWhenReady } from '../renderer/abcjs-adapter';
 
 export { ABC_FALLBACK_MESSAGE };
 
-/** Phase 2.2: Graceful fallback when ABC cannot be parsed or rendered. */
+/** Replace the staff with a short message and the raw ABC when notation cannot be drawn. */
 export function mountFallbackUi(
 	container: HTMLElement,
 	abc: string,

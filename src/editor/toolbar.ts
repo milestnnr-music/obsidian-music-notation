@@ -37,7 +37,7 @@ export interface ToolbarSelectionDeps {
 	) => void;
 }
 
-/** Phase 5.1: Duration and accidental toolbar controls. */
+/** Build the duration, rest, and accidental buttons and keep them in sync with editor state. */
 export function mountToolbar(
 	container: HTMLElement,
 	state: EditorStateController,
@@ -133,6 +133,7 @@ export function mountToolbar(
 		accidentalButtons.set(accidental, button);
 	}
 
+	/** Paint the pressed button and disable accidentals while rest mode is on. */
 	const syncActive = (editorState: ReturnType<EditorStateController['getState']>): void => {
 		const restMode = editorState.placementMode === 'rest';
 		container.toggleClass('abc-blocks-toolbar-rest-mode', restMode);

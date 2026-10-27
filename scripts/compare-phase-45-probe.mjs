@@ -57,11 +57,13 @@ console.log(`Reading probe: ${probePath}`);
 
 let failed = 0;
 
+/** Count a probe mismatch and print it; the script exits later if any failed. */
 function fail(msg) {
 	console.error(`FAIL: ${msg}`);
 	failed++;
 }
 
+/** Print a probe field that matched the expected snapshot. */
 function ok(msg) {
 	console.log(`OK: ${msg}`);
 }

@@ -15,6 +15,7 @@ const DURATION_PREVIEW_NOTE: Readonly<Record<NoteDuration, string>> = {
 	eighth: 'C/',
 };
 
+/** A one-note ABC tune used only to engrave a toolbar icon with abcjs. */
 function toolbarPreviewAbc(body: string): string {
 	return [
 		'X:1',
@@ -25,10 +26,12 @@ function toolbarPreviewAbc(body: string): string {
 	].join('\n');
 }
 
+/** Preview tune for one duration button, matching the note lengths the staff uses. */
 function durationPreviewAbc(duration: NoteDuration): string {
 	return toolbarPreviewAbc(DURATION_PREVIEW_NOTE[duration]);
 }
 
+/** Preview tune for the rest button: one quarter rest in the default key and time. */
 function restPreviewAbc(): string {
 	return toolbarPreviewAbc('z');
 }
@@ -40,6 +43,7 @@ interface NoteBBox {
 	readonly height: number;
 }
 
+/** Bounding box of a rendered glyph, or null when the SVG is not laid out yet. */
 function readElementBBox(element: Element): NoteBBox | null {
 	if (!('getBBox' in element) || typeof element.getBBox !== 'function') {
 		return null;
@@ -57,6 +61,7 @@ function readElementBBox(element: Element): NoteBBox | null {
 	return null;
 }
 
+/** Copy one abcjs glyph into a small SVG cropped to that glyph's box. */
 function mountExtractedGlyph(
 	icon: HTMLElement,
 	source: Element,
@@ -80,11 +85,13 @@ function mountExtractedGlyph(
 	icon.appendChild(svg);
 }
 
+/** Show the offscreen preview in the button when the glyph box cannot be measured. */
 function mountPreviewCrop(icon: HTMLElement, scratch: HTMLElement): void {
 	icon.addClass('abc-blocks-toolbar-glyph-preview-live');
 	icon.appendChild(scratch);
 }
 
+/** Insert a hand-drawn SVG when abcjs cannot engrave the toolbar icon. */
 function mountFallbackSvgFromString(icon: HTMLElement, markup: string, doc: Document): void {
 	const parsed = new doc.defaultView!.DOMParser().parseFromString(markup, 'image/svg+xml');
 	const svg = parsed.documentElement;
@@ -103,6 +110,7 @@ const DURATION_FALLBACK_SVG: Readonly<Record<NoteDuration, string>> = {
 
 const REST_FALLBACK_SVG = `<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M8 14c3-1 5-3 5-5.5c0-2-1.5-3.5-3.5-3.5S6 6.5 6 8.5c0 1.2.6 2.2 1.6 2.8" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>`;
 
+/** Render a tiny ABC preview offscreen and use its note or rest as the button icon. */
 function mountAbcjsToolbarGlyph(
 	button: HTMLElement,
 	abc: string,

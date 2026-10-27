@@ -2,7 +2,7 @@ import { getMeasureWarning } from './measure-warning';
 
 const DISMISSED_COUNT_ATTR = 'data-abc-measure-warning-dismissed-at';
 
-/** Phase 5.7: informational banner when a score exceeds the measure threshold. */
+/** Show or hide the measure-count banner, remembering a dismiss until the count changes. */
 export function mountMeasureWarning(container: HTMLElement, measureCount: number): void {
 	const message = getMeasureWarning(measureCount);
 	const dismissedAt = container.getAttribute(DISMISSED_COUNT_ATTR);

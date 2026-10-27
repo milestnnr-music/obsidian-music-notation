@@ -1,7 +1,3 @@
-/**
- * Phase 5: Live Preview root widget for ```abc blocks.
- * Phase 1.3 mounts this inside the interactive shell; Phase 2.1 renders ABC via abcjs.
- */
 import type { NoteDuration, Score } from '../model/types';
 import { EditorStateController } from './editor-state';
 import { mountKeyTimeControls } from './key-time-controls';
@@ -34,6 +30,7 @@ export interface EditorWidgetMountOptions {
 
 const disposeByMount = new WeakMap<HTMLElement, () => void>();
 
+/** Build the Live Preview editor: toolbar, warning, and staff, and keep them tied to one score. */
 export function mountEditorWidget(
 	container: HTMLElement,
 	source = '',
@@ -61,6 +58,7 @@ export function mountEditorWidget(
 	let currentScore = parseSourceToScore(source);
 	let detachStaff: (() => void) | null = null;
 
+	/** Store an edited score, redraw the staff, and debounce a write back to the fence. */
 	const commitScoreChange = (updated: Score): void => {
 		if (updated === currentScore) {
 			return;
@@ -80,6 +78,7 @@ export function mountEditorWidget(
 
 	mountToolbar(toolbarMount, editorState, {
 		getSelectedNoteRef: () => selectionBridge.getSelection(),
+		/** Rewrite the selected note or rest to the duration the user just picked. */
 		onSelectedNoteDurationChange: (ref, duration: NoteDuration) => {
 			commitScoreChange(
 				changeEventDurationInScore(
@@ -92,6 +91,7 @@ export function mountEditorWidget(
 		},
 	});
 
+	/** Refresh the measure-count banner from the score currently on screen. */
 	const refreshMeasureWarning = (): void => {
 		mountMeasureWarning(measureWarningMount, getScoreMeasureCount(currentScore));
 	};
@@ -101,6 +101,7 @@ export function mountEditorWidget(
 		(root): root is HTMLElement => root instanceof HTMLElement,
 	);
 
+	/** Draw the staff from the score, or a fallback when the source has symbols we cannot edit. */
 	const renderStaff = (): void => {
 		refreshMeasureWarning();
 		detachStaff?.();
@@ -157,6 +158,7 @@ export function mountEditorWidget(
 	if (sync) {
 		mountKeyTimeControls(toolbarMount, {
 			getScore: () => currentScore,
+			/** Keep the on-screen score in step with a key or time change, then redraw. */
 			onScoreChange: (score: Score) => {
 				currentScore = score;
 				renderStaff();

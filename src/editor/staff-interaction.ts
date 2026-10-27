@@ -26,10 +26,12 @@ export interface StaffInteractionOptions {
 	readonly visualRoots?: readonly HTMLElement[];
 }
 
+/** True for Delete or Backspace, the keys that remove the selected note. */
 function isDeleteKey(event: KeyboardEvent): boolean {
 	return event.key === 'Delete' || event.key === 'Backspace';
 }
 
+/** DOM roots that may still hold selection marks after abcjs replaces the SVG. */
 function collectVisualRoots(
 	container: HTMLElement,
 	visualRoots?: readonly HTMLElement[],
@@ -69,7 +71,7 @@ export interface StaffInteractionHandle {
 	readonly getSelection: () => ScoreNoteRef | null;
 }
 
-/** Phase 5.2: Snap grid place + Shift select on rendered staff. */
+/** Wire click, hover, and delete on a rendered staff so notes can be placed, selected, and removed. */
 export function attachStaffInteraction(
 	container: HTMLElement,
 	options: StaffInteractionOptions,
@@ -81,6 +83,7 @@ export function attachStaffInteraction(
 
 	container.setAttribute('tabindex', '-1');
 
+	/** Apply a score edit and queue a debounced write back to this block's fence. */
 	const commitScoreChange = (updated: Score): void => {
 		options.onScoreChange(updated);
 		void options.getSyncContext().then((ctx) => {
@@ -91,6 +94,7 @@ export function attachStaffInteraction(
 		});
 	};
 
+	/** Remove the selected event and clear marks so a redraw does not leave a stale highlight. */
 	const deleteSelectedNote = (ref: ScoreNoteRef): void => {
 		const updated = deleteNoteFromScore(
 			options.getScore(),
@@ -104,6 +108,7 @@ export function attachStaffInteraction(
 		commitScoreChange(updated);
 	};
 
+	/** Create the horizontal snap line the first time the pointer moves over the staff. */
 	const ensureGuide = (): HTMLElement => {
 		if (!guideEl) {
 			guideEl = container.createDiv({ cls: 'abc-blocks-snap-guide' });
@@ -111,10 +116,12 @@ export function attachStaffInteraction(
 		return guideEl;
 	};
 
+	/** Hide the snap line when the pointer leaves the staff or Shift-select starts. */
 	const hideGuide = (): void => {
 		guideEl?.removeClass('abc-blocks-snap-guide-visible');
 	};
 
+	/** Place the snap line on the pitch row under the pointer, in the staff container's coordinates. */
 	const showGuideAtClientY = (clientY: number, svg: SVGSVGElement): void => {
 		const guide = ensureGuide();
 		const svgRect = svg.getBoundingClientRect();
@@ -126,6 +133,7 @@ export function attachStaffInteraction(
 		guide.addClass('abc-blocks-snap-guide-visible');
 	};
 
+	/** Hover a note while Shift is held; otherwise show the pitch snap line. */
 	const onMouseMove = (event: MouseEvent): void => {
 		const svg = container.querySelector('svg');
 		if (!svg) {
@@ -154,12 +162,14 @@ export function attachStaffInteraction(
 		showGuideAtClientY(snap.guideClientY, svg);
 	};
 
+	/** Clear the snap line and hover when the pointer leaves the staff. */
 	const onMouseLeave = (): void => {
 		hideGuide();
 		selection.clearHover();
 		container.removeClass('abc-blocks-staff-selecting');
 	};
 
+	/** Shift-click selects a note; a normal click places a note or rest at the snapped pitch. */
 	const onClick = (event: Event): void => {
 		if (!(event instanceof MouseEvent) || event.button !== 0) {
 			return;
@@ -218,11 +228,12 @@ export function attachStaffInteraction(
 		commitScoreChange(updated);
 	};
 
+	/** Clear selection when focus or the pointer moves outside the editor chrome. */
 	const dismissSelection = (): void => {
 		selection.clearAllVisualState();
 	};
 
-	// abcjs attaches mousedown/mouseup on SVG and paints clicked notes fill="#ff0000".
+	/** Stop abcjs from painting a clicked note red; we draw our own selection instead. */
 	const blockAbcjsNoteHighlight = (event: Event): void => {
 		const svg = container.querySelector('svg');
 		const target = event.target;
@@ -232,6 +243,7 @@ export function attachStaffInteraction(
 		event.stopPropagation();
 	};
 
+	/** Deselect when the user clicks outside the staff and toolbar. */
 	const onDocumentPointerDown = (event: PointerEvent): void => {
 		const target = event.target;
 		if (
@@ -243,6 +255,7 @@ export function attachStaffInteraction(
 		dismissSelection();
 	};
 
+	/** Deselect when keyboard focus leaves the staff, unless it moved into the toolbar. */
 	const onFocusOut = (event: FocusEvent): void => {
 		const related = event.relatedTarget;
 		if (
@@ -254,6 +267,7 @@ export function attachStaffInteraction(
 		dismissSelection();
 	};
 
+	/** Delete or Backspace removes the selected note while the staff has focus. */
 	const onKeyDown = (event: KeyboardEvent): void => {
 		if (!isDeleteKey(event)) {
 			return;
@@ -269,6 +283,7 @@ export function attachStaffInteraction(
 		deleteSelectedNote(ref);
 	};
 
+	/** Mark the staff when rest mode is on so the cursor hint matches the toolbar. */
 	const syncPlacementModeClass = (): void => {
 		const restMode = options.editorState.getState().placementMode === 'rest';
 		container.toggleClass('abc-blocks-staff-rest-mode', restMode);
@@ -288,6 +303,7 @@ export function attachStaffInteraction(
 	container.addEventListener('touchend', blockAbcjsNoteHighlight, true);
 	ownerDocument.addEventListener('pointerdown', onDocumentPointerDown, true);
 
+	/** Remove listeners and marks when the staff is about to be redrawn. */
 	const detach = (): void => {
 		unsubscribePlacement();
 		container.removeEventListener('mousemove', onMouseMove);

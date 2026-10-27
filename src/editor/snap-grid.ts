@@ -86,6 +86,7 @@ export function snapVerticalPos(clientY: number, grid: SnapGrid): number {
 	return bestVp;
 }
 
+/** Viewport Y of a pitch slot, counting up from the treble staff's bottom line. */
 export function clientYForVerticalPos(
 	verticalPos: number,
 	geometry: StaffLineGeometry,
@@ -113,6 +114,7 @@ export function readStaffLineGeometryClient(
 	return geometryFromStaffLineYs(ys);
 }
 
+/** Viewport Y of each horizontal staff line, including ledger lines abcjs drew as paths. */
 function readStaffLineCentersClient(staff: Element): number[] {
 	const ys: number[] = [];
 	for (const el of Array.from(staff.querySelectorAll('line, path'))) {
@@ -127,6 +129,7 @@ function readStaffLineCentersClient(staff: Element): number[] {
 	return ys;
 }
 
+/** True for a wide line or a path whose top and bottom Y are almost the same. */
 function isHorizontalStaffLineElement(el: Element): boolean {
 	const rect = el.getBoundingClientRect();
 	if (rect.width > rect.height * 2) {
@@ -183,6 +186,7 @@ function geometryFromStaffLineYs(ys: number[]): StaffLineGeometry | null {
 	return geometryFromLineSpan(topLineY, bottomLineY);
 }
 
+/** Choose the five most evenly spaced line clusters so ledger lines are not treated as the staff. */
 function pickTrebleStaffLineClusters(clusters: number[]): number[] {
 	if (clusters.length <= TREBLE_STAFF_LINE_COUNT) {
 		return clusters;
@@ -227,6 +231,7 @@ function pickTrebleStaffLineClusters(clusters: number[]): number[] {
 	return clusters.slice(bestStart, bestStart + TREBLE_STAFF_LINE_COUNT);
 }
 
+/** Convert the top and bottom staff lines into a pixels-per-pitch step. */
 function geometryFromLineSpan(topLineY: number, bottomLineY: number): StaffLineGeometry | null {
 	const pitchSpan = TREBLE_TOP_LINE_VERTICAL_POS - TREBLE_BOTTOM_LINE_VERTICAL_POS;
 	const stepPx = (bottomLineY - topLineY) / pitchSpan;
@@ -237,6 +242,7 @@ function geometryFromLineSpan(topLineY: number, bottomLineY: number): StaffLineG
 	return { bottomLineY, stepPx };
 }
 
+/** Collapse Y values that are within 2px, because abcjs often draws a line as several segments. */
 function clusterYs(ys: number[]): number[] {
 	ys.sort((a, b) => a - b);
 	const clusters: number[] = [];

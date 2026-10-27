@@ -22,10 +22,12 @@ const {
 	mountKeyTimeControls,
 } = await jiti.import('../src/editor/key-time-controls.ts');
 
+/** Print a passing key/time check. */
 function ok(message) {
 	console.log(`OK: ${message}`);
 }
 
+/** Print a failing key/time check and stop the script. */
 function fail(message) {
 	console.error(`FAIL: ${message}`);
 	process.exit(1);
@@ -76,18 +78,22 @@ globalThis.document = window.document;
 globalThis.HTMLElement = window.HTMLElement;
 globalThis.HTMLSelectElement = window.HTMLSelectElement;
 
+/** Add the Obsidian element helpers this control uses, so happy-dom can host the toolbar. */
 function patchObsidianElement(el) {
 	if (typeof el.empty === 'function') {
 		return el;
 	}
+	/** Clears the element's children, matching Obsidian's empty() in these tests. */
 	el.empty = function empty() {
 		this.innerHTML = '';
 	};
+	/** Adds CSS classes the way Obsidian's addClass does. */
 	el.addClass = function addClass(...classes) {
 		for (const cls of classes) {
 			this.classList.add(cls);
 		}
 	};
+	/** Creates a child div and patches it so nested mounts can use the same helpers. */
 	el.createDiv = function createDiv({ cls, attr, text } = {}) {
 		const child = this.ownerDocument.createElement('div');
 		if (cls) {
@@ -106,6 +112,7 @@ function patchObsidianElement(el) {
 		this.appendChild(child);
 		return child;
 	};
+	/** Creates a child span and patches it so nested mounts can use the same helpers. */
 	el.createSpan = function createSpan({ cls, text } = {}) {
 		const child = this.ownerDocument.createElement('span');
 		if (cls) {
@@ -118,6 +125,7 @@ function patchObsidianElement(el) {
 		this.appendChild(child);
 		return child;
 	};
+	/** Creates a child element and patches it so nested mounts can use the same helpers. */
 	el.createEl = function createEl(tag, { cls, text, attr } = {}) {
 		const child = this.ownerDocument.createElement(tag);
 		if (cls) {
@@ -144,6 +152,7 @@ const scheduled = [];
 
 mountKeyTimeControls(toolbar, {
 	getScore: () => currentScore,
+	/** Remember the score the controls just produced so the test can read it. */
 	onScoreChange: (score) => {
 		currentScore = score;
 	},
@@ -154,6 +163,7 @@ mountKeyTimeControls(toolbar, {
 		blockIndex: 0,
 	}),
 	scheduler: {
+		/** Capture a scheduled markdown write so the test can see that a header change synced. */
 		schedule(fn) {
 			scheduled.push(fn);
 		},

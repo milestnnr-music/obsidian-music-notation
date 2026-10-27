@@ -51,6 +51,7 @@ export interface AbcSyncSchedulerDeps {
 	readonly clearTimer: (id: number) => void;
 }
 
+/** Browser timers and the 300ms delay, overridable in tests that fake the clock. */
 function defaultSchedulerDeps(): AbcSyncSchedulerDeps {
 	return {
 		delayMs: ABC_SYNC_DEBOUNCE_MS,
@@ -68,10 +69,12 @@ export class AbcSyncScheduler {
 	private pending: AbcSyncCallback | null = null;
 	private readonly deps: AbcSyncSchedulerDeps;
 
+	/** Build a scheduler, filling in real timers when a test does not supply them. */
 	constructor(deps: Partial<AbcSyncSchedulerDeps> = {}) {
 		this.deps = { ...defaultSchedulerDeps(), ...deps };
 	}
 
+	/** Replace any pending write and restart the delay so rapid edits become one save. */
 	schedule(callback: AbcSyncCallback): void {
 		this.pending = callback;
 		this.clearTimer();
@@ -83,11 +86,13 @@ export class AbcSyncScheduler {
 		}, this.deps.delayMs);
 	}
 
+	/** Drop a pending write without running it, used when an edit is abandoned. */
 	cancel(): void {
 		this.clearTimer();
 		this.pending = null;
 	}
 
+	/** Run a pending write immediately, used when the block is unmounted before the delay ends. */
 	flush(): void {
 		this.clearTimer();
 		const fn = this.pending;
@@ -95,10 +100,12 @@ export class AbcSyncScheduler {
 		void fn?.();
 	}
 
+	/** True while a write is waiting for the debounce delay, mainly for tests. */
 	hasPending(): boolean {
 		return this.pending !== null;
 	}
 
+	/** Cancel the current timer id so a newer schedule does not fire the old callback. */
 	private clearTimer(): void {
 		if (this.timer !== null) {
 			this.deps.clearTimer(this.timer);
@@ -148,6 +155,7 @@ export function isAbcBlockEmptyInMarkdown(
 	return isEmptyAbcBlockSource(body);
 }
 
+/** True when this block's fence is blank in the open editor, or on disk if no editor is open. */
 export async function isAbcBlockEmptyInDocument(
 	ctx: AbcBlockSyncContext,
 ): Promise<boolean> {
@@ -246,6 +254,7 @@ export async function applyAbcBodyToDocument(
 	return { ok: true, abcBody };
 }
 
+/** Replace only the fence interior in the open editor so Obsidian can undo the write. */
 function applyAbcBodyViaEditor(
 	editor: Editor,
 	blockOpenLine: number | null,
@@ -263,6 +272,7 @@ function applyAbcBodyViaEditor(
 	return { ok: true, abcBody };
 }
 
+/** Editor range covering the fence body; an empty fence is a zero-width range at the body start. */
 function getAbcBlockBodyEditRange(
 	editor: Editor,
 	range: AbcBlockFenceRange,
@@ -289,6 +299,7 @@ export function resolveSyncBlockOpenLine(
 	return ctx.blockOpenLine;
 }
 
+/** Editor for this note, preferring the leaf that contains the block when the same note is open twice. */
 function findMarkdownEditorForPath(
 	app: App,
 	sourcePath: string,

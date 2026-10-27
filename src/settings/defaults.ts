@@ -23,6 +23,7 @@ export interface BlockDefaults {
 	measureThreshold: number;
 }
 
+/** Keep a saved key only if it is one of the v1 teaching keys; otherwise use C. */
 function normalizeKey(value: string | undefined): string {
 	if (value && ALLOWED_KEY_SIGNATURES.includes(value)) {
 		return value;
@@ -30,6 +31,7 @@ function normalizeKey(value: string | undefined): string {
 	return ABC_DEFAULTS.keySignature;
 }
 
+/** Keep a saved time signature only if it is 4/4, 3/4, or 2/4; otherwise use 4/4. */
 function normalizeTime(value: string | undefined): string {
 	if (value && ALLOWED_TIME_SIGNATURES.includes(value)) {
 		return value;
@@ -37,6 +39,7 @@ function normalizeTime(value: string | undefined): string {
 	return ABC_DEFAULTS.timeSignature;
 }
 
+/** Keep a positive whole-number measure warning threshold, or the built-in default of 4. */
 function normalizeMeasureThreshold(value: number | undefined): number {
 	if (typeof value === 'number' && Number.isFinite(value) && value >= 1) {
 		return Math.floor(value);

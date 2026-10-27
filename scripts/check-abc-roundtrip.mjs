@@ -13,6 +13,7 @@ const { ABC_DEFAULTS } = await jiti.import('../src/serializer/abc-defaults.ts');
 let passed = 0;
 let failed = 0;
 
+/** Record a pass or fail for one round-trip check without stopping the rest of the script. */
 function assert(condition, message) {
 	if (!condition) {
 		console.error(`FAIL: ${message}`);
@@ -23,6 +24,7 @@ function assert(condition, message) {
 	passed++;
 }
 
+/** Parse ABC, write it back, and check the score is unchanged, used for the v1 notation subset. */
 function roundTrip(label, abc) {
 	const parsed = parseAbc(abc);
 	assert(parsed.score !== null, `${label}: parse produced a score`);

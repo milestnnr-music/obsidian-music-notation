@@ -35,6 +35,7 @@ const { getImplicitDefaultAbcShell } = await jiti.import(
 let passed = 0;
 let failed = 0;
 
+/** Record a pass or fail for one staff-placement check without stopping the rest of the script. */
 function assert(condition, message) {
 	if (!condition) {
 		console.error(`FAIL: ${message}`);

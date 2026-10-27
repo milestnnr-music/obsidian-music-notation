@@ -64,30 +64,37 @@ function patchObsidianElement(el) {
 	if (typeof el.empty === 'function') {
 		return el;
 	}
+	/** Clears the element's children, matching Obsidian's empty() in these tests. */
 	el.empty = function empty() {
 		this.innerHTML = '';
 	};
+	/** Adds CSS classes the way Obsidian's addClass does. */
 	el.addClass = function addClass(...classes) {
 		for (const cls of classes) {
 			this.classList.add(cls);
 		}
 	};
+	/** Toggles a class, including the forced on/off form Obsidian supports. */
 	el.toggleClass = function toggleClass(cls, active) {
 		this.classList.toggle(cls, active);
 	};
+	/** Removes CSS classes the way Obsidian's removeClass does. */
 	el.removeClass = function removeClass(...classes) {
 		for (const cls of classes) {
 			this.classList.remove(cls);
 		}
 	};
+	/** Sets inline styles from a property map, matching Obsidian's setCssProps. */
 	el.setCssProps = function setCssProps(props) {
 		for (const [key, value] of Object.entries(props)) {
 			this.style[key] = value;
 		}
 	};
+	/** Sets one attribute, matching Obsidian's setAttr. */
 	el.setAttr = function setAttr(name, value) {
 		this.setAttribute(name, value);
 	};
+	/** Creates a child div and patches it so nested mounts can use the same helpers. */
 	el.createDiv = function createDiv({ cls, attr, text } = {}) {
 		const child = this.ownerDocument.createElement('div');
 		if (cls) {
@@ -106,6 +113,7 @@ function patchObsidianElement(el) {
 		this.appendChild(child);
 		return child;
 	};
+	/** Creates a child span and patches it so nested mounts can use the same helpers. */
 	el.createSpan = function createSpan({ cls, text } = {}) {
 		const child = this.ownerDocument.createElement('span');
 		if (cls) {
@@ -118,6 +126,7 @@ function patchObsidianElement(el) {
 		this.appendChild(child);
 		return child;
 	};
+	/** Creates a child element and patches it so nested mounts can use the same helpers. */
 	el.createEl = function createEl(tag, { cls, text, attr } = {}) {
 		const child = this.ownerDocument.createElement(tag);
 		if (cls) {

@@ -14,6 +14,7 @@ export interface ScoreEditorState {
 
 export type EditorStateChangeListener = (state: ScoreEditorState) => void;
 
+/** Starting toolbar state: quarter notes, no accidental, and note (not rest) placement. */
 export function createDefaultEditorState(): ScoreEditorState {
 	return {
 		duration: ABC_DEFAULTS.defaultNoteDuration,
@@ -22,19 +23,22 @@ export function createDefaultEditorState(): ScoreEditorState {
 	};
 }
 
-/** Mutable per-block editor chrome state (toolbar selection until staff interaction in 5.2+). */
+/** Holds the toolbar choices for one block and notifies the staff when they change. */
 export class EditorStateController {
 	private state: ScoreEditorState;
 	private readonly listeners = new Set<EditorStateChangeListener>();
 
+	/** Start from the default toolbar state, or a snapshot supplied by a test. */
 	constructor(initial: ScoreEditorState = createDefaultEditorState()) {
 		this.state = initial;
 	}
 
+	/** Current duration, accidental, and placement mode for staff clicks and the toolbar. */
 	getState(): ScoreEditorState {
 		return this.state;
 	}
 
+	/** Select the duration used for the next placed note and for a selected note's rewrite. */
 	setDuration(duration: NoteDuration): void {
 		if (this.state.duration === duration) {
 			return;
@@ -65,12 +69,14 @@ export class EditorStateController {
 		this.notify();
 	}
 
+	/** Switch between placing notes and placing rests from the rest button. */
 	toggleRestMode(): void {
 		const next: EditorPlacementMode =
 			this.state.placementMode === 'rest' ? 'note' : 'rest';
 		this.setPlacementMode(next);
 	}
 
+	/** Listen for toolbar changes; the returned function removes that listener. */
 	subscribe(listener: EditorStateChangeListener): () => void {
 		this.listeners.add(listener);
 		return () => {
@@ -78,6 +84,7 @@ export class EditorStateController {
 		};
 	}
 
+	/** Tell every listener the latest state so buttons and the staff stay in sync. */
 	private notify(): void {
 		const snapshot = this.state;
 		for (const listener of this.listeners) {

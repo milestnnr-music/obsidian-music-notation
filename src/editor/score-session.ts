@@ -25,6 +25,7 @@ export function scoreToDisplayAbc(score: Score): string {
 	return writeAbc(score);
 }
 
+/** Copy a pitch and attach the toolbar accidental, used when placing a note from a staff click. */
 export function applyToolbarAccidental(
 	pitch: Pitch,
 	accidental: EditorAccidentalMode,

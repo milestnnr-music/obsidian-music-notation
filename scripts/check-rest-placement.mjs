@@ -21,6 +21,7 @@ const { mountToolbar } = await jiti.import('../src/editor/toolbar.ts');
 let passed = 0;
 let failed = 0;
 
+/** Record a pass or fail for one rest-placement check without stopping the rest of the script. */
 function assert(condition, message) {
 	if (!condition) {
 		console.error(`FAIL: ${message}`);
@@ -85,18 +86,22 @@ globalThis.document = window.document;
 globalThis.HTMLElement = window.HTMLElement;
 globalThis.HTMLButtonElement = window.HTMLButtonElement;
 
+/** Add the Obsidian element helpers the rest-placement widget uses under happy-dom. */
 function patchObsidianElement(el) {
 	if (typeof el.empty === 'function') {
 		return el;
 	}
+	/** Clears the element's children, matching Obsidian's empty() in these tests. */
 	el.empty = function empty() {
 		this.innerHTML = '';
 	};
+	/** Adds CSS classes the way Obsidian's addClass does. */
 	el.addClass = function addClass(...classes) {
 		for (const cls of classes) {
 			this.classList.add(cls);
 		}
 	};
+	/** Toggles a class, including the forced on/off form Obsidian supports. */
 	el.toggleClass = function toggleClass(cls, active) {
 		if (active === undefined) {
 			this.classList.toggle(cls);
@@ -104,9 +109,11 @@ function patchObsidianElement(el) {
 		}
 		this.classList.toggle(cls, active);
 	};
+	/** Sets one attribute, matching Obsidian's setAttr. */
 	el.setAttr = function setAttr(name, value) {
 		this.setAttribute(name, value);
 	};
+	/** Creates a child div and patches it so nested mounts can use the same helpers. */
 	el.createDiv = function createDiv({ cls, attr, text } = {}) {
 		const child = this.ownerDocument.createElement('div');
 		if (cls) {
@@ -124,6 +131,7 @@ function patchObsidianElement(el) {
 		this.appendChild(child);
 		return child;
 	};
+	/** Creates a child span and patches it so nested mounts can use the same helpers. */
 	el.createSpan = function createSpan({ cls, text } = {}) {
 		const child = this.ownerDocument.createElement('span');
 		if (cls) {
@@ -136,6 +144,7 @@ function patchObsidianElement(el) {
 		this.appendChild(child);
 		return child;
 	};
+	/** Creates a child element and patches it so nested mounts can use the same helpers. */
 	el.createEl = function createEl(tag, { cls, text, attr } = {}) {
 		const child = this.ownerDocument.createElement(tag);
 		if (cls) {

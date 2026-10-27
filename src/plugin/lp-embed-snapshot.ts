@@ -16,10 +16,12 @@ export interface LpEmbedSnapshot {
 	readonly mappingReliable: boolean;
 }
 
+/** The Live Preview source view, or the whole leaf when that wrapper is not in the DOM yet. */
 function previewRootForView(view: { contentEl: HTMLElement }): HTMLElement {
 	return view.contentEl.querySelector('.markdown-source-view') ?? view.contentEl;
 }
 
+/** True when embed hosts cannot be lined up with fences, which happens while one block is being edited inline. */
 function isLpMappingUnreliable(
 	fenceCount: number,
 	embedHostCount: number,

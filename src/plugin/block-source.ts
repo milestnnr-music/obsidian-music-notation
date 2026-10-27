@@ -22,6 +22,7 @@ export function isEmptyAbcBlockSource(source: string): boolean {
 	return normalizeAbcBlockBody(source).length === 0;
 }
 
+/** Classify a fence as empty or filled, used to pick the staff shell versus a rendered score. */
 export function getAbcBlockContentState(source: string): AbcBlockContentState {
 	return isEmptyAbcBlockSource(source) ? 'empty' : 'has-content';
 }
@@ -179,6 +180,7 @@ export function extractAllAbcBlockBodies(markdown: string): string[] {
 	return bodies;
 }
 
+/** Pull one ```abc body from Obsidian's section cache when the processor source is incomplete. */
 function pickAbcBodyFromSectionCache(
 	markdown: string,
 	sections: SectionCache[],
@@ -223,6 +225,7 @@ function pickAbcBodyFromSectionCache(
 	return bodies[0] ?? null;
 }
 
+/** Read a fence body from the full note, using a line hint when several fences exist. */
 function extractAbcBlockFromNote(
 	markdown: string,
 	lineHint: number | null,
@@ -240,6 +243,7 @@ function extractAbcBlockFromNote(
 	return bodies[index] ?? bodies[0] ?? null;
 }
 
+/** Count ```abc opening fences up to a line to get that block's index. */
 function abcBlockIndexAtLine(markdown: string, lineStart: number): number {
 	const lines = markdown.split(/\r?\n/);
 	let index = -1;
@@ -253,6 +257,7 @@ function abcBlockIndexAtLine(markdown: string, lineStart: number): number {
 	return Math.max(0, index);
 }
 
+/** Prefer the CodeMirror embed as the anchor so the right pane is found when a note is open twice. */
 function containingAnchorForMarkdownView(element: HTMLElement): HTMLElement {
 	const embed = element.closest('.cm-embed-block');
 	if (embed instanceof HTMLElement) {
@@ -291,6 +296,7 @@ export function getMarkdownFromView(view: MarkdownView): string {
 	return view.data;
 }
 
+/** Current markdown for this note, preferring the open editor over the last saved file. */
 export async function readNoteMarkdown(
 	app: App,
 	file: TFile,
@@ -324,6 +330,7 @@ export async function readNoteMarkdown(
 	return app.vault.cachedRead(file);
 }
 
+/** Body of the first ```abc fence in a section snippet, or the snippet itself when fences are already stripped. */
 function extractAbcCodeBlockBody(text: string): string | null {
 	const trimmed = text.trim();
 	if (!trimmed) return null;
@@ -335,6 +342,7 @@ function extractAbcCodeBlockBody(text: string): string | null {
 	return extractAllAbcBlockBodies(trimmed)[0] ?? null;
 }
 
+/** Prefer whichever ABC candidate actually contains music, then the longer one. */
 function chooseBestAbcSource(processor: string, alternate: string | null): string {
 	if (!alternate) return processor;
 

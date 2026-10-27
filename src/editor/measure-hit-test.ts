@@ -89,6 +89,7 @@ export function xToMeasureIndex(x: number, barPositions: number[]): number {
 	return Math.max(0, measureIndex - 1);
 }
 
+/** Bar-line center in SVG units when the element has no viewport box, used by headless tests. */
 function barCenterXInSvg(svg: SVGSVGElement, el: Element): number | null {
 	if (typeof (el as SVGGraphicsElement).getBBox !== 'function') {
 		return null;
@@ -116,6 +117,7 @@ interface SvgIntrinsicBox {
 	readonly y: number;
 }
 
+/** User-space size of the SVG, preferring viewBox over the on-screen pixel size. */
 function readSvgIntrinsicBox(svg: SVGSVGElement, rect: DOMRect): SvgIntrinsicBox {
 	const viewBox = svg.viewBox?.baseVal;
 	if (viewBox && viewBox.width > 0 && viewBox.height > 0) {
@@ -144,6 +146,7 @@ function readSvgIntrinsicBox(svg: SVGSVGElement, rect: DOMRect): SvgIntrinsicBox
 	};
 }
 
+/** Drop bar positions that sit on top of each other so a double bar is one measure boundary. */
 function dedupeNear(values: number[], epsilon: number): number[] {
 	const unique: number[] = [];
 	for (const value of values) {

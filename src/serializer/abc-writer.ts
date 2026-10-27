@@ -5,7 +5,7 @@ import {
 	pitchToAbc,
 } from './abc-mapping';
 
-/** Phase 3: Serialize a Score model to ABC text. */
+/** Turn a score into ABC text (headers plus music) for the fence body and for on-screen rendering. */
 export function writeAbc(score: Score): string {
 	const lines = [
 		'X:1',
@@ -31,6 +31,7 @@ export function writeAbc(score: Score): string {
 	return lines.join('\n');
 }
 
+/** ABC token for one note or rest, relative to the score's default duration. */
 function eventToAbc(
 	event: MeasureEvent,
 	defaultNoteDuration: Score['defaultNoteDuration'],
@@ -41,6 +42,7 @@ function eventToAbc(
 	return noteToAbc(event, defaultNoteDuration);
 }
 
+/** ABC for the first pitch of a note; chords are stored as a single pitch in this model. */
 function noteToAbc(
 	note: NoteEvent,
 	defaultNoteDuration: Score['defaultNoteDuration'],
@@ -54,6 +56,7 @@ function noteToAbc(
 	return `${pitchToAbc(pitch)}${durationSuffix}`;
 }
 
+/** ABC rest token (`z` plus a duration suffix) for writing a rest back into the fence. */
 function restToAbc(
 	rest: RestEvent,
 	defaultNoteDuration: Score['defaultNoteDuration'],

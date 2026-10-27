@@ -12,6 +12,7 @@ export interface ScoreNoteRef {
 
 const SCORE_EVENT_SELECTOR = '.abcjs-note, .abcjs-rest';
 
+/** Climb from a clicked glyph to the abcjs note or rest group that owns it. */
 function findScoreEventGroup(element: Element, svg: SVGSVGElement): Element | null {
 	const group = element.closest(SCORE_EVENT_SELECTOR);
 	if (group && svg.contains(group)) {
@@ -56,6 +57,7 @@ export function findNoteElementAt(
 	return null;
 }
 
+/** Narrow `elementsFromPoint` results to real elements; some engines include text nodes. */
 function isElementNode(value: unknown): value is Element {
 	return (
 		typeof value === 'object' &&
@@ -65,6 +67,7 @@ function isElementNode(value: unknown): value is Element {
 	);
 }
 
+/** Read the measure and event indexes stamped on a note during render, or null if they are missing. */
 export function readScoreNoteRef(element: Element): ScoreNoteRef | null {
 	const measureRaw = element.getAttribute('data-measure-index');
 	const eventRaw = element.getAttribute('data-event-index');
@@ -81,6 +84,7 @@ export function readScoreNoteRef(element: Element): ScoreNoteRef | null {
 	return { measureIndex, eventIndex };
 }
 
+/** Toggle our hover or selection mark, and strip a stale class token abcjs may have rewritten. */
 function setNoteMarked(
 	el: Element | null,
 	attr: string,
@@ -112,6 +116,7 @@ function setNoteMarked(
 	}
 }
 
+/** Clear abcjs's red click highlight on one glyph so our own selection color can show. */
 function restoreElementAbcjsHighlight(el: Element, defaultFill: string): void {
 	const highlightAttr = el.getAttribute('highlight') ?? 'fill';
 	const painted = el.getAttribute(highlightAttr);
@@ -199,10 +204,12 @@ export class NoteSelectionController {
 	private selectedEl: Element | null = null;
 	private readonly visualRoots: ParentNode[];
 
+	/** Remember which DOM roots to scrub when selection is cleared after a re-render. */
 	constructor(visualRoots: readonly ParentNode[] = []) {
 		this.visualRoots = [...visualRoots];
 	}
 
+	/** Move the hover mark to the note under the pointer while Shift is held. */
 	setHoverNote(note: Element | null): void {
 		if (this.hoverEl === note) {
 			return;
@@ -212,10 +219,12 @@ export class NoteSelectionController {
 		setNoteMarked(this.hoverEl, NOTE_HOVER_ATTR, NOTE_HOVER_CLASS, true);
 	}
 
+	/** Remove the hover mark when the pointer leaves a note or Shift is released. */
 	clearHover(): void {
 		this.setHoverNote(null);
 	}
 
+	/** Select a note for duration edits and delete, returning its score indexes. */
 	selectNote(note: Element): ScoreNoteRef | null {
 		const ref = readScoreNoteRef(note);
 		if (!ref) {
@@ -232,17 +241,20 @@ export class NoteSelectionController {
 		return ref;
 	}
 
+	/** Drop the selected note and any leftover marks, including after the staff is redrawn. */
 	clearSelection(): void {
 		setNoteMarked(this.selectedEl, NOTE_SELECTED_ATTR, NOTE_SELECTED_CLASS, false);
 		this.selectedEl = null;
 		stripAllNoteVisualState(this.visualRoots);
 	}
 
+	/** Clear hover and selection together before placing a new note or leaving the staff. */
 	clearAllVisualState(): void {
 		this.clearHover();
 		this.clearSelection();
 	}
 
+	/** Indexes of the selected note, used by the toolbar duration buttons and the delete key. */
 	getSelection(): ScoreNoteRef | null {
 		if (!this.selectedEl) {
 			return null;
@@ -250,6 +262,7 @@ export class NoteSelectionController {
 		return readScoreNoteRef(this.selectedEl);
 	}
 
+	/** Remove marks when the staff interaction is detached on re-render. */
 	dispose(): void {
 		this.clearAllVisualState();
 	}
