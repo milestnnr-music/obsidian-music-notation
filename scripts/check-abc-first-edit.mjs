@@ -6,11 +6,8 @@ import { createJiti } from 'jiti';
 
 const jiti = createJiti(import.meta.url);
 const { writeAbc } = await jiti.import('../src/serializer/abc-writer.ts');
-const {
-	createEmptyScore,
-	createFirstEditScore,
-	scoreHasEvents,
-} = await jiti.import('../src/model/score.ts');
+const { placeNoteInScore } = await jiti.import('../src/editor/score-session.ts');
+const { createEmptyScore, scoreHasEvents } = await jiti.import('../src/model/score.ts');
 const {
 	isAbcBlockEmptyInMarkdown,
 	scoreToAbcBody,
@@ -49,7 +46,12 @@ assert(
 );
 
 const emptyScore = createEmptyScore();
-const firstEditScore = createFirstEditScore();
+const firstEditScore = placeNoteInScore(
+	emptyScore,
+	0,
+	{ step: 'C', octave: 3 },
+	'quarter',
+);
 
 assert(!scoreHasEvents(emptyScore), 'empty score has no events');
 assert(scoreHasEvents(firstEditScore), 'first-edit score has events');
