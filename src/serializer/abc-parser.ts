@@ -35,18 +35,22 @@ export function parseAbc(abc: string): AbcParseResult {
 	let voiceIndex = 0;
 
 	for (const line of lines) {
+		// Header information
 		if (line.startsWith('X:')) {
 			continue;
 		}
 		if (line.startsWith('M:')) {
+			// Meter information
 			timeSignature = line.slice(2).trim();
 			continue;
 		}
 		if (line.startsWith('L:')) {
+			// Default note duration
 			defaultNoteDuration = abcLToDefaultDuration(line.slice(2));
 			continue;
 		}
 		if (line.startsWith('K:')) {
+			// Key information
 			keySignature = line.slice(2).trim();
 			continue;
 		}
@@ -80,7 +84,12 @@ export function parseAbc(abc: string): AbcParseResult {
 
 	if (musicLines.length === 0) {
 		return {
-			score: createScore(timeSignature, keySignature, defaultNoteDuration, []),
+			score: createScore(
+				timeSignature,
+				keySignature,
+				defaultNoteDuration,
+				[],
+			),
 			warnings,
 		};
 	}
@@ -89,7 +98,12 @@ export function parseAbc(abc: string): AbcParseResult {
 	const measures = parseMeasures(body, defaultNoteDuration, warnings);
 
 	return {
-		score: createScore(timeSignature, keySignature, defaultNoteDuration, measures),
+		score: createScore(
+			timeSignature,
+			keySignature,
+			defaultNoteDuration,
+			measures,
+		),
 		warnings,
 	};
 }
@@ -143,13 +157,22 @@ function parseMeasureEvents(
 		}
 
 		if (char === '[') {
-			const chordResult = parseChord(segment, i, defaultNoteDuration, warnings);
+			const chordResult = parseChord(
+				segment,
+				i,
+				defaultNoteDuration,
+				warnings,
+			);
 			if (chordResult) {
 				events.push(chordResult.event);
 				i += chordResult.consumed;
 				continue;
 			}
-			pushWarning(warnings, 'unsupported', 'Unrecognized chord notation; skipping.');
+			pushWarning(
+				warnings,
+				'unsupported',
+				'Unrecognized chord notation; skipping.',
+			);
 			i++;
 			continue;
 		}
@@ -192,8 +215,14 @@ function parseNote(
 		return null;
 	}
 
-	const durationResult = parseAbcDurationSuffix(source, index + pitchResult.consumed);
-	const duration = abcSuffixToDuration(durationResult.suffix, defaultNoteDuration);
+	const durationResult = parseAbcDurationSuffix(
+		source,
+		index + pitchResult.consumed,
+	);
+	const duration = abcSuffixToDuration(
+		durationResult.suffix,
+		defaultNoteDuration,
+	);
 	if (!duration) {
 		return null;
 	}
@@ -219,7 +248,10 @@ function parseRest(
 	}
 
 	const durationResult = parseAbcDurationSuffix(source, index + 1);
-	const duration = abcSuffixToDuration(durationResult.suffix, defaultNoteDuration);
+	const duration = abcSuffixToDuration(
+		durationResult.suffix,
+		defaultNoteDuration,
+	);
 	if (!duration) {
 		return null;
 	}
@@ -252,11 +284,17 @@ function parseChord(
 		return null;
 	}
 
-	pushWarning(warnings, 'chord', 'Chord detected; using the first pitch only.');
+	pushWarning(
+		warnings,
+		'chord',
+		'Chord detected; using the first pitch only.',
+	);
 
 	let consumed = closeIndex - index + 1;
 	const durationResult = parseAbcDurationSuffix(source, index + consumed);
-	const duration = abcSuffixToDuration(durationResult.suffix, defaultNoteDuration) ?? 'quarter';
+	const duration =
+		abcSuffixToDuration(durationResult.suffix, defaultNoteDuration) ??
+		'quarter';
 	consumed += durationResult.consumed;
 
 	return {
@@ -275,7 +313,11 @@ function pushWarning(
 	kind: AbcParseWarning['kind'],
 	message: string,
 ): void {
-	if (warnings.some((warning) => warning.kind === kind && warning.message === message)) {
+	if (
+		warnings.some(
+			(warning) => warning.kind === kind && warning.message === message,
+		)
+	) {
 		return;
 	}
 	warnings.push({ kind, message });
@@ -284,10 +326,10 @@ function pushWarning(
 /** Compare two scores for round-trip testing (ignores extra empty measures). */
 export function scoresEqual(a: Score, b: Score): boolean {
 	if (
-		a.timeSignature !== b.timeSignature
-		|| a.keySignature !== b.keySignature
-		|| a.defaultNoteDuration !== b.defaultNoteDuration
-		|| a.staves.length !== b.staves.length
+		a.timeSignature !== b.timeSignature ||
+		a.keySignature !== b.keySignature ||
+		a.defaultNoteDuration !== b.defaultNoteDuration ||
+		a.staves.length !== b.staves.length
 	) {
 		return false;
 	}
@@ -304,7 +346,11 @@ export function scoresEqual(a: Score, b: Score): boolean {
 		if (staffA.measures.length !== staffB.measures.length) {
 			return false;
 		}
-		for (let measureIndex = 0; measureIndex < staffA.measures.length; measureIndex++) {
+		for (
+			let measureIndex = 0;
+			measureIndex < staffA.measures.length;
+			measureIndex++
+		) {
 			const measureA = staffA.measures[measureIndex];
 			const measureB = staffB.measures[measureIndex];
 			if (!measureA || !measureB) {
@@ -313,8 +359,17 @@ export function scoresEqual(a: Score, b: Score): boolean {
 			if (measureA.events.length !== measureB.events.length) {
 				return false;
 			}
-			for (let eventIndex = 0; eventIndex < measureA.events.length; eventIndex++) {
-				if (!eventsEqual(measureA.events[eventIndex], measureB.events[eventIndex])) {
+			for (
+				let eventIndex = 0;
+				eventIndex < measureA.events.length;
+				eventIndex++
+			) {
+				if (
+					!eventsEqual(
+						measureA.events[eventIndex],
+						measureB.events[eventIndex],
+					)
+				) {
 					return false;
 				}
 			}
@@ -325,7 +380,10 @@ export function scoresEqual(a: Score, b: Score): boolean {
 }
 
 /** Compare one note or rest, including the first pitch's step, octave, and accidental. */
-function eventsEqual(a: MeasureEvent | undefined, b: MeasureEvent | undefined): boolean {
+function eventsEqual(
+	a: MeasureEvent | undefined,
+	b: MeasureEvent | undefined,
+): boolean {
 	if (!a || !b) {
 		return false;
 	}
@@ -344,8 +402,8 @@ function eventsEqual(a: MeasureEvent | undefined, b: MeasureEvent | undefined): 
 		return pitchA === pitchB;
 	}
 	return (
-		pitchA.step === pitchB.step
-		&& pitchA.octave === pitchB.octave
-		&& pitchA.accidental === pitchB.accidental
+		pitchA.step === pitchB.step &&
+		pitchA.octave === pitchB.octave &&
+		pitchA.accidental === pitchB.accidental
 	);
 }
